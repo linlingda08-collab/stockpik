@@ -84,14 +84,14 @@
             <!-- 動的生成 -->
         </div>
 
-        <!-- カテゴリー詳細時：上下分割表示エリア -->
+        <!-- カテゴリー詳細時：上下分割表示エリア（スワイプ検出対応） -->
         <div id="categoryContentArea" class="hidden space-y-6">
             
-            <!-- ① 買う物（リマインダー）セクション -->
+            <!-- ① リマインダー セクション -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
                     <i class="fa-solid fa-basket-shopping text-indigo-600"></i>
-                    <span>買う物（リマインダー）</span>
+                    <span>リマインダー</span>
                 </h3>
                 <div id="reminderItemsContainer" class="space-y-2">
                     <!-- 動的生成 -->
@@ -109,11 +109,11 @@
                 </div>
             </div>
 
-            <!-- ② メモ・製品記録（消えない）セクション -->
+            <!-- ② メモ セクション -->
             <div class="space-y-2 pt-4 border-t border-slate-200/80">
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
                     <i class="fa-solid fa-book-open text-indigo-600"></i>
-                    <span>メモ・製品記録（消えない）</span>
+                    <span>メモ</span>
                 </h3>
                 <div id="memoItemsContainer" class="space-y-2">
                     <!-- 動的生成 -->
@@ -169,14 +169,14 @@
                         <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-indigo-200 cursor-pointer shadow-xs">
                             <input type="radio" name="itemType" value="reminder" checked class="text-indigo-600 focus:ring-indigo-500">
                             <div>
-                                <span class="text-xs font-bold block text-slate-800">🛒 買う物</span>
-                                <span class="text-[10px] text-slate-400 block">消せるリマインダー</span>
+                                <span class="text-xs font-bold block text-slate-800">🛒 リマインダー</span>
+                                <span class="text-[10px] text-slate-400 block">チェックで消せる</span>
                             </div>
                         </label>
                         <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-indigo-200 cursor-pointer shadow-xs">
                             <input type="radio" name="itemType" value="memo" class="text-indigo-600 focus:ring-indigo-500">
                             <div>
-                                <span class="text-xs font-bold block text-slate-800">📖 メモ・記録</span>
+                                <span class="text-xs font-bold block text-slate-800">📖 メモ</span>
                                 <span class="text-[10px] text-slate-400 block">消えない保存用</span>
                             </div>
                         </label>
@@ -195,7 +195,6 @@
                     <input type="hidden" id="itemImageBase64">
                     
                     <div id="imagePreviewContainer" class="mt-2 hidden flex items-center space-x-3">
-                        <!-- プレビュー時も全景表示 -->
                         <img id="imagePreview" class="w-20 h-20 object-contain rounded-xl border border-slate-200 bg-white shadow-sm shrink-0">
                     </div>
                 </div>
@@ -288,9 +287,37 @@
         let showCompletedAccordion = false;
         let viewingItemId = null;
 
+        // タッチ操作（スワイプバック）用変数
+        let touchStartX = 0;
+        let touchStartY = 0;
+
         function init() {
             renderCategorySelect();
             renderApp();
+            initSwipeGesture();
+        }
+
+        // 画面右方向へのスワイプで一覧に戻るジェスチャー
+        function initSwipeGesture() {
+            const mainArea = document.getElementById('categoryContentArea');
+            
+            mainArea.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            }, {passive: true});
+
+            mainArea.addEventListener('touchend', (e) => {
+                let touchEndX = e.changedTouches[0].screenX;
+                let touchEndY = e.changedTouches[0].screenY;
+                
+                let diffX = touchEndX - touchStartX;
+                let diffY = Math.abs(touchEndY - touchStartY);
+
+                // 左端からスタート または 大きく右へスワイプした場合（かつ縦方向のブレが少ない場合）
+                if (diffX > 80 && diffY < 60 && touchStartX < 80) {
+                    closeCategoryDetail();
+                }
+            }, {passive: true});
         }
 
         function openCategoryDetail(genreName) {
@@ -367,13 +394,12 @@
             }
         }
 
-        // 閲覧モーダルを開く（画像を切り取らず全体表示）
         function openViewModal(id) {
             viewingItemId = id;
             const item = items.find(i => i.id === id);
             if (!item) return;
 
-            const typeLabel = item.type === 'memo' ? '<span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded">📖 メモ・記録</span>' : '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">🛒 買う物</span>';
+            const typeLabel = item.type === 'memo' ? '<span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded">📖 メモ</span>' : '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">🛒 リマインダー</span>';
 
             const content = document.getElementById('viewModalContent');
             content.innerHTML = `
@@ -478,17 +504,17 @@
 
                 if (categoryItems.length === 0) {
                     emptyState.classList.remove('hidden');
-                    reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">アイテムがありません</p>';
-                    memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモがありません</p>';
+                    reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">リバーインダーはありません</p>';
+                    memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモはありません</p>';
                     completedSection.classList.add('hidden');
                     return;
                 }
 
                 emptyState.classList.add('hidden');
 
-                // 買う物リスト描画（背景はすべて白に固定）
+                // リマインダーリスト描画（背景は白固定）
                 if (remindersActive.length === 0) {
-                    reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">買う物はありません</p>';
+                    reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">リマインダーはありません</p>';
                 } else {
                     reminderItemsContainer.innerHTML = remindersActive.map(item => {
                         const urgentStyle = item.urgent ? 'border-2 border-rose-500 shadow-sm' : 'border border-slate-200';
@@ -546,7 +572,7 @@
                     completedSection.classList.add('hidden');
                 }
 
-                // メモ・記録リスト描画（背景はすべて白に固定＆画像は全景表示）
+                // メモリスト描画（背景は白固定）
                 if (memos.length === 0) {
                     memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモはありません</p>';
                 } else {
