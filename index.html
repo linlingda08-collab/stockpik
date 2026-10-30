@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>memory - 必要品・ストック管理</title>
+    <title>Reminders - 必要品・ストック管理</title>
 
     <!-- iPhone ホーム画面アイコン & アプリ設定 -->
     <link rel="apple-touch-icon" href="icon.PNG">
-    <meta name="apple-mobile-web-app-title" content="memory">
+    <meta name="apple-mobile-web-app-title" content="Reminders">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
@@ -53,17 +53,16 @@
             <div class="flex items-center space-x-2">
                 <img src="icon.PNG" id="headerIcon" class="w-9 h-9 rounded-xl object-cover shadow-sm border border-slate-100" onerror="this.style.display='none'; document.getElementById('headerIconFallback').style.display='flex';">
                 <div id="headerIconFallback" class="hidden bg-indigo-600 text-white w-9 h-9 rounded-xl items-center justify-center shadow-md">
-                    <i class="fa-solid fa-box-archive text-lg"></i>
+                    <i class="fa-solid fa-list-check text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">memory</h1>
+                    <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">Reminders</h1>
                     <p class="text-[10px] text-slate-400">必要品・買い物時期メモ</p>
                 </div>
             </div>
 
             <!-- 表示モード切替 ＆ ジャンル編集 ＆ 必要品追加ボタン -->
             <div class="flex items-center space-x-1.5">
-                <!-- 表示モード切替ボタン -->
                 <button onclick="toggleViewMode()" id="viewModeBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-2.5 py-2 rounded-xl text-xs transition flex items-center space-x-1 border border-slate-200" title="表示切替">
                     <i id="viewModeIcon" class="fa-solid fa-folder-tree text-indigo-600"></i>
                 </button>
@@ -80,6 +79,19 @@
     </header>
 
     <main class="max-w-4xl mx-auto px-4 pt-4">
+
+        <!-- カテゴリー詳細画面時の「戻るヘッダー」 -->
+        <div id="categoryDetailHeader" class="hidden mb-4 flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+            <button onclick="closeCategoryDetail()" class="text-indigo-600 font-bold text-sm flex items-center space-x-1 hover:text-indigo-800 transition">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+                <span>一覧に戻る</span>
+            </button>
+            <div class="flex items-center space-x-2">
+                <span id="activeCategoryColorDot" class="w-3 h-3 rounded-full border border-slate-200"></span>
+                <h2 id="activeCategoryTitle" class="font-bold text-slate-900 text-base"></h2>
+            </div>
+        </div>
+
         <!-- 検索バー -->
         <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-4 space-y-3">
             <div class="relative">
@@ -87,7 +99,7 @@
                 <input type="text" id="searchInput" oninput="renderApp()" placeholder="品名やメモ、購入先で検索..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
-            <!-- カテゴリ（ジャンル）タブ一覧（※マイリストモード時は非表示） -->
+            <!-- カテゴリ（ジャンル）タブ一覧（※マイリストモード時および詳細表示時は非表示） -->
             <div id="categoryTabsWrapper" class="flex items-center justify-between gap-2 overflow-x-auto pb-1">
                 <div id="categoryTabs" class="flex flex-nowrap sm:flex-wrap gap-1.5 shrink-0">
                     <!-- 動的生成 -->
@@ -100,7 +112,7 @@
             <!-- 動的生成 (リマインダー風マイリスト) -->
         </div>
 
-        <!-- リスト表示エリア（サムネイル / コンパクト） -->
+        <!-- リスト表示エリア（サムネイル / コンパクト / カテゴリー詳細） -->
         <div id="itemsContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <!-- 動的生成 -->
         </div>
@@ -108,16 +120,16 @@
         <!-- 該当なし表示 -->
         <div id="emptyState" class="hidden text-center py-16">
             <div class="text-4xl mb-3">📭</div>
-            <p class="text-slate-500 text-sm">該当するアイテムがありません。<br>右上から追加してみましょう！</p>
+            <p class="text-slate-500 text-sm">該当するアイテムまたはカテゴリーがありません。<br>右上から追加してみましょう！</p>
         </div>
     </main>
 
-    <!-- 下部固定カテゴリーナビゲーション（いそぎ / 給料日まで / まだ先） -->
+    <!-- 下部固定カテゴリーナビゲーション -->
     <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-40 px-2 py-1.5 shadow-lg">
         <div class="max-w-md mx-auto grid grid-cols-4 gap-1 text-center">
             <button onclick="setTimingFilter('all')" id="nav-all" class="flex flex-col items-center py-1 rounded-xl transition text-indigo-600 bg-indigo-50">
                 <i class="fa-solid fa-list text-base mb-0.5"></i>
-                <span class="text-[10px] font-bold">すべて</span>
+                <span class="text-[10px] font-bold">一覧</span>
             </button>
             <button onclick="setTimingFilter('urgent')" id="nav-urgent" class="flex flex-col items-center py-1 rounded-xl transition text-slate-500 hover:text-rose-600">
                 <i class="fa-solid fa-fire text-base mb-0.5"></i>
@@ -264,20 +276,14 @@
             else return calcPaydayFor(year, month + 1);
         }
 
-        const defaultGenres = [
-            { id: 1, name: '日用品', color: '#e0e7ff' },
-            { id: 2, name: '食品', color: '#fef3c7' },
-            { id: 3, name: 'コスメ・ケア', color: '#ffe4e6' },
-            { id: 4, name: 'その他', color: '#f1f5f9' }
-        ];
-
-        let customGenres = JSON.parse(localStorage.getItem('memory_genres')) || JSON.parse(localStorage.getItem('stockmemo_genres_v2')) || defaultGenres;
+        // 初期ジャンルは完全に空（ゼロ）にし、自分で作成できるようにする
+        let customGenres = JSON.parse(localStorage.getItem('memory_genres')) || JSON.parse(localStorage.getItem('stockmemo_genres_v2')) || [];
         let items = JSON.parse(localStorage.getItem('memory_items')) || JSON.parse(localStorage.getItem('stockmemo_items')) || [];
 
         let currentGenreFilter = 'すべて';
         let currentTimingFilter = 'all'; 
-        // 表示モード: 'folder' (マイリスト風), 'thumbnail' (カード格子), 'compact' (文字リスト)
         let currentViewMode = localStorage.getItem('memory_view_mode') || 'folder';
+        let selectedCategoryDetail = null; // 特定カテゴリー単体表示用
 
         function init() {
             renderGenreTabs();
@@ -287,6 +293,7 @@
         }
 
         function toggleViewMode() {
+            selectedCategoryDetail = null; // 切替時は詳細表示解除
             if (currentViewMode === 'folder') currentViewMode = 'thumbnail';
             else if (currentViewMode === 'thumbnail') currentViewMode = 'compact';
             else currentViewMode = 'folder';
@@ -300,10 +307,10 @@
             const icon = document.getElementById('viewModeIcon');
             const categoryTabsWrapper = document.getElementById('categoryTabsWrapper');
 
-            if (currentViewMode === 'folder') {
+            if (currentViewMode === 'folder' && !selectedCategoryDetail) {
                 icon.className = 'fa-solid fa-folder-tree text-indigo-600';
-                categoryTabsWrapper.classList.add('hidden'); // マイリストモードではタブ非表示
-            } else if (currentViewMode === 'thumbnail') {
+                categoryTabsWrapper.classList.add('hidden');
+            } else if (currentViewMode === 'thumbnail' || selectedCategoryDetail) {
                 icon.className = 'fa-solid fa-border-all text-indigo-600';
                 categoryTabsWrapper.classList.remove('hidden');
             } else {
@@ -312,19 +319,40 @@
             }
         }
 
+        function openCategoryDetail(genreName) {
+            selectedCategoryDetail = genreName;
+            document.getElementById('categoryDetailHeader').classList.remove('hidden');
+            document.getElementById('activeCategoryTitle').innerText = genreName;
+            document.getElementById('activeCategoryColorDot').style.backgroundColor = getGenreColor(genreName);
+            updateViewModeUI();
+            renderApp();
+        }
+
+        function closeCategoryDetail() {
+            selectedCategoryDetail = null;
+            document.getElementById('categoryDetailHeader').classList.add('hidden');
+            updateViewModeUI();
+            renderApp();
+        }
+
         function renderGenreTabs() {
             const container = document.getElementById('categoryTabs');
-            const list = ['すべて', '⭐ 定番', ...customGenres.map(g => g.name)];
+            const list = ['一覧', '⭐ 定番', ...customGenres.map(g => g.name)];
 
             container.innerHTML = list.map(g => {
-                const active = currentGenreFilter === g;
-                return `<button onclick="setGenreFilter('${g}')" class="px-3 py-1.5 rounded-xl text-xs font-medium transition shrink-0 ${active ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${g}</button>`;
+                const targetVal = g === '一覧' ? 'すべて' : g;
+                const active = currentGenreFilter === targetVal;
+                return `<button onclick="setGenreFilter('${targetVal}')" class="px-3 py-1.5 rounded-xl text-xs font-medium transition shrink-0 ${active ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${g}</button>`;
             }).join('');
         }
 
         function renderCategorySelect() {
             const select = document.getElementById('itemCategory');
-            select.innerHTML = customGenres.map(g => `<option value="${g.name}">${g.name}</option>`).join('');
+            if (customGenres.length === 0) {
+                select.innerHTML = '<option value="">(ジャンルを先に作成してください)</option>';
+            } else {
+                select.innerHTML = customGenres.map(g => `<option value="${g.name}">${g.name}</option>`).join('');
+            }
         }
 
         function setGenreFilter(g) {
@@ -377,8 +405,11 @@
 
             // フィルター処理
             const filteredItems = items.filter(item => {
-                if (currentGenreFilter === '⭐ 定番' && !item.favorite) return false;
-                if (currentGenreFilter !== 'すべて' && currentGenreFilter !== '⭐ 定番' && item.category !== currentGenreFilter) return false;
+                if (selectedCategoryDetail && item.category !== selectedCategoryDetail) return false;
+                if (!selectedCategoryDetail) {
+                    if (currentGenreFilter === '⭐ 定番' && !item.favorite) return false;
+                    if (currentGenreFilter !== 'すべて' && currentGenreFilter !== '⭐ 定番' && item.category !== currentGenreFilter) return false;
+                }
 
                 const timing = getTimingStatus(item.dueDate);
                 if (currentTimingFilter !== 'all' && timing !== currentTimingFilter && timing !== 'expired') return false;
@@ -389,15 +420,6 @@
                 return true;
             });
 
-            if (filteredItems.length === 0 && currentViewMode !== 'folder') {
-                itemsContainer.innerHTML = '';
-                folderContainer.innerHTML = '';
-                emptyState.classList.remove('hidden');
-                return;
-            }
-
-            emptyState.classList.add('hidden');
-
             const badges = {
                 expired: '<span class="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm animate-pulse">⚠️ 期限切れ</span>',
                 urgent: '<span class="bg-rose-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">🔥 いそぎ</span>',
@@ -405,18 +427,26 @@
                 later: '<span class="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">⏳ まだ先</span>'
             };
 
-            // 1. マイリスト（フォルダ）表示モード
-            if (currentViewMode === 'folder') {
+            // 1. マイリスト（フォルダ）表示モード (詳細表示していない時のみ)
+            if (currentViewMode === 'folder' && !selectedCategoryDetail) {
                 itemsContainer.classList.add('hidden');
                 folderContainer.classList.remove('hidden');
 
+                if (customGenres.length === 0) {
+                    folderContainer.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                emptyState.classList.add('hidden');
+
                 folderContainer.innerHTML = customGenres.map(genre => {
-                    const genreItems = filteredItems.filter(i => i.category === genre.name);
+                    const genreItems = items.filter(i => i.category === genre.name);
                     const count = genreItems.length;
 
                     return `
                         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div onclick="toggleFolderExpand('folder-${genre.id}')" class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition" style="border-left: 6px solid ${genre.color};">
+                            <div onclick="openCategoryDetail('${genre.name}')" class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition" style="border-left: 6px solid ${genre.color};">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-8 h-8 rounded-full flex items-center justify-center text-slate-700 font-bold" style="background-color: ${genre.color};">
                                         <i class="fa-solid fa-list-check text-xs"></i>
@@ -428,36 +458,22 @@
                                     <i class="fa-solid fa-chevron-right text-xs"></i>
                                 </div>
                             </div>
-
-                            <div id="folder-${genre.id}" class="hidden border-t border-slate-100 bg-slate-50/50 p-3 space-y-2">
-                                ${count === 0 ? '<p class="text-xs text-slate-400 py-2 text-center">アイテムはありません</p>' : genreItems.map(item => {
-                                    const timing = getTimingStatus(item.dueDate);
-                                    const dateVal = item.dueDate ? `${item.dueDate.replace(/-/g, '/')}` : '未定';
-                                    return `
-                                        <div onclick="openModal(${item.id})" class="p-2.5 bg-white rounded-xl border border-slate-200/80 flex items-center justify-between cursor-pointer hover:shadow-xs">
-                                            <div class="flex items-center space-x-2.5 overflow-hidden">
-                                                <div class="w-4 h-4 rounded-full border-2 border-slate-300 shrink-0"></div>
-                                                <div class="truncate">
-                                                    <span class="font-bold text-xs text-slate-800 truncate block">${item.title}</span>
-                                                    ${item.store ? `<span class="text-[10px] text-slate-400 block">${item.store}</span>` : ''}
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center space-x-2 shrink-0">
-                                                ${badges[timing]}
-                                                <span class="text-[10px] text-slate-500">${dateVal}</span>
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
                         </div>
                     `;
                 }).join('');
 
             } else {
-                // 2 & 3. サムネイル / コンパクト表示モード
+                // 2 & 3. サムネイル / コンパクト表示モード (またはカテゴリー詳細画面)
                 folderContainer.classList.add('hidden');
                 itemsContainer.classList.remove('hidden');
+
+                if (filteredItems.length === 0) {
+                    itemsContainer.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                emptyState.classList.add('hidden');
 
                 if (currentViewMode === 'thumbnail') {
                     itemsContainer.className = "grid grid-cols-2 sm:grid-cols-3 gap-3";
@@ -525,11 +541,6 @@
             }
         }
 
-        function toggleFolderExpand(folderId) {
-            const folder = document.getElementById(folderId);
-            if (folder) folder.classList.toggle('hidden');
-        }
-
         function handleImagePreview(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -583,6 +594,12 @@
         }
 
         function openModal(id = null) {
+            if (customGenres.length === 0) {
+                alert('先にジャンルを作成してください（右上「ジャンル」ボタンより）');
+                openGenreManageModal();
+                return;
+            }
+
             const modal = document.getElementById('itemModal');
             const form = document.getElementById('itemForm');
             form.reset();
@@ -609,6 +626,9 @@
             } else {
                 document.getElementById('modalTitle').innerText = '必要品を追加';
                 document.getElementById('itemId').value = '';
+                if (selectedCategoryDetail) {
+                    document.getElementById('itemCategory').value = selectedCategoryDetail;
+                }
                 const tomorrow = new Date();
                 tomorrow.setDate(tomorrow.getDate() + 1);
                 document.getElementById('itemDueDate').value = tomorrow.toISOString().slice(0,10);
@@ -666,13 +686,18 @@
 
         function renderGenreManageList() {
             const container = document.getElementById('genreListContainer');
-            container.innerHTML = customGenres.map((g, index) => `
+            if (customGenres.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400 text-center py-3">登録中のジャンルはありません</p>';
+                return;
+            }
+
+            container.innerHTML = customGenres.map((g) => `
                 <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-2xl">
                     <div class="flex items-center space-x-2 flex-1 mr-2">
                         <input type="color" value="${g.color}" onchange="updateGenreColor(${g.id}, this.value)" title="タップして背景色を変更">
                         <span class="text-sm font-bold text-slate-800">${g.name}</span>
                     </div>
-                    ${customGenres.length > 1 ? `<button onclick="deleteGenre(${g.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                    <button onclick="deleteGenre(${g.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
             `).join('');
         }
