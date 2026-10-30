@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockPik - ストック・必要品管理</title>
+    <title>StockPik - 日用品・ストック必要品メモ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- EXIFデータ（位置情報）読み取り用ライブラリ -->
+    <!-- EXIFデータ（撮影日時など）読み取り用ライブラリ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
-    <!-- 完全無料の文字認識（OCR）ライブラリ (Tesseract.js) -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
 
@@ -22,11 +20,10 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">StockPik</h1>
-                    <p class="text-[10px] text-slate-400">日用品・ストック必要品メモ</p>
+                    <p class="text-[10px] text-slate-400">必要品・買い物時期メモ</p>
                 </div>
             </div>
             <div class="flex items-center space-x-2">
-                <!-- データバックアップ・復元ボタン -->
                 <button onclick="exportData()" title="データ書き出し" class="bg-slate-100 hover:bg-slate-200 text-slate-600 w-9 h-9 rounded-xl flex items-center justify-center transition">
                     <i class="fa-solid fa-download text-sm"></i>
                 </button>
@@ -39,26 +36,28 @@
     </header>
 
     <main class="max-w-4xl mx-auto px-4 pt-4">
-        <!-- 検索・フィルターバー -->
+        <!-- 次の給料日インフォメーション -->
+        <div class="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white p-3.5 rounded-2xl shadow-sm mb-4 flex justify-between items-center text-xs">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-calendar-check text-base text-indigo-200"></i>
+                <div>
+                    <span class="font-semibold block">次回給料日 (26日ルール)</span>
+                    <span id="paydayNotice" class="text-indigo-100 text-[11px]">計算中...</span>
+                </div>
+            </div>
+            <span class="bg-white/20 px-2.5 py-1 rounded-lg font-bold backdrop-blur-sm">26日営業日設定</span>
+        </div>
+
+        <!-- 検索・ジャンルフィルター -->
         <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-4 space-y-3">
             <div class="relative">
                 <i class="fa-solid fa-search absolute left-3.5 top-3.5 text-slate-400"></i>
                 <input type="text" id="searchInput" oninput="renderApp()" placeholder="品名やメモ、購入先で検索..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
-            <div class="flex flex-wrap gap-2 items-center justify-between">
-                <!-- カテゴリタブ -->
-                <div id="categoryTabs" class="flex flex-wrap gap-1.5">
-                    <!-- 動的生成 -->
-                </div>
-
-                <!-- ステータスフィルター -->
-                <div class="flex gap-1 bg-slate-100 p-1 rounded-xl text-xs font-medium">
-                    <button onclick="setStatusFilter('all')" id="filter-all" class="px-3 py-1.5 rounded-lg transition bg-white text-indigo-600 shadow-sm">すべて</button>
-                    <button onclick="setStatusFilter('need')" id="filter-need" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900">🔴 要購入</button>
-                    <button onclick="setStatusFilter('soon')" id="filter-soon" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900">🟡 そろそろ</button>
-                    <button onclick="setStatusFilter('ok')" id="filter-ok" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900">🟢 在庫あり</button>
-                </div>
+            <!-- カテゴリ（ジャンル）タブ -->
+            <div id="categoryTabs" class="flex flex-wrap gap-1.5">
+                <!-- 動的生成 -->
             </div>
         </div>
 
@@ -74,6 +73,28 @@
         </div>
     </main>
 
+    <!-- 下部固定カテゴリーナビゲーション（いそぎ / 給料日まで / まだ先） -->
+    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-40 px-2 py-1.5 shadow-lg">
+        <div class="max-w-md mx-auto grid grid-cols-4 gap-1 text-center">
+            <button onclick="setTimingFilter('all')" id="nav-all" class="flex flex-col items-center py-1 rounded-xl transition text-indigo-600 bg-indigo-50">
+                <i class="fa-solid fa-list text-base mb-0.5"></i>
+                <span class="text-[10px] font-bold">すべて</span>
+            </button>
+            <button onclick="setTimingFilter('urgent')" id="nav-urgent" class="flex flex-col items-center py-1 rounded-xl transition text-slate-500 hover:text-rose-600">
+                <i class="fa-solid fa-fire text-base mb-0.5"></i>
+                <span class="text-[10px] font-bold">🔥 いそぎ</span>
+            </button>
+            <button onclick="setTimingFilter('payday')" id="nav-payday" class="flex flex-col items-center py-1 rounded-xl transition text-slate-500 hover:text-amber-600">
+                <i class="fa-solid fa-wallet text-base mb-0.5"></i>
+                <span class="text-[10px] font-bold">📅 給料日まで</span>
+            </button>
+            <button onclick="setTimingFilter('later')" id="nav-later" class="flex flex-col items-center py-1 rounded-xl transition text-slate-500 hover:text-emerald-600">
+                <i class="fa-solid fa-hourglass-half text-base mb-0.5"></i>
+                <span class="text-[10px] font-bold">⏳ まだ先</span>
+            </button>
+        </div>
+    </nav>
+
     <!-- 登録・編集モーダル -->
     <div id="itemModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-xl p-6 space-y-4">
@@ -85,67 +106,64 @@
             <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4">
                 <input type="hidden" id="itemId">
 
-                <!-- 写真ファーストエリア -->
-                <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 space-y-3">
-                    <label class="block text-xs font-bold text-indigo-900"><i class="fa-solid fa-camera mr-1 text-indigo-600"></i> 写真を選択（文字解析で自動入力）</label>
-                    <input type="file" id="itemImageFile" accept="image/*" onchange="handleImageAndOCR(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
-                    <input type="hidden" id="itemImageBase64">
-                    
-                    <div id="imagePreviewContainer" class="mt-2 hidden flex items-start space-x-3">
-                        <img id="imagePreview" class="w-20 h-20 object-cover rounded-xl border border-slate-200 shadow-sm shrink-0">
-                        <div class="flex-1 space-y-1">
-                            <div id="ocrStatus" class="text-xs text-indigo-600 font-medium hidden">
-                                <i class="fa-solid fa-spinner fa-spin mr-1"></i> <span id="ocrStatusText">画像から文字を読み取っています...</span>
-                            </div>
-                            <div id="exifInfo" class="text-[11px] text-slate-500"></div>
-                        </div>
-                    </div>
+                <!-- カレンダー設定エリア（いつまでに欲しいか） -->
+                <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 space-y-2">
+                    <label class="block text-xs font-bold text-indigo-950">
+                        <i class="fa-solid fa-calendar-days text-indigo-600 mr-1"></i> いつまでに欲しいか（カレンダー指定） <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="date" id="itemDueDate" required class="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                    <p class="text-[11px] text-slate-500">※選んだ日付によって「いそぎ」「給料日まで」「まだ先」に自動判定されます</p>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル（商品名など） <span class="text-rose-500">*</span></label>
-                    <input type="text" id="itemTitle" required placeholder="例: 洗濯洗剤 詰め替え" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="text" id="itemTitle" required placeholder="例: 柔軟剤 詰め替え 1000ml" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <!-- 写真手動アタッチメントエリア -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">写真を選択（任意）</label>
+                    <input type="file" id="itemImageFile" accept="image/*" onchange="handleImagePreview(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                    <input type="hidden" id="itemImageBase64">
+                    
+                    <div id="imagePreviewContainer" class="mt-2 hidden flex items-center space-x-3">
+                        <img id="imagePreview" class="w-16 h-16 object-cover rounded-xl border border-slate-200 shadow-sm shrink-0">
+                        <div id="exifInfo" class="text-[11px] text-slate-500"></div>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">カテゴリ <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">ジャンル <span class="text-rose-500">*</span></label>
                         <select id="itemCategory" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="食品">食品</option>
                             <option value="日用品">日用品</option>
+                            <option value="食品">食品</option>
                             <option value="コスメ・ケア">コスメ・ケア</option>
                             <option value="その他">その他</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">在庫ステータス</label>
-                        <select id="itemStatus" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="need">🔴 要購入</option>
-                            <option value="soon">🟡 そろそろ</option>
-                            <option value="ok">🟢 在庫あり</option>
-                        </select>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">購入先</label>
+                        <input type="text" id="itemStore" placeholder="例: ドラッグストア / ドラッグトップス" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">購入先</label>
-                        <input type="text" id="itemStore" placeholder="例: スーパー / ドラッグストア" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">価格目安 (円)</label>
                         <input type="number" id="itemPrice" placeholder="例: 480" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="flex items-end pb-2">
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="itemFavorite" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                            <label for="itemFavorite" class="text-xs font-semibold text-slate-700 select-none">⭐ 定番品マーク</label>
+                        </div>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">メモ（読み取ったテキストなど）</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">メモ</label>
                     <textarea id="itemMemo" rows="2" placeholder="サイズや型番、お気に入りポイントなど" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-                </div>
-
-                <div class="flex items-center space-x-2 pt-1">
-                    <input type="checkbox" id="itemFavorite" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
-                    <label for="itemFavorite" class="text-xs font-semibold text-slate-700 select-none">⭐ 定番・お気に入りマークをつける</label>
                 </div>
 
                 <div class="flex justify-end space-x-2 pt-3 border-t">
@@ -158,55 +176,127 @@
 
     <!-- JavaScript ロジック -->
     <script>
-        // データの永続化保護処理（既存データがあれば優先して引き継ぐ）
+        // 26日営業日ルールで「次の給料日」を計算する関数
+        function getNextPayday(fromDate = new Date()) {
+            let year = fromDate.getFullYear();
+            let month = fromDate.getMonth(); // 0~11
+            
+            function calcPaydayFor(y, m) {
+                let target = new Date(y, m, 26);
+                let day = target.getDay(); // 0:日, 6:土
+                if (day === 6) { // 土曜日 -> 金曜日(25日)
+                    target.setDate(25);
+                } else if (day === 0) { // 日曜日 -> 金曜日(24日)
+                    target.setDate(24);
+                }
+                return target;
+            }
+
+            let currentPayday = calcPaydayFor(year, month);
+            let today = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+
+            if (today <= currentPayday) {
+                return currentPayday;
+            } else {
+                return calcPaydayFor(year, month + 1);
+            }
+        }
+
+        // データの永続化処理
         let items = [];
         const savedData = localStorage.getItem('stockpik_items');
         if (savedData) {
             items = JSON.parse(savedData);
         } else {
-            // 初回アクセス時のみデフォルトデータを挿入
+            const nextPayday = getNextPayday();
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const laterDate = new Date(nextPayday);
+            laterDate.setDate(laterDate.getDate() + 10);
+
             items = [
-                { id: 1, title: '特選 豆乳 1000ml', category: '食品', status: 'ok', image: '', store: '近所のスーパー', price: 218, memo: '毎日飲むのでストック必須', favorite: true },
-                { id: 2, title: '無香料 柔軟剤 詰め替え', category: '日用品', status: 'need', image: '', store: 'ドラッグストア', price: 650, memo: '大容量タイプを選ぶ', favorite: true }
+                { id: 1, title: '無香料 柔軟剤 詰め替え', category: '日用品', dueDate: tomorrow.toISOString().slice(0,10), image: '', store: 'ドラッグストア', price: 650, memo: '残り1回分なので大至急', favorite: true },
+                { id: 2, title: '特選 豆乳 1000ml', category: '食品', dueDate: nextPayday.toISOString().slice(0,10), image: '', store: '近所のスーパー', price: 218, memo: '給料日までに買い足し', favorite: false },
+                { id: 3, title: '予備の電球 60W型', category: 'その他', dueDate: laterDate.toISOString().slice(0,10), image: '', store: 'ホームセンター', price: 890, memo: '切れたら困るので余裕を持って', favorite: false }
             ];
             localStorage.setItem('stockpik_items', JSON.stringify(items));
         }
 
-        let currentCategory = 'すべて';
-        let currentStatusFilter = 'all';
+        let currentGenre = 'すべて';
+        let currentTimingFilter = 'all'; // all | urgent | payday | later
 
-        const categories = ['すべて', '⭐ 定番', '食品', '日用品', 'コスメ・ケア', 'その他'];
+        const genres = ['すべて', '⭐ 定番', '日用品', '食品', 'コスメ・ケア', 'その他'];
 
         function init() {
+            renderPaydayInfo();
             renderTabs();
             renderApp();
+            
+            // モーダルのデフォルト日付を明日にセット
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('itemDueDate').value = tomorrow.toISOString().slice(0,10);
+        }
+
+        function renderPaydayInfo() {
+            const payday = getNextPayday();
+            const y = payday.getFullYear();
+            const m = payday.getMonth() + 1;
+            const d = payday.getDate();
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            const dayName = dayNames[payday.getDay()];
+            document.getElementById('paydayNotice').innerText = `次回: ${y}年${m}月${d}日 (${dayName})`;
         }
 
         function renderTabs() {
             const container = document.getElementById('categoryTabs');
-            container.innerHTML = categories.map(cat => {
-                const active = currentCategory === cat;
-                return `<button onclick="setCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-medium transition ${active ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+            container.innerHTML = genres.map(g => {
+                const active = currentGenre === g;
+                return `<button onclick="setGenre('${g}')" class="px-3 py-1.5 rounded-xl text-xs font-medium transition ${active ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${g}</button>`;
             }).join('');
         }
 
-        function setCategory(cat) {
-            currentCategory = cat;
+        function setGenre(g) {
+            currentGenre = g;
             renderTabs();
             renderApp();
         }
 
-        function setStatusFilter(status) {
-            currentStatusFilter = status;
-            ['all', 'need', 'soon', 'ok'].forEach(s => {
-                const btn = document.getElementById(`filter-${s}`);
-                if (s === status) {
-                    btn.className = "px-3 py-1.5 rounded-lg transition bg-white text-indigo-600 shadow-sm";
+        function setTimingFilter(timing) {
+            currentTimingFilter = timing;
+            ['all', 'urgent', 'payday', 'later'].forEach(t => {
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (t === timing) {
+                    navBtn.className = "flex flex-col items-center py-1 rounded-xl transition text-indigo-600 bg-indigo-50";
                 } else {
-                    btn.className = "px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900";
+                    navBtn.className = "flex flex-col items-center py-1 rounded-xl transition text-slate-500 hover:text-slate-900";
                 }
             });
             renderApp();
+        }
+
+        // 時期（緊急度）の自動判定
+        function getTimingStatus(dueDateStr) {
+            if (!dueDateStr) return 'later';
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const dueDate = new Date(dueDateStr);
+            dueDate.setHours(0, 0, 0, 0);
+
+            const nextPayday = getNextPayday();
+            nextPayday.setHours(0, 0, 0, 0);
+
+            const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+
+            if (diffDays <= 3) {
+                return 'urgent'; // 3日以内は「いそぎ」
+            } else if (dueDate <= nextPayday) {
+                return 'payday'; // 次の給料日までは「給料日まで」
+            } else {
+                return 'later';  // 給料日以降は「まだ先」
+            }
         }
 
         function renderApp() {
@@ -215,9 +305,12 @@
             const emptyState = document.getElementById('emptyState');
 
             const filtered = items.filter(item => {
-                if (currentCategory === '⭐ 定番' && !item.favorite) return false;
-                if (currentCategory !== 'すべて' && currentCategory !== '⭐ 定番' && item.category !== currentCategory) return false;
-                if (currentStatusFilter !== 'all' && item.status !== currentStatusFilter) return false;
+                if (currentGenre === '⭐ 定番' && !item.favorite) return false;
+                if (currentGenre !== 'すべて' && currentGenre !== '⭐ 定番' && item.category !== currentGenre) return false;
+                
+                const timing = getTimingStatus(item.dueDate);
+                if (currentTimingFilter !== 'all' && timing !== currentTimingFilter) return false;
+
                 if (search && !item.title.toLowerCase().includes(search) && !(item.memo && item.memo.toLowerCase().includes(search)) && !(item.store && item.store.toLowerCase().includes(search))) {
                     return false;
                 }
@@ -232,90 +325,58 @@
 
             emptyState.classList.add('hidden');
 
-            const statusBadges = {
-                ok: '<span class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🟢 在庫あり</span>',
-                soon: '<span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🟡 そろそろ</span>',
-                need: '<span class="bg-rose-100 text-rose-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🔴 要購入</span>'
+            const badges = {
+                urgent: '<span class="bg-rose-100 text-rose-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🔥 いそぎ</span>',
+                payday: '<span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold">📅 給料日まで</span>',
+                later: '<span class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-bold">⏳ まだ先</span>'
             };
 
-            container.innerHTML = filtered.map(item => `
-                <div onclick="openModal(${item.id})" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between group">
-                    <div>
-                        <div class="relative w-full h-36 bg-slate-100 flex items-center justify-center overflow-hidden">
-                            ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">` : `<i class="fa-solid fa-camera text-slate-300 text-2xl"></i>`}
-                            ${item.favorite ? '<div class="absolute top-2 left-2 bg-amber-400 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shadow"><i class="fa-solid fa-star"></i></div>' : ''}
-                            <div class="absolute bottom-2 right-2">${statusBadges[item.status]}</div>
+            container.innerHTML = filtered.map(item => {
+                const timing = getTimingStatus(item.dueDate);
+                const dateVal = item.dueDate ? `${item.dueDate.replace(/-/g, '/')}` : '期限未設定';
+
+                return `
+                    <div onclick="openModal(${item.id})" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between group">
+                        <div>
+                            <div class="relative w-full h-36 bg-slate-100 flex items-center justify-center overflow-hidden">
+                                ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">` : `<i class="fa-solid fa-box text-slate-300 text-3xl"></i>`}
+                                ${item.favorite ? '<div class="absolute top-2 left-2 bg-amber-400 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shadow"><i class="fa-solid fa-star"></i></div>' : ''}
+                                <div class="absolute bottom-2 right-2">${badges[timing]}</div>
+                            </div>
+                            <div class="p-3 space-y-1">
+                                <div class="flex justify-between items-center text-[10px]">
+                                    <span class="text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-md">${item.category}</span>
+                                    <span class="text-slate-400"><i class="fa-regular fa-clock mr-0.5"></i>${dateVal}</span>
+                                </div>
+                                <h3 class="font-bold text-sm text-slate-900 truncate">${item.title}</h3>
+                                ${item.store ? `<p class="text-xs text-slate-400 truncate"><i class="fa-solid fa-store mr-1"></i>${item.store}</p>` : ''}
+                            </div>
                         </div>
-                        <div class="p-3 space-y-1">
-                            <span class="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-md">${item.category}</span>
-                            <h3 class="font-bold text-sm text-slate-900 truncate">${item.title}</h3>
-                            ${item.store ? `<p class="text-xs text-slate-400 truncate"><i class="fa-solid fa-store mr-1"></i>${item.store}</p>` : ''}
+                        <div class="px-3 pb-3 flex justify-between items-center text-xs text-slate-500 border-t border-slate-100 pt-2 mt-1">
+                            <span>${item.price ? `¥${item.price.toLocaleString()}` : '-'}</span>
+                            <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
-                    <div class="px-3 pb-3 flex justify-between items-center text-xs text-slate-500 border-t border-slate-100 pt-2 mt-1">
-                        <span>${item.price ? `¥${item.price.toLocaleString()}` : '-'}</span>
-                        <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        // Tesseract.js を用いた文字解析 (OCR) & EXIF位置情報取得
-        async function handleImageAndOCR(event) {
+        function handleImagePreview(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = async function(e) {
+            reader.onload = function(e) {
                 const base64 = e.target.result;
                 document.getElementById('itemImageBase64').value = base64;
                 document.getElementById('imagePreview').src = base64;
                 document.getElementById('imagePreviewContainer').classList.remove('hidden');
-
-                const statusEl = document.getElementById('ocrStatus');
-                const statusText = document.getElementById('ocrStatusText');
-                statusEl.classList.remove('hidden');
-
-                try {
-                    // Tesseract.js で画像上の日本語と英語を直接読み取る
-                    statusText.innerText = '画像上の文字を直接解析しています...';
-                    const worker = await Tesseract.createWorker('jpn+eng');
-                    const ret = await worker.recognize(base64);
-                    await worker.terminate();
-
-                    const textLines = ret.data.text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-
-                    if (textLines.length > 0) {
-                        statusEl.innerHTML = '<i class="fa-solid fa-check text-emerald-600 mr-1"></i> 画像から文字を抽出しました！（手動で修正可能）';
-                        
-                        // 一番目立つ行（1行目）をタイトルの候補にセット
-                        const titleInput = document.getElementById('itemTitle');
-                        if (!titleInput.value || titleInput.value === file.name) {
-                            titleInput.value = textLines[0];
-                        }
-                        
-                        // 残りの文字をメモの初期入力欄に追加
-                        const memoInput = document.getElementById('itemMemo');
-                        if (!memoInput.value) {
-                            memoInput.value = textLines.join(' ');
-                        }
-                    } else {
-                        statusEl.innerHTML = '<i class="fa-solid fa-info-circle text-amber-500 mr-1"></i> 文字が検出されませんでした（直接手動で入力できます）';
-                    }
-                } catch (err) {
-                    console.error(err);
-                    statusEl.innerHTML = '<i class="fa-solid fa-exclamation-triangle text-rose-500 mr-1"></i> 解析を完了できませんでした';
-                }
             };
             reader.readAsDataURL(file);
 
-            // EXIF（撮影日時・位置情報）の解析
             EXIF.getData(file, function() {
                 const dateTime = EXIF.getTag(this, "DateTimeOriginal");
-                const lat = EXIF.getTag(this, "GPSLatitude");
-                let infoText = `📸 撮影: ${dateTime || '本日'}`;
-                if (lat) infoText += `<br>📍 位置情報あり`;
-                document.getElementById('exifInfo').innerHTML = infoText;
+                document.getElementById('exifInfo').innerHTML = dateTime ? `撮影日: ${dateTime}` : '';
             });
         }
 
@@ -324,8 +385,6 @@
             const form = document.getElementById('itemForm');
             form.reset();
             document.getElementById('imagePreviewContainer').classList.add('hidden');
-            document.getElementById('ocrStatus').classList.add('hidden');
-            document.getElementById('exifInfo').innerHTML = '';
             document.getElementById('itemImageBase64').value = '';
 
             if (id) {
@@ -333,8 +392,8 @@
                 const item = items.find(i => i.id === id);
                 document.getElementById('itemId').value = item.id;
                 document.getElementById('itemTitle').value = item.title;
+                document.getElementById('itemDueDate').value = item.dueDate || '';
                 document.getElementById('itemCategory').value = item.category;
-                document.getElementById('itemStatus').value = item.status;
                 document.getElementById('itemStore').value = item.store || '';
                 document.getElementById('itemPrice').value = item.price || '';
                 document.getElementById('itemMemo').value = item.memo || '';
@@ -348,7 +407,9 @@
             } else {
                 document.getElementById('modalTitle').innerText = '必要品を追加';
                 document.getElementById('itemId').value = '';
-                document.getElementById('itemStatus').value = 'need';
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                document.getElementById('itemDueDate').value = tomorrow.toISOString().slice(0,10);
             }
 
             modal.classList.remove('hidden');
@@ -364,8 +425,8 @@
             const newItem = {
                 id: id ? Number(id) : Date.now(),
                 title: document.getElementById('itemTitle').value,
+                dueDate: document.getElementById('itemDueDate').value,
                 category: document.getElementById('itemCategory').value,
-                status: document.getElementById('itemStatus').value,
                 image: document.getElementById('itemImageBase64').value,
                 store: document.getElementById('itemStore').value,
                 price: document.getElementById('itemPrice').value ? Number(document.getElementById('itemPrice').value) : null,
@@ -393,7 +454,6 @@
             }
         }
 
-        // バックアップ機能（JSON形式で保存）
         function exportData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2));
             const downloadAnchor = document.createElement('a');
