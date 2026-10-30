@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockPik - ストック・愛用品管理</title>
+    <title>StockPik - スマートストック管理</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- EXIFデータ（位置情報）読み取り用ライブラリ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
 
@@ -69,12 +71,22 @@
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
+            <!-- URL自動インポート機能（ほしもん風） -->
+            <div class="bg-indigo-50/50 p-3 rounded-2xl border border-indigo-100 space-y-2">
+                <label class="block text-xs font-bold text-indigo-900"><i class="fa-solid fa-wand-magic-sparkles mr-1 text-indigo-600"></i> URLから自動読み込み（Amazon等）</label>
+                <div class="flex gap-2">
+                    <input type="url" id="importUrl" placeholder="https://amzn.asia/... のリンクを貼り付け" class="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button type="button" onclick="fetchUrlData()" id="fetchBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-medium transition shrink-0 shadow-sm">取得</button>
+                </div>
+                <div id="fetchLoading" class="hidden text-xs text-indigo-600 animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-1"></i> ページ情報を読み込んでいます...</div>
+            </div>
+
             <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4">
                 <input type="hidden" id="itemId">
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル <span class="text-rose-500">*</span></label>
-                    <input type="text" id="itemTitle" required placeholder="例: 〇〇ブランドの柔軟剤" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="text" id="itemTitle" required placeholder="例: サントリー 天然水 ラベルレス" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -98,22 +110,23 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">写真（カメラ撮影 / 選択）</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">写真（自動で位置情報も解析）</label>
                     <input type="file" id="itemImageFile" accept="image/*" onchange="handleImagePreview(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                     <input type="hidden" id="itemImageBase64">
-                    <div id="imagePreviewContainer" class="mt-2 hidden">
-                        <img id="imagePreview" class="w-24 h-24 object-cover rounded-xl border border-slate-200 shadow-sm">
+                    <div id="imagePreviewContainer" class="mt-2 hidden flex items-center space-x-3">
+                        <img id="imagePreview" class="w-20 h-20 object-cover rounded-xl border border-slate-200 shadow-sm">
+                        <div id="exifInfo" class="text-[11px] text-slate-500 bg-slate-100 p-2 rounded-xl flex-1"></div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">購入先</label>
-                        <input type="text" id="itemStore" placeholder="例: Amazon / 〇〇スーパー" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">購入先 / URL</label>
+                        <input type="text" id="itemStore" placeholder="Amazon / スーパー名" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">価格目安 (円)</label>
-                        <input type="number" id="itemPrice" placeholder="例: 480" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <input type="number" id="itemPrice" placeholder="例: 2255" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                 </div>
 
@@ -138,8 +151,7 @@
     <!-- JavaScript ロジック -->
     <script>
         let items = JSON.parse(localStorage.getItem('stockpik_items')) || [
-            { id: 1, title: '特選 豆乳 1000ml', category: '食品', status: 'ok', image: '', store: '近所のスーパー', price: 218, memo: '毎日飲むのでストック必須', favorite: true },
-            { id: 2, title: '無香料 柔軟剤 詰め替え', category: '日用品', status: 'need', image: '', store: 'Amazon', price: 650, memo: '大容量タイプを選ぶ', favorite: true }
+            { id: 1, title: 'サントリー 天然水 ラベルレス 550ml', category: '食品', status: 'ok', image: '', store: 'Amazon', price: 2255, memo: '水分補給用ストック', favorite: true }
         ];
 
         let currentCategory = 'すべて';
@@ -185,14 +197,9 @@
             const emptyState = document.getElementById('emptyState');
 
             const filtered = items.filter(item => {
-                // カテゴリフィルター
                 if (currentCategory === '⭐ 定番' && !item.favorite) return false;
                 if (currentCategory !== 'すべて' && currentCategory !== '⭐ 定番' && item.category !== currentCategory) return false;
-
-                // ステータスフィルター
                 if (currentStatusFilter !== 'all' && item.status !== currentStatusFilter) return false;
-
-                // 検索バー
                 if (search && !item.title.toLowerCase().includes(search) && !(item.memo && item.memo.toLowerCase().includes(search)) && !(item.store && item.store.toLowerCase().includes(search))) {
                     return false;
                 }
@@ -235,11 +242,84 @@
             `).join('');
         }
 
+        // ほしもん風：URLからOGP（タイトルや画像）を自動取得する機能
+        async function fetchUrlData() {
+            const urlInput = document.getElementById('importUrl').value;
+            if (!urlInput) {
+                alert('URLを入力してください');
+                return;
+            }
+
+            const loadingEl = document.getElementById('fetchLoading');
+            loadingEl.classList.remove('hidden');
+
+            try {
+                // Microlink APIを利用して安全にブラウザからOGP情報を取得
+                const response = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(urlInput)}`);
+                const json = await response.json();
+
+                if (json.status === 'success') {
+                    const data = json.data;
+                    if (data.title) document.getElementById('itemTitle').value = data.title;
+                    if (data.image && data.image.url) {
+                        document.getElementById('itemImageBase64').value = data.image.url;
+                        document.getElementById('imagePreview').src = data.image.url;
+                        document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                    }
+                    // ストア名やドメインを購入先に入れる
+                    try {
+                        const domain = new URL(urlInput).hostname;
+                        document.getElementById('itemStore').value = domain;
+                    } catch(e) {}
+                } else {
+                    alert('ページの情報を取得できませんでした。手動で入力してください。');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('取得中にエラーが発生しました。');
+            } finally {
+                loadingEl.classList.add('hidden');
+            }
+        }
+
+        // 写真のプレビュー＆EXIF（位置情報・撮影日）解析
+        function handleImagePreview(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result;
+                document.getElementById('itemImageBase64').value = base64;
+                document.getElementById('imagePreview').src = base64;
+                document.getElementById('imagePreviewContainer').classList.remove('hidden');
+            }
+            reader.readAsDataURL(file);
+
+            // EXIFデータの読み取り
+            EXIF.getData(file, function() {
+                const lat = EXIF.getTag(this, "GPSLatitude");
+                const lon = EXIF.getTag(this, "GPSLongitude");
+                const dateTime = EXIF.getTag(this, "DateTimeOriginal");
+
+                let infoText = `📸 撮影日時: ${dateTime || '不明'}`;
+                if (lat && lon) {
+                    infoText += `<br>📍 位置情報あり（緯度・経度取得成功）`;
+                    // ここで位置情報から場所名を推測する処理なども将来拡張可能
+                } else {
+                    infoText += `<br>📍 位置情報なし`;
+                }
+                document.getElementById('exifInfo').innerHTML = infoText;
+            });
+        }
+
         function openModal(id = null) {
             const modal = document.getElementById('itemModal');
             const form = document.getElementById('itemForm');
             form.reset();
+            document.getElementById('importUrl').value = '';
             document.getElementById('imagePreviewContainer').classList.add('hidden');
+            document.getElementById('exifInfo').innerHTML = '';
 
             if (id) {
                 document.getElementById('modalTitle').innerText = 'アイテムを編集';
@@ -268,20 +348,6 @@
 
         function closeModal() {
             document.getElementById('itemModal').classList.add('hidden');
-        }
-
-        function handleImagePreview(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64 = e.target.result;
-                    document.getElementById('itemImageBase64').value = base64;
-                    document.getElementById('imagePreview').src = base64;
-                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
-                }
-                reader.readAsDataURL(file);
-            }
         }
 
         function saveItem(event) {
