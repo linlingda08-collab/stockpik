@@ -17,7 +17,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
 
     <style>
-        /* iPhoneのSafari等でカレンダー(input type="date")が枠からはみ出す現象の対策 */
+        /* iPhone Safari等でのカレンダー枠はみ出し防止対策 */
         input[type="date"] {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -25,7 +25,7 @@
             min-height: 2.6rem;
             box-sizing: border-box;
         }
-        /* 円形カラーピッカーのスタイル調整 */
+        /* 円形カラーピッカー */
         input[type="color"] {
             -webkit-appearance: none;
             border: none;
@@ -60,14 +60,18 @@
                     <p class="text-[10px] text-slate-400">必要品・買い物時期メモ</p>
                 </div>
             </div>
-            <!-- ジャンル編集 ＆ 必要品追加ボタン -->
-            <div class="flex items-center space-x-2">
-                <button onclick="openGenreManageModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl text-xs transition flex items-center space-x-1 border border-slate-200">
-                    <i class="fa-solid fa-tags text-indigo-600"></i>
-                    <span class="hidden sm:inline">ジャンル編集</span>
-                    <span class="sm:hidden">ジャンル</span>
+
+            <!-- 表示モード切替 ＆ ジャンル編集 ＆ 必要品追加ボタン -->
+            <div class="flex items-center space-x-1.5">
+                <!-- 表示モード切替ボタン -->
+                <button onclick="toggleViewMode()" id="viewModeBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-2.5 py-2 rounded-xl text-xs transition flex items-center space-x-1 border border-slate-200" title="表示切替">
+                    <i id="viewModeIcon" class="fa-solid fa-folder-tree text-indigo-600"></i>
                 </button>
-                <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3.5 py-2 rounded-xl shadow-md transition flex items-center space-x-1.5">
+                <button onclick="openGenreManageModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-2.5 py-2 rounded-xl text-xs transition flex items-center space-x-1 border border-slate-200">
+                    <i class="fa-solid fa-tags text-indigo-600"></i>
+                    <span class="hidden sm:inline">ジャンル</span>
+                </button>
+                <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-2 rounded-xl shadow-md transition flex items-center space-x-1">
                     <i class="fa-solid fa-plus text-xs"></i>
                     <span class="text-xs sm:text-sm">追加</span>
                 </button>
@@ -76,22 +80,27 @@
     </header>
 
     <main class="max-w-4xl mx-auto px-4 pt-4">
-        <!-- 検索・ジャンルフィルター -->
+        <!-- 検索バー -->
         <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-4 space-y-3">
             <div class="relative">
                 <i class="fa-solid fa-search absolute left-3.5 top-3.5 text-slate-400"></i>
                 <input type="text" id="searchInput" oninput="renderApp()" placeholder="品名やメモ、購入先で検索..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
-            <!-- カテゴリ（ジャンル）タブ一覧 -->
-            <div class="flex items-center justify-between gap-2 overflow-x-auto pb-1">
+            <!-- カテゴリ（ジャンル）タブ一覧（※マイリストモード時は非表示） -->
+            <div id="categoryTabsWrapper" class="flex items-center justify-between gap-2 overflow-x-auto pb-1">
                 <div id="categoryTabs" class="flex flex-nowrap sm:flex-wrap gap-1.5 shrink-0">
                     <!-- 動的生成 -->
                 </div>
             </div>
         </div>
 
-        <!-- リスト表示エリア -->
+        <!-- マイリスト（フォルダ）ビューエリア -->
+        <div id="folderContainer" class="space-y-3 hidden">
+            <!-- 動的生成 (リマインダー風マイリスト) -->
+        </div>
+
+        <!-- リスト表示エリア（サムネイル / コンパクト） -->
         <div id="itemsContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <!-- 動的生成 -->
         </div>
@@ -99,7 +108,7 @@
         <!-- 該当なし表示 -->
         <div id="emptyState" class="hidden text-center py-16">
             <div class="text-4xl mb-3">📭</div>
-            <p class="text-slate-500 text-sm">必要品がまだありません。<br>右上から追加してみましょう！</p>
+            <p class="text-slate-500 text-sm">該当するアイテムがありません。<br>右上から追加してみましょう！</p>
         </div>
     </main>
 
@@ -136,7 +145,7 @@
             <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4">
                 <input type="hidden" id="itemId">
 
-                <!-- STEP 1: 写真を最初に選択（自動圧縮機能付き） -->
+                <!-- STEP 1: 写真を選択 -->
                 <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
                     <label class="block text-xs font-bold text-slate-700">
                         <i class="fa-solid fa-camera text-indigo-600 mr-1"></i> ① 写真を選択（任意）
@@ -150,7 +159,7 @@
                     </div>
                 </div>
 
-                <!-- STEP 2: タイトル等の詳細を入力 -->
+                <!-- STEP 2: タイトル等の詳細 -->
                 <div class="space-y-3 pt-1">
                     <p class="text-xs font-bold text-slate-700"><i class="fa-solid fa-pen-to-square text-indigo-600 mr-1"></i> ② 詳細を入力</p>
                     
@@ -172,17 +181,9 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">価格目安 (円)</label>
-                            <input type="number" id="itemPrice" placeholder="例: 480" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                        <div class="flex items-end pb-2">
-                            <div class="flex items-center space-x-2">
-                                <input type="checkbox" id="itemFavorite" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
-                                <label for="itemFavorite" class="text-xs font-semibold text-slate-700 select-none">⭐ 定番品マーク</label>
-                            </div>
-                        </div>
+                    <div class="flex items-center space-x-2 pt-1">
+                        <input type="checkbox" id="itemFavorite" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                        <label for="itemFavorite" class="text-xs font-semibold text-slate-700 select-none">⭐ 定番品マーク</label>
                     </div>
 
                     <div>
@@ -191,7 +192,7 @@
                     </div>
                 </div>
 
-                <!-- STEP 3: カレンダーで時期を選択 -->
+                <!-- STEP 3: カレンダー時期指定 -->
                 <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 space-y-2">
                     <div class="flex justify-between items-center">
                         <label class="block text-xs font-bold text-indigo-950">
@@ -223,17 +224,15 @@
                 <button onclick="closeGenreManageModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <!-- 新規ジャンル追加フォーム -->
             <form onsubmit="addNewGenre(event)" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3 shrink-0">
                 <span class="text-xs font-bold text-slate-700 block">＋ 新しいジャンルを作成</span>
                 <div class="flex items-center space-x-2">
                     <input type="color" id="newGenreColor" value="#e0e7ff" title="タップして好きな色を選択">
-                    <input type="text" id="newGenreName" required placeholder="ジャンル名（例: ペット用品）" class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="text" id="newGenreName" required placeholder="ジャンル名（例: スーパー）" class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <button type="submit" class="px-3.5 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shrink-0 shadow-sm">追加</button>
                 </div>
             </form>
 
-            <!-- 既存ジャンル一覧 ＆ 編集エリア -->
             <div class="overflow-y-auto flex-1 space-y-2 pr-1" id="genreListContainer">
                 <!-- 動的生成 -->
             </div>
@@ -246,33 +245,25 @@
 
     <!-- JavaScript ロジック -->
     <script>
-        // 26日営業日ルールで「次の給料日」を計算する関数
         function getNextPayday(fromDate = new Date()) {
             let year = fromDate.getFullYear();
-            let month = fromDate.getMonth(); // 0~11
+            let month = fromDate.getMonth();
             
             function calcPaydayFor(y, m) {
                 let target = new Date(y, m, 26);
-                let day = target.getDay(); // 0:日, 6:土
-                if (day === 6) { // 土曜日 -> 金曜日(25日)
-                    target.setDate(25);
-                } else if (day === 0) { // 日曜日 -> 金曜日(24日)
-                    target.setDate(24);
-                }
+                let day = target.getDay();
+                if (day === 6) target.setDate(25);
+                else if (day === 0) target.setDate(24);
                 return target;
             }
 
             let currentPayday = calcPaydayFor(year, month);
             let today = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
 
-            if (today <= currentPayday) {
-                return currentPayday;
-            } else {
-                return calcPaydayFor(year, month + 1);
-            }
+            if (today <= currentPayday) return currentPayday;
+            else return calcPaydayFor(year, month + 1);
         }
 
-        // デフォルトジャンル（名前＋HEXカラーコード）
         const defaultGenres = [
             { id: 1, name: '日用品', color: '#e0e7ff' },
             { id: 2, name: '食品', color: '#fef3c7' },
@@ -280,17 +271,45 @@
             { id: 4, name: 'その他', color: '#f1f5f9' }
         ];
 
-        // データとカスタムジャンルのロード（永続化保護）
         let customGenres = JSON.parse(localStorage.getItem('memory_genres')) || JSON.parse(localStorage.getItem('stockmemo_genres_v2')) || defaultGenres;
         let items = JSON.parse(localStorage.getItem('memory_items')) || JSON.parse(localStorage.getItem('stockmemo_items')) || [];
 
         let currentGenreFilter = 'すべて';
-        let currentTimingFilter = 'all'; // all | urgent | payday | later
+        let currentTimingFilter = 'all'; 
+        // 表示モード: 'folder' (マイリスト風), 'thumbnail' (カード格子), 'compact' (文字リスト)
+        let currentViewMode = localStorage.getItem('memory_view_mode') || 'folder';
 
         function init() {
             renderGenreTabs();
             renderCategorySelect();
+            updateViewModeUI();
             renderApp();
+        }
+
+        function toggleViewMode() {
+            if (currentViewMode === 'folder') currentViewMode = 'thumbnail';
+            else if (currentViewMode === 'thumbnail') currentViewMode = 'compact';
+            else currentViewMode = 'folder';
+
+            localStorage.setItem('memory_view_mode', currentViewMode);
+            updateViewModeUI();
+            renderApp();
+        }
+
+        function updateViewModeUI() {
+            const icon = document.getElementById('viewModeIcon');
+            const categoryTabsWrapper = document.getElementById('categoryTabsWrapper');
+
+            if (currentViewMode === 'folder') {
+                icon.className = 'fa-solid fa-folder-tree text-indigo-600';
+                categoryTabsWrapper.classList.add('hidden'); // マイリストモードではタブ非表示
+            } else if (currentViewMode === 'thumbnail') {
+                icon.className = 'fa-solid fa-border-all text-indigo-600';
+                categoryTabsWrapper.classList.remove('hidden');
+            } else {
+                icon.className = 'fa-solid fa-list text-indigo-600';
+                categoryTabsWrapper.classList.remove('hidden');
+            }
         }
 
         function renderGenreTabs() {
@@ -327,32 +346,22 @@
             renderApp();
         }
 
-        // 時期（緊急度）の自動判定（期限切れ・未定の判定）
         function getTimingStatus(dueDateStr) {
             if (!dueDateStr) return 'later';
-            
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-
             const dueDate = new Date(dueDateStr);
             dueDate.setHours(0, 0, 0, 0);
 
-            if (dueDate < today) {
-                return 'expired'; // 期限切れ
-            }
+            if (dueDate < today) return 'expired';
 
             const nextPayday = getNextPayday();
             nextPayday.setHours(0, 0, 0, 0);
-
             const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
 
-            if (diffDays <= 3) {
-                return 'urgent'; // 3日以内は「いそぎ」
-            } else if (dueDate <= nextPayday) {
-                return 'payday'; // 次の給料日までは「給料日まで」
-            } else {
-                return 'later';  // 給料日以降は「まだ先」
-            }
+            if (diffDays <= 3) return 'urgent';
+            else if (dueDate <= nextPayday) return 'payday';
+            else return 'later';
         }
 
         function getGenreColor(categoryName) {
@@ -362,20 +371,17 @@
 
         function renderApp() {
             const search = document.getElementById('searchInput').value.toLowerCase();
-            const container = document.getElementById('itemsContainer');
+            const itemsContainer = document.getElementById('itemsContainer');
+            const folderContainer = document.getElementById('folderContainer');
             const emptyState = document.getElementById('emptyState');
 
-            const filtered = items.filter(item => {
+            // フィルター処理
+            const filteredItems = items.filter(item => {
                 if (currentGenreFilter === '⭐ 定番' && !item.favorite) return false;
                 if (currentGenreFilter !== 'すべて' && currentGenreFilter !== '⭐ 定番' && item.category !== currentGenreFilter) return false;
-                
+
                 const timing = getTimingStatus(item.dueDate);
-                if (currentTimingFilter !== 'all' && timing !== currentTimingFilter) {
-                    // 「すべて」以外の個別タブでは期限切れも各カテゴリーに含めて表示させる配慮
-                    if (!(currentTimingFilter !== 'all' && timing === 'expired')) {
-                        return false;
-                    }
-                }
+                if (currentTimingFilter !== 'all' && timing !== currentTimingFilter && timing !== 'expired') return false;
 
                 if (search && !item.title.toLowerCase().includes(search) && !(item.memo && item.memo.toLowerCase().includes(search)) && !(item.store && item.store.toLowerCase().includes(search))) {
                     return false;
@@ -383,8 +389,9 @@
                 return true;
             });
 
-            if (filtered.length === 0) {
-                container.innerHTML = '';
+            if (filteredItems.length === 0 && currentViewMode !== 'folder') {
+                itemsContainer.innerHTML = '';
+                folderContainer.innerHTML = '';
                 emptyState.classList.remove('hidden');
                 return;
             }
@@ -398,38 +405,131 @@
                 later: '<span class="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">⏳ まだ先</span>'
             };
 
-            container.innerHTML = filtered.map(item => {
-                const timing = getTimingStatus(item.dueDate);
-                const dateVal = item.dueDate ? `${item.dueDate.replace(/-/g, '/')}` : '未定';
-                const cardColor = getGenreColor(item.category);
+            // 1. マイリスト（フォルダ）表示モード
+            if (currentViewMode === 'folder') {
+                itemsContainer.classList.add('hidden');
+                folderContainer.classList.remove('hidden');
 
-                return `
-                    <div onclick="openModal(${item.id})" class="rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between group" style="background-color: ${cardColor};">
-                        <div>
-                            <div class="relative w-full h-36 bg-slate-200/40 flex items-center justify-center overflow-hidden">
-                                ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">` : `<i class="fa-solid fa-box text-slate-300 text-3xl"></i>`}
-                                ${item.favorite ? '<div class="absolute top-2 left-2 bg-amber-400 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shadow"><i class="fa-solid fa-star"></i></div>' : ''}
-                                <div class="absolute bottom-2 right-2">${badges[timing]}</div>
-                            </div>
-                            <div class="p-3 space-y-1">
-                                <div class="flex justify-between items-center text-[10px]">
-                                    <span class="font-bold px-2 py-0.5 rounded-md bg-white/80 text-slate-800 shadow-xs border border-slate-100">${item.category}</span>
-                                    <span class="${timing === 'expired' ? 'text-rose-600 font-bold' : 'text-slate-600 font-medium'}"><i class="fa-regular fa-clock mr-0.5"></i>${dateVal}</span>
+                folderContainer.innerHTML = customGenres.map(genre => {
+                    const genreItems = filteredItems.filter(i => i.category === genre.name);
+                    const count = genreItems.length;
+
+                    return `
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div onclick="toggleFolderExpand('folder-${genre.id}')" class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition" style="border-left: 6px solid ${genre.color};">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-slate-700 font-bold" style="background-color: ${genre.color};">
+                                        <i class="fa-solid fa-list-check text-xs"></i>
+                                    </div>
+                                    <span class="font-bold text-sm text-slate-800">${genre.name}</span>
                                 </div>
-                                <h3 class="font-bold text-sm text-slate-900 truncate pt-1">${item.title}</h3>
-                                ${item.store ? `<p class="text-xs text-slate-600 truncate"><i class="fa-solid fa-store mr-1"></i>${item.store}</p>` : ''}
+                                <div class="flex items-center space-x-2 text-slate-400 text-xs font-bold">
+                                    <span>${count}</span>
+                                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                                </div>
+                            </div>
+
+                            <div id="folder-${genre.id}" class="hidden border-t border-slate-100 bg-slate-50/50 p-3 space-y-2">
+                                ${count === 0 ? '<p class="text-xs text-slate-400 py-2 text-center">アイテムはありません</p>' : genreItems.map(item => {
+                                    const timing = getTimingStatus(item.dueDate);
+                                    const dateVal = item.dueDate ? `${item.dueDate.replace(/-/g, '/')}` : '未定';
+                                    return `
+                                        <div onclick="openModal(${item.id})" class="p-2.5 bg-white rounded-xl border border-slate-200/80 flex items-center justify-between cursor-pointer hover:shadow-xs">
+                                            <div class="flex items-center space-x-2.5 overflow-hidden">
+                                                <div class="w-4 h-4 rounded-full border-2 border-slate-300 shrink-0"></div>
+                                                <div class="truncate">
+                                                    <span class="font-bold text-xs text-slate-800 truncate block">${item.title}</span>
+                                                    ${item.store ? `<span class="text-[10px] text-slate-400 block">${item.store}</span>` : ''}
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-2 shrink-0">
+                                                ${badges[timing]}
+                                                <span class="text-[10px] text-slate-500">${dateVal}</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
                             </div>
                         </div>
-                        <div class="px-3 pb-3 flex justify-between items-center text-xs text-slate-600 border-t border-slate-900/5 pt-2 mt-1">
-                            <span class="font-bold">${item.price ? `¥${item.price.toLocaleString()}` : '-'}</span>
-                            <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }).join('');
+
+            } else {
+                // 2 & 3. サムネイル / コンパクト表示モード
+                folderContainer.classList.add('hidden');
+                itemsContainer.classList.remove('hidden');
+
+                if (currentViewMode === 'thumbnail') {
+                    itemsContainer.className = "grid grid-cols-2 sm:grid-cols-3 gap-3";
+                    itemsContainer.innerHTML = filteredItems.map(item => {
+                        const timing = getTimingStatus(item.dueDate);
+                        const dateVal = item.dueDate ? `${item.dueDate.replace(/-/g, '/')}` : '未定';
+                        const cardColor = getGenreColor(item.category);
+
+                        return `
+                            <div onclick="openModal(${item.id})" class="rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between group" style="background-color: ${cardColor};">
+                                <div>
+                                    <div class="relative w-full h-36 bg-slate-200/40 flex items-center justify-center overflow-hidden">
+                                        ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">` : `<i class="fa-solid fa-box text-slate-300 text-3xl"></i>`}
+                                        ${item.favorite ? '<div class="absolute top-2 left-2 bg-amber-400 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shadow"><i class="fa-solid fa-star"></i></div>' : ''}
+                                        <div class="absolute bottom-2 right-2">${badges[timing]}</div>
+                                    </div>
+                                    <div class="p-3 space-y-1">
+                                        <div class="flex justify-between items-center text-[10px]">
+                                            <span class="font-bold px-2 py-0.5 rounded-md bg-white/80 text-slate-800 shadow-xs border border-slate-100">${item.category}</span>
+                                            <span class="${timing === 'expired' ? 'text-rose-600 font-bold' : 'text-slate-600 font-medium'}"><i class="fa-regular fa-clock mr-0.5"></i>${dateVal}</span>
+                                        </div>
+                                        <h3 class="font-bold text-sm text-slate-900 truncate pt-1">${item.title}</h3>
+                                        ${item.store ? `<p class="text-xs text-slate-600 truncate"><i class="fa-solid fa-store mr-1"></i>${item.store}</p>` : ''}
+                                    </div>
+                                </div>
+                                <div class="px-3 pb-2.5 flex justify-end items-center border-t border-slate-900/5 pt-2 mt-1">
+                                    <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                } else {
+                    // コンパクトリスト表示
+                    itemsContainer.className = "space-y-2";
+                    itemsContainer.innerHTML = filteredItems.map(item => {
+                        const timing = getTimingStatus(item.dueDate);
+                        const dateVal = item.dueDate ? `${item.dueDate.replace(/-/g, '/')}` : '未定';
+                        const cardColor = getGenreColor(item.category);
+
+                        return `
+                            <div onclick="openModal(${item.id})" class="p-3 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between" style="background-color: ${cardColor};">
+                                <div class="flex items-center space-x-3 overflow-hidden">
+                                    ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200">` : `<div class="w-10 h-10 rounded-xl bg-white/60 flex items-center justify-center shrink-0 border border-slate-200/50"><i class="fa-solid fa-box text-slate-400 text-sm"></i></div>`}
+                                    <div class="truncate">
+                                        <div class="flex items-center space-x-1.5">
+                                            <span class="font-bold text-xs text-slate-800 truncate">${item.title}</span>
+                                            ${item.favorite ? '<i class="fa-solid fa-star text-amber-400 text-[10px]"></i>' : ''}
+                                        </div>
+                                        <div class="flex items-center space-x-2 text-[10px] text-slate-500 pt-0.5">
+                                            <span class="font-bold px-1.5 py-0.2 bg-white/80 rounded text-slate-700">${item.category}</span>
+                                            ${item.store ? `<span><i class="fa-solid fa-store mr-0.5"></i>${item.store}</span>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2 shrink-0">
+                                    ${badges[timing]}
+                                    <span class="text-[10px] text-slate-600 font-medium">${dateVal}</span>
+                                    <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
         }
 
-        // 写真の自動圧縮（容量オーバー対策）
+        function toggleFolderExpand(folderId) {
+            const folder = document.getElementById(folderId);
+            if (folder) folder.classList.toggle('hidden');
+        }
+
         function handleImagePreview(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -461,7 +561,6 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // JPEG形式で圧縮（画質0.7）して容量を削減
                     const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
 
                     document.getElementById('itemImageBase64').value = compressedBase64;
@@ -499,7 +598,6 @@
                 document.getElementById('itemDueDate').value = item.dueDate || '';
                 document.getElementById('itemCategory').value = item.category;
                 document.getElementById('itemStore').value = item.store || '';
-                document.getElementById('itemPrice').value = item.price || '';
                 document.getElementById('itemMemo').value = item.memo || '';
                 document.getElementById('itemFavorite').checked = item.favorite || false;
                 
@@ -533,7 +631,6 @@
                 category: document.getElementById('itemCategory').value,
                 image: document.getElementById('itemImageBase64').value,
                 store: document.getElementById('itemStore').value,
-                price: document.getElementById('itemPrice').value ? Number(document.getElementById('itemPrice').value) : null,
                 memo: document.getElementById('itemMemo').value,
                 favorite: document.getElementById('itemFavorite').checked
             };
@@ -558,7 +655,6 @@
             }
         }
 
-        // --- ジャンル管理機能 ---
         function openGenreManageModal() {
             renderGenreManageList();
             document.getElementById('genreManageModal').classList.remove('hidden');
@@ -604,6 +700,7 @@
             renderGenreManageList();
             renderGenreTabs();
             renderCategorySelect();
+            closeGenreManageModal();
             renderApp();
         }
 
