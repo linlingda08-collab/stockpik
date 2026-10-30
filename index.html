@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockPik - ストック・愛用品管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
+
+    <!-- ヘッダー -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="bg-indigo-600 text-white w-9 h-9 rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-box-archive text-lg"></i>
+                </div>
+                <h1 class="text-xl font-bold tracking-tight text-slate-900">StockPik</h1>
+            </div>
+            <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl shadow-md transition flex items-center space-x-2">
+                <i class="fa-solid fa-plus"></i>
+                <span class="text-sm">新規追加</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 pt-4">
+        <!-- 検索・フィルターバー -->
+        <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-4 space-y-3">
+            <div class="relative">
+                <i class="fa-solid fa-search absolute left-3.5 top-3.5 text-slate-400"></i>
+                <input type="text" id="searchInput" oninput="renderApp()" placeholder="タイトルやメモ、購入先で検索..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <div class="flex flex-wrap gap-2 items-center justify-between">
+                <!-- カテゴリタブ -->
+                <div id="categoryTabs" class="flex flex-wrap gap-1.5">
+                    <!-- 動的生成 -->
+                </div>
+
+                <!-- ステータスフィルター -->
+                <div class="flex gap-1 bg-slate-100 p-1 rounded-xl text-xs font-medium">
+                    <button onclick="setStatusFilter('all')" id="filter-all" class="px-3 py-1.5 rounded-lg transition bg-white text-indigo-600 shadow-sm">すべて</button>
+                    <button onclick="setStatusFilter('need')" id="filter-need" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900">🔴 要購入</button>
+                    <button onclick="setStatusFilter('soon')" id="filter-soon" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900">🟡 そろそろ</button>
+                    <button onclick="setStatusFilter('ok')" id="filter-ok" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900">🟢 在庫あり</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- リスト表示エリア -->
+        <div id="itemsContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <!-- 動的生成 -->
+        </div>
+
+        <!-- 該当なし表示 -->
+        <div id="emptyState" class="hidden text-center py-16">
+            <div class="text-4xl mb-3">📭</div>
+            <p class="text-slate-500 text-sm">該当するアイテムが見つかりませんでした</p>
+        </div>
+    </main>
+
+    <!-- 登録・編集モーダル -->
+    <div id="itemModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-xl p-6 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h2 id="modalTitle" class="text-lg font-bold text-slate-900">アイテムを追加</h2>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4">
+                <input type="hidden" id="itemId">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル <span class="text-rose-500">*</span></label>
+                    <input type="text" id="itemTitle" required placeholder="例: 〇〇ブランドの柔軟剤" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">カテゴリ <span class="text-rose-500">*</span></label>
+                        <select id="itemCategory" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="食品">食品</option>
+                            <option value="日用品">日用品</option>
+                            <option value="コスメ・ケア">コスメ・ケア</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">在庫ステータス</label>
+                        <select id="itemStatus" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="ok">🟢 在庫あり</option>
+                            <option value="soon">🟡 そろそろ</option>
+                            <option value="need">🔴 要購入</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">写真（カメラ撮影 / 選択）</label>
+                    <input type="file" id="itemImageFile" accept="image/*" onchange="handleImagePreview(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    <input type="hidden" id="itemImageBase64">
+                    <div id="imagePreviewContainer" class="mt-2 hidden">
+                        <img id="imagePreview" class="w-24 h-24 object-cover rounded-xl border border-slate-200 shadow-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">購入先</label>
+                        <input type="text" id="itemStore" placeholder="例: Amazon / 〇〇スーパー" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">価格目安 (円)</label>
+                        <input type="number" id="itemPrice" placeholder="例: 480" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">メモ</label>
+                    <textarea id="itemMemo" rows="2" placeholder="サイズや型番、お気に入りポイントなど" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+
+                <div class="flex items-center space-x-2 pt-1">
+                    <input type="checkbox" id="itemFavorite" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                    <label for="itemFavorite" class="text-xs font-semibold text-slate-700 select-none">⭐ 定番・お気に入りマークをつける</label>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-3 border-t">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-200 transition">キャンセル</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition shadow-sm">保存する</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript ロジック -->
+    <script>
+        let items = JSON.parse(localStorage.getItem('stockpik_items')) || [
+            { id: 1, title: '特選 豆乳 1000ml', category: '食品', status: 'ok', image: '', store: '近所のスーパー', price: 218, memo: '毎日飲むのでストック必須', favorite: true },
+            { id: 2, title: '無香料 柔軟剤 詰め替え', category: '日用品', status: 'need', image: '', store: 'Amazon', price: 650, memo: '大容量タイプを選ぶ', favorite: true }
+        ];
+
+        let currentCategory = 'すべて';
+        let currentStatusFilter = 'all';
+
+        const categories = ['すべて', '⭐ 定番', '食品', '日用品', 'コスメ・ケア', 'その他'];
+
+        function init() {
+            renderTabs();
+            renderApp();
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('categoryTabs');
+            container.innerHTML = categories.map(cat => {
+                const active = currentCategory === cat;
+                return `<button onclick="setCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-medium transition ${active ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+            }).join('');
+        }
+
+        function setCategory(cat) {
+            currentCategory = cat;
+            renderTabs();
+            renderApp();
+        }
+
+        function setStatusFilter(status) {
+            currentStatusFilter = status;
+            ['all', 'need', 'soon', 'ok'].forEach(s => {
+                const btn = document.getElementById(`filter-${s}`);
+                if (s === status) {
+                    btn.className = "px-3 py-1.5 rounded-lg transition bg-white text-indigo-600 shadow-sm";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900";
+                }
+            });
+            renderApp();
+        }
+
+        function renderApp() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const container = document.getElementById('itemsContainer');
+            const emptyState = document.getElementById('emptyState');
+
+            const filtered = items.filter(item => {
+                // カテゴリフィルター
+                if (currentCategory === '⭐ 定番' && !item.favorite) return false;
+                if (currentCategory !== 'すべて' && currentCategory !== '⭐ 定番' && item.category !== currentCategory) return false;
+
+                // ステータスフィルター
+                if (currentStatusFilter !== 'all' && item.status !== currentStatusFilter) return false;
+
+                // 検索バー
+                if (search && !item.title.toLowerCase().includes(search) && !(item.memo && item.memo.toLowerCase().includes(search)) && !(item.store && item.store.toLowerCase().includes(search))) {
+                    return false;
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            const statusBadges = {
+                ok: '<span class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🟢 在庫あり</span>',
+                soon: '<span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🟡 そろそろ</span>',
+                need: '<span class="bg-rose-100 text-rose-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🔴 要購入</span>'
+            };
+
+            container.innerHTML = filtered.map(item => `
+                <div onclick="openModal(${item.id})" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between group">
+                    <div>
+                        <div class="relative w-full h-36 bg-slate-100 flex items-center justify-center overflow-hidden">
+                            ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">` : `<i class="fa-solid fa-camera text-slate-300 text-2xl"></i>`}
+                            ${item.favorite ? '<div class="absolute top-2 left-2 bg-amber-400 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shadow"><i class="fa-solid fa-star"></i></div>' : ''}
+                            <div class="absolute bottom-2 right-2">${statusBadges[item.status]}</div>
+                        </div>
+                        <div class="p-3 space-y-1">
+                            <span class="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-md">${item.category}</span>
+                            <h3 class="font-bold text-sm text-slate-900 truncate">${item.title}</h3>
+                            ${item.store ? `<p class="text-xs text-slate-400 truncate"><i class="fa-solid fa-store mr-1"></i>${item.store}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="px-3 pb-3 flex justify-between items-center text-xs text-slate-500 border-t border-slate-100 pt-2 mt-1">
+                        <span>${item.price ? `¥${item.price.toLocaleString()}` : '-'}</span>
+                        <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openModal(id = null) {
+            const modal = document.getElementById('itemModal');
+            const form = document.getElementById('itemForm');
+            form.reset();
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+
+            if (id) {
+                document.getElementById('modalTitle').innerText = 'アイテムを編集';
+                const item = items.find(i => i.id === id);
+                document.getElementById('itemId').value = item.id;
+                document.getElementById('itemTitle').value = item.title;
+                document.getElementById('itemCategory').value = item.category;
+                document.getElementById('itemStatus').value = item.status;
+                document.getElementById('itemStore').value = item.store || '';
+                document.getElementById('itemPrice').value = item.price || '';
+                document.getElementById('itemMemo').value = item.memo || '';
+                document.getElementById('itemFavorite').checked = item.favorite || false;
+                
+                if (item.image) {
+                    document.getElementById('itemImageBase64').value = item.image;
+                    document.getElementById('imagePreview').src = item.image;
+                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                }
+            } else {
+                document.getElementById('modalTitle').innerText = 'アイテムを追加';
+                document.getElementById('itemId').value = '';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').classList.add('hidden');
+        }
+
+        function handleImagePreview(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    document.getElementById('itemImageBase64').value = base64;
+                    document.getElementById('imagePreview').src = base64;
+                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveItem(event) {
+            event.preventDefault();
+            const id = document.getElementById('itemId').value;
+            const newItem = {
+                id: id ? Number(id) : Date.now(),
+                title: document.getElementById('itemTitle').value,
+                category: document.getElementById('itemCategory').value,
+                status: document.getElementById('itemStatus').value,
+                image: document.getElementById('itemImageBase64').value,
+                store: document.getElementById('itemStore').value,
+                price: document.getElementById('itemPrice').value ? Number(document.getElementById('itemPrice').value) : null,
+                memo: document.getElementById('itemMemo').value,
+                favorite: document.getElementById('itemFavorite').checked
+            };
+
+            if (id) {
+                const index = items.findIndex(i => i.id === Number(id));
+                items[index] = newItem;
+            } else {
+                items.unshift(newItem);
+            }
+
+            localStorage.setItem('stockpik_items', JSON.stringify(items));
+            closeModal();
+            renderApp();
+        }
+
+        function deleteItem(id) {
+            if (confirm('このアイテムを削除してもよろしいですか？')) {
+                items = items.filter(i => i.id !== id);
+                localStorage.setItem('stockpik_items', JSON.stringify(items));
+                renderApp();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
