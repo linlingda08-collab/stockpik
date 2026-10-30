@@ -287,7 +287,6 @@
         let showCompletedAccordion = false;
         let viewingItemId = null;
 
-        // タッチ操作（スワイプバック）用変数
         let touchStartX = 0;
         let touchStartY = 0;
 
@@ -297,7 +296,6 @@
             initSwipeGesture();
         }
 
-        // 画面右方向へのスワイプで一覧に戻るジェスチャー
         function initSwipeGesture() {
             const mainArea = document.getElementById('categoryContentArea');
             
@@ -313,7 +311,6 @@
                 let diffX = touchEndX - touchStartX;
                 let diffY = Math.abs(touchEndY - touchStartY);
 
-                // 左端からスタート または 大きく右へスワイプした場合（かつ縦方向のブレが少ない場合）
                 if (diffX > 80 && diffY < 60 && touchStartX < 80) {
                     closeCategoryDetail();
                 }
@@ -441,6 +438,20 @@
             }
         }
 
+        // 右側のサムネイル/リンクボタンのヘルパー関数
+        function renderRightMedia(item) {
+            if (item.image) {
+                return `<img src="${item.image}" class="w-11 h-11 rounded-xl object-contain bg-slate-50 border border-slate-200 shrink-0">`;
+            } else if (item.url) {
+                return `
+                    <a href="${item.url}" target="_blank" onclick="event.stopPropagation();" class="w-10 h-10 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center border border-indigo-100 shrink-0 transition" title="リンクを開く">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                    </a>
+                `;
+            }
+            return '';
+        }
+
         function renderApp() {
             const folderContainer = document.getElementById('folderContainer');
             const categoryContentArea = document.getElementById('categoryContentArea');
@@ -504,7 +515,7 @@
 
                 if (categoryItems.length === 0) {
                     emptyState.classList.remove('hidden');
-                    reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">リバーインダーはありません</p>';
+                    reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">リマインダーはありません</p>';
                     memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモはありません</p>';
                     completedSection.classList.add('hidden');
                     return;
@@ -512,7 +523,7 @@
 
                 emptyState.classList.add('hidden');
 
-                // リマインダーリスト描画（背景は白固定）
+                // リマインダー描画（右端にサムネイル・リンク配置）
                 if (remindersActive.length === 0) {
                     reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">リマインダーはありません</p>';
                 } else {
@@ -522,26 +533,27 @@
 
                         return `
                             <div onclick="openViewModal(${item.id})" class="p-3 rounded-2xl bg-white ${urgentStyle} shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''}">
-                                <div class="flex items-center space-x-3 overflow-hidden">
+                                <div class="flex items-center space-x-3 overflow-hidden mr-2">
                                     <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="w-6 h-6 rounded-full ${isPending ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-300'} flex items-center justify-center shrink-0 border shadow-xs transition" title="${isPending ? '取り消す' : '完了'}">
                                         <i class="fa-solid ${isPending ? 'fa-check text-xs' : 'fa-circle text-xs'}"></i>
                                     </button>
 
-                                    ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-contain bg-slate-50 border border-slate-200 shrink-0">` : ''}
-                                    
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
                                             <span class="font-bold text-xs text-slate-800 truncate ${isPending ? 'line-through' : ''}">${item.title}</span>
                                             ${item.urgent ? '<span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">🔥 急ぎ</span>' : ''}
                                             ${item.favorite ? '<i class="fa-solid fa-star text-amber-400 text-[10px]"></i>' : ''}
                                         </div>
-                                        ${item.url ? `<a href="${item.url}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] text-indigo-600 hover:underline truncate block pt-0.5"><i class="fa-solid fa-link mr-1"></i>${item.url}</a>` : ''}
                                         <div class="flex items-center space-x-2 text-[10px] text-slate-500 pt-0.5">
                                             ${item.store ? `<span><i class="fa-solid fa-store mr-0.5"></i>${item.store}</span>` : ''}
+                                            ${item.memo ? `<span class="truncate text-slate-400">${item.memo}</span>` : ''}
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- 右側表示：写真サムネイル or リンクアイコン ＆ 削除 -->
                                 <div class="flex items-center space-x-2 shrink-0">
+                                    ${renderRightMedia(item)}
                                     <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>
                             </div>
@@ -572,30 +584,32 @@
                     completedSection.classList.add('hidden');
                 }
 
-                // メモリスト描画（背景は白固定）
+                // メモ描画（右端にサムネイル・リンク配置）
                 if (memos.length === 0) {
                     memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモはありません</p>';
                 } else {
                     memoItemsContainer.innerHTML = memos.map(item => {
                         return `
                             <div onclick="openViewModal(${item.id})" class="p-3 rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between">
-                                <div class="flex items-center space-x-3 overflow-hidden">
+                                <div class="flex items-center space-x-3 overflow-hidden mr-2">
                                     <div class="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-200 text-xs shadow-xs">
                                         <i class="fa-solid fa-book-open"></i>
                                     </div>
 
-                                    ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-contain bg-slate-50 border border-slate-200 shrink-0">` : ''}
-                                    
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
                                             <span class="font-bold text-xs text-slate-800 truncate">${item.title}</span>
                                             ${item.favorite ? '<i class="fa-solid fa-star text-amber-400 text-[10px]"></i>' : ''}
                                         </div>
-                                        ${item.url ? `<a href="${item.url}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] text-indigo-600 hover:underline truncate block pt-0.5"><i class="fa-solid fa-link mr-1"></i>${item.url}</a>` : ''}
-                                        ${item.memo ? `<p class="text-[11px] text-slate-500 truncate pt-0.5">${item.memo}</p>` : ''}
+                                        <div class="flex items-center space-x-2 text-[10px] text-slate-500 pt-0.5">
+                                            ${item.memo ? `<span class="truncate text-slate-400">${item.memo}</span>` : ''}
+                                        </div>
                                     </div>
                                 </div>
+
+                                <!-- 右側表示：写真サムネイル or リンクアイコン ＆ 削除 -->
                                 <div class="flex items-center space-x-2 shrink-0">
+                                    ${renderRightMedia(item)}
                                     <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>
                             </div>
