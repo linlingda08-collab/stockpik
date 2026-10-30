@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockPik - 日用品・ストック必要品メモ</title>
+    <title>StockMemo - 必要品・ストック管理</title>
+
+    <!-- iPhone ホーム画面アイコン & アプリ設定 -->
+    <link rel="apple-touch-icon" href="icon.PNG">
+    <meta name="apple-mobile-web-app-title" content="StockMemo">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- EXIFデータ（撮影日時など）読み取り用ライブラリ -->
@@ -15,11 +22,12 @@
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2">
-                <div class="bg-indigo-600 text-white w-9 h-9 rounded-xl flex items-center justify-center shadow-md">
+                <img src="icon.PNG" id="headerIcon" class="w-9 h-9 rounded-xl object-cover shadow-sm border border-slate-100" onerror="this.style.display='none'; document.getElementById('headerIconFallback').style.display='flex';">
+                <div id="headerIconFallback" class="hidden bg-indigo-600 text-white w-9 h-9 rounded-xl items-center justify-center shadow-md">
                     <i class="fa-solid fa-box-archive text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">StockPik</h1>
+                    <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">StockMemo</h1>
                     <p class="text-[10px] text-slate-400">必要品・買い物時期メモ</p>
                 </div>
             </div>
@@ -106,24 +114,12 @@
             <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4">
                 <input type="hidden" id="itemId">
 
-                <!-- カレンダー設定エリア（いつまでに欲しいか） -->
-                <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 space-y-2">
-                    <label class="block text-xs font-bold text-indigo-950">
-                        <i class="fa-solid fa-calendar-days text-indigo-600 mr-1"></i> いつまでに欲しいか（カレンダー指定） <span class="text-rose-500">*</span>
+                <!-- STEP 1: 写真を最初に選択 -->
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
+                    <label class="block text-xs font-bold text-slate-700">
+                        <i class="fa-solid fa-camera text-indigo-600 mr-1"></i> ① 写真を選択（任意）
                     </label>
-                    <input type="date" id="itemDueDate" required class="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
-                    <p class="text-[11px] text-slate-500">※選んだ日付によって「いそぎ」「給料日まで」「まだ先」に自動判定されます</p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル（商品名など） <span class="text-rose-500">*</span></label>
-                    <input type="text" id="itemTitle" required placeholder="例: 柔軟剤 詰め替え 1000ml" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-
-                <!-- 写真手動アタッチメントエリア -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">写真を選択（任意）</label>
-                    <input type="file" id="itemImageFile" accept="image/*" onchange="handleImagePreview(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                    <input type="file" id="itemImageFile" accept="image/*" onchange="handleImagePreview(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
                     <input type="hidden" id="itemImageBase64">
                     
                     <div id="imagePreviewContainer" class="mt-2 hidden flex items-center space-x-3">
@@ -132,38 +128,57 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <!-- STEP 2: タイトル等の詳細を入力 -->
+                <div class="space-y-3 pt-1">
+                    <p class="text-xs font-bold text-slate-700"><i class="fa-solid fa-pen-to-square text-indigo-600 mr-1"></i> ② 詳細を入力</p>
+                    
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">ジャンル <span class="text-rose-500">*</span></label>
-                        <select id="itemCategory" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="日用品">日用品</option>
-                            <option value="食品">食品</option>
-                            <option value="コスメ・ケア">コスメ・ケア</option>
-                            <option value="その他">その他</option>
-                        </select>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル（商品名など） <span class="text-rose-500">*</span></label>
+                        <input type="text" id="itemTitle" required placeholder="例: 柔軟剤 詰め替え 1000ml" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">購入先</label>
-                        <input type="text" id="itemStore" placeholder="例: ドラッグストア / ドラッグトップス" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">価格目安 (円)</label>
-                        <input type="number" id="itemPrice" placeholder="例: 480" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div class="flex items-end pb-2">
-                        <div class="flex items-center space-x-2">
-                            <input type="checkbox" id="itemFavorite" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
-                            <label for="itemFavorite" class="text-xs font-semibold text-slate-700 select-none">⭐ 定番品マーク</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">ジャンル <span class="text-rose-500">*</span></label>
+                            <select id="itemCategory" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="日用品">日用品</option>
+                                <option value="食品">食品</option>
+                                <option value="コスメ・ケア">コスメ・ケア</option>
+                                <option value="その他">その他</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">購入先</label>
+                            <input type="text" id="itemStore" placeholder="例: ドラッグストア" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
                     </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">価格目安 (円)</label>
+                            <input type="number" id="itemPrice" placeholder="例: 480" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="flex items-end pb-2">
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="itemFavorite" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                                <label for="itemFavorite" class="text-xs font-semibold text-slate-700 select-none">⭐ 定番品マーク</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">メモ</label>
+                        <textarea id="itemMemo" rows="2" placeholder="サイズや型番、お気に入りポイントなど" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">メモ</label>
-                    <textarea id="itemMemo" rows="2" placeholder="サイズや型番、お気に入りポイントなど" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                <!-- STEP 3: カレンダーで時期を選択 -->
+                <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 space-y-2">
+                    <label class="block text-xs font-bold text-indigo-950">
+                        <i class="fa-solid fa-calendar-days text-indigo-600 mr-1"></i> ③ いつまでに欲しいか（カレンダー指定） <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="date" id="itemDueDate" required class="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                    <p class="text-[11px] text-slate-500">※選んだ日付によって「いそぎ」「給料日まで」「まだ先」に自動判定されます</p>
                 </div>
 
                 <div class="flex justify-end space-x-2 pt-3 border-t">
@@ -204,7 +219,7 @@
 
         // データの永続化処理
         let items = [];
-        const savedData = localStorage.getItem('stockpik_items');
+        const savedData = localStorage.getItem('stockpik_items') || localStorage.getItem('stockmemo_items');
         if (savedData) {
             items = JSON.parse(savedData);
         } else {
@@ -219,7 +234,7 @@
                 { id: 2, title: '特選 豆乳 1000ml', category: '食品', dueDate: nextPayday.toISOString().slice(0,10), image: '', store: '近所のスーパー', price: 218, memo: '給料日までに買い足し', favorite: false },
                 { id: 3, title: '予備の電球 60W型', category: 'その他', dueDate: laterDate.toISOString().slice(0,10), image: '', store: 'ホームセンター', price: 890, memo: '切れたら困るので余裕を持って', favorite: false }
             ];
-            localStorage.setItem('stockpik_items', JSON.stringify(items));
+            localStorage.setItem('stockmemo_items', JSON.stringify(items));
         }
 
         let currentGenre = 'すべて';
@@ -441,7 +456,7 @@
                 items.unshift(newItem);
             }
 
-            localStorage.setItem('stockpik_items', JSON.stringify(items));
+            localStorage.setItem('stockmemo_items', JSON.stringify(items));
             closeModal();
             renderApp();
         }
@@ -449,7 +464,7 @@
         function deleteItem(id) {
             if (confirm('このアイテムを削除してもよろしいですか？')) {
                 items = items.filter(i => i.id !== id);
-                localStorage.setItem('stockpik_items', JSON.stringify(items));
+                localStorage.setItem('stockmemo_items', JSON.stringify(items));
                 renderApp();
             }
         }
@@ -458,7 +473,7 @@
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `stockpik_backup_${new Date().toISOString().slice(0,10)}.json`);
+            downloadAnchor.setAttribute("download", `stockmemo_backup_${new Date().toISOString().slice(0,10)}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
