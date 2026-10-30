@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reminders - 買い物・ストック管理</title>
+    <title>Reminders - 買い物・レシピ・ストックメモ</title>
 
     <!-- iPhone ホーム画面アイコン & アプリ設定 -->
     <link rel="apple-touch-icon" href="icon.PNG">
@@ -51,7 +51,7 @@
                 </div>
             </div>
 
-            <!-- ジャンル編集 ＆ 追加ボタン（表示切替は廃止） -->
+            <!-- ジャンル編集 ＆ 追加ボタン -->
             <div class="flex items-center space-x-2">
                 <button onclick="openGenreManageModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl text-xs transition flex items-center space-x-1 border border-slate-200">
                     <i class="fa-solid fa-tags text-indigo-600"></i>
@@ -84,20 +84,42 @@
             <!-- 動的生成 -->
         </div>
 
-        <!-- リスト表示エリア（カテゴリー詳細時） -->
-        <div id="itemsContainer" class="space-y-2 hidden">
-            <!-- 動的生成 -->
-        </div>
-
-        <!-- 履歴（完了済みアイテム）折りたたみエリア -->
-        <div id="completedSection" class="hidden mt-8 pt-4 border-t border-slate-200/80 space-y-3">
-            <button onclick="toggleCompletedAccordion()" class="flex items-center space-x-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition">
-                <i id="completedChevron" class="fa-solid fa-chevron-right text-[10px] transition-transform"></i>
-                <span>完了した項目 (<span id="completedCount">0</span>)</span>
-            </button>
-            <div id="completedContainer" class="hidden space-y-2">
-                <!-- 動的生成 -->
+        <!-- カテゴリー詳細時：上下分割表示エリア -->
+        <div id="categoryContentArea" class="hidden space-y-6">
+            
+            <!-- ① 買う物（リマインダー）セクション -->
+            <div class="space-y-2">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
+                    <i class="fa-solid fa-basket-shopping text-indigo-600"></i>
+                    <span>買う物（リマインダー）</span>
+                </h3>
+                <div id="reminderItemsContainer" class="space-y-2">
+                    <!-- 動的生成 -->
+                </div>
             </div>
+
+            <!-- 完了した項目（履歴）セクション -->
+            <div id="completedSection" class="hidden pt-2 space-y-2">
+                <button onclick="toggleCompletedAccordion()" class="flex items-center space-x-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition">
+                    <i id="completedChevron" class="fa-solid fa-chevron-right text-[10px] transition-transform"></i>
+                    <span>完了した項目 (<span id="completedCount">0</span>)</span>
+                </button>
+                <div id="completedContainer" class="hidden space-y-2">
+                    <!-- 動的生成 -->
+                </div>
+            </div>
+
+            <!-- ② メモ・製品記録（消えない）セクション -->
+            <div class="space-y-2 pt-4 border-t border-slate-200/80">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
+                    <i class="fa-solid fa-book-open text-indigo-600"></i>
+                    <span>メモ・製品記録（消えない）</span>
+                </h3>
+                <div id="memoItemsContainer" class="space-y-2">
+                    <!-- 動的生成 -->
+                </div>
+            </div>
+
         </div>
 
         <!-- 該当なし表示 -->
@@ -107,11 +129,11 @@
         </div>
     </main>
 
-    <!-- アイテム閲覧モーダル（タップ時に開く） -->
+    <!-- アイテム閲覧モーダル -->
     <div id="viewModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-xl p-5 sm:p-6 space-y-4">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="font-bold text-slate-900 text-base">アイテム詳細</h3>
+                <h3 class="font-bold text-slate-900 text-base">詳細情報</h3>
                 <button onclick="closeViewModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
@@ -140,6 +162,27 @@
             <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4">
                 <input type="hidden" id="itemId">
 
+                <!-- 種別選択（買う物か、消えないメモか） -->
+                <div class="bg-indigo-50/60 p-3 rounded-2xl border border-indigo-100 space-y-1.5">
+                    <label class="block text-xs font-bold text-indigo-900">種別を選択 <span class="text-rose-500">*</span></label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-indigo-200 cursor-pointer shadow-xs">
+                            <input type="radio" name="itemType" value="reminder" checked class="text-indigo-600 focus:ring-indigo-500">
+                            <div>
+                                <span class="text-xs font-bold block text-slate-800">🛒 買う物</span>
+                                <span class="text-[10px] text-slate-400 block">消せるリマインダー</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-indigo-200 cursor-pointer shadow-xs">
+                            <input type="radio" name="itemType" value="memo" class="text-indigo-600 focus:ring-indigo-500">
+                            <div>
+                                <span class="text-xs font-bold block text-slate-800">📖 メモ・記録</span>
+                                <span class="text-[10px] text-slate-400 block">消えない保存用</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- 写真を選択 -->
                 <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
                     <div class="flex justify-between items-center">
@@ -159,13 +202,13 @@
                 <!-- 詳細入力 -->
                 <div class="space-y-3 pt-1">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル（料理名・商品名など） <span class="text-rose-500">*</span></label>
-                        <input type="text" id="itemTitle" required placeholder="例: のり塩ササミチキン" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル（品名・製品名など） <span class="text-rose-500">*</span></label>
+                        <input type="text" id="itemTitle" required placeholder="例: 絆創膏 ケアリーヴ" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">参考URL（Instagram / TikTok等）</label>
-                        <input type="url" id="itemUrl" placeholder="https://www.instagram.com/reel/..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">参考URL（Instagram / TikTok / 製品サイト等）</label>
+                        <input type="url" id="itemUrl" placeholder="https://..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -177,7 +220,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">購入先・店舗</label>
-                            <input type="text" id="itemStore" placeholder="例: スーパー" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <input type="text" id="itemStore" placeholder="例: 薬局" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
                     </div>
 
@@ -185,7 +228,7 @@
                     <div class="flex items-center space-x-4 pt-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <label class="flex items-center space-x-2 cursor-pointer">
                             <input type="checkbox" id="itemUrgent" class="w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500">
-                            <span class="text-xs font-bold text-rose-600 flex items-center"><i class="fa-solid fa-fire mr-1"></i>🔥 急ぎ（最上位表示）</span>
+                            <span class="text-xs font-bold text-rose-600 flex items-center"><i class="fa-solid fa-fire mr-1"></i>🔥 急ぎ（最上位）</span>
                         </label>
                         <label class="flex items-center space-x-2 cursor-pointer">
                             <input type="checkbox" id="itemFavorite" class="w-4 h-4 text-amber-500 border-slate-300 rounded focus:ring-amber-500">
@@ -195,7 +238,7 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">メモ</label>
-                        <textarea id="itemMemo" rows="2" placeholder="分量やポイントなど" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                        <textarea id="itemMemo" rows="2" placeholder="型番や製品の特徴など" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                     </div>
                 </div>
 
@@ -219,7 +262,7 @@
                 <span class="text-xs font-bold text-slate-700 block">＋ 新しいジャンルを作成</span>
                 <div class="flex items-center space-x-2">
                     <input type="color" id="newGenreColor" value="#e0e7ff" title="タップして好きな色を選択">
-                    <input type="text" id="newGenreName" required placeholder="ジャンル名（例: レシピ）" class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="text" id="newGenreName" required placeholder="ジャンル名（例: 買い物（薬局））" class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <button type="submit" class="px-3.5 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shrink-0 shadow-sm">追加</button>
                 </div>
             </form>
@@ -242,7 +285,7 @@
         let selectedCategoryDetail = null; 
         let pendingTimeouts = {}; 
         let showCompletedAccordion = false;
-        let viewingItemId = null; // 現在閲覧中のアイテムID
+        let viewingItemId = null;
 
         function init() {
             renderCategorySelect();
@@ -323,17 +366,19 @@
             }
         }
 
-        // 閲覧モーダルを開く
         function openViewModal(id) {
             viewingItemId = id;
             const item = items.find(i => i.id === id);
             if (!item) return;
+
+            const typeLabel = item.type === 'memo' ? '<span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded">📖 メモ・記録</span>' : '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">🛒 買う物</span>';
 
             const content = document.getElementById('viewModalContent');
             content.innerHTML = `
                 ${item.image ? `<div class="w-full h-48 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200"><img src="${item.image}" class="w-full h-full object-cover"></div>` : ''}
                 <div>
                     <div class="flex items-center space-x-2 mb-1">
+                        ${typeLabel}
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${item.category}</span>
                         ${item.urgent ? '<span class="bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">🔥 急ぎ</span>' : ''}
                         ${item.favorite ? '<span class="text-amber-500 font-bold text-xs"><i class="fa-solid fa-star"></i> 定番</span>' : ''}
@@ -369,30 +414,17 @@
         }
 
         function renderApp() {
-            const itemsContainer = document.getElementById('itemsContainer');
             const folderContainer = document.getElementById('folderContainer');
+            const categoryContentArea = document.getElementById('categoryContentArea');
+            const reminderItemsContainer = document.getElementById('reminderItemsContainer');
+            const memoItemsContainer = document.getElementById('memoItemsContainer');
             const completedSection = document.getElementById('completedSection');
             const completedContainer = document.getElementById('completedContainer');
             const completedCount = document.getElementById('completedCount');
             const emptyState = document.getElementById('emptyState');
 
-            let categoryItems = items.filter(item => {
-                if (selectedCategoryDetail && item.category !== selectedCategoryDetail) return false;
-                return true;
-            });
-
-            let activeItems = categoryItems.filter(i => !i.completed);
-            let completedItems = categoryItems.filter(i => i.completed);
-
-            activeItems.sort((a, b) => {
-                if (a.urgent && !b.urgent) return -1;
-                if (!a.urgent && b.urgent) return 1;
-                return 0;
-            });
-
             if (!selectedCategoryDetail) {
-                itemsContainer.classList.add('hidden');
-                completedSection.classList.add('hidden');
+                categoryContentArea.classList.add('hidden');
                 folderContainer.classList.remove('hidden');
 
                 if (customGenres.length === 0) {
@@ -427,58 +459,77 @@
 
             } else {
                 folderContainer.classList.add('hidden');
-                itemsContainer.classList.remove('hidden');
+                categoryContentArea.classList.remove('hidden');
 
-                if (activeItems.length === 0 && completedItems.length === 0) {
-                    itemsContainer.innerHTML = '';
-                    completedSection.classList.add('hidden');
+                let categoryItems = items.filter(i => i.category === selectedCategoryDetail);
+
+                // 1. 買う物（未完了 ＆ 完了）
+                let remindersActive = categoryItems.filter(i => i.type !== 'memo' && !i.completed);
+                let remindersCompleted = categoryItems.filter(i => i.type !== 'memo' && i.completed);
+
+                remindersActive.sort((a, b) => {
+                    if (a.urgent && !b.urgent) return -1;
+                    if (!a.urgent && b.urgent) return 1;
+                    return 0;
+                });
+
+                // 2. メモ・記録（消えない）
+                let memos = categoryItems.filter(i => i.type === 'memo');
+
+                if (categoryItems.length === 0) {
                     emptyState.classList.remove('hidden');
+                    reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">アイテムがありません</p>';
+                    memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモがありません</p>';
+                    completedSection.classList.add('hidden');
                     return;
                 }
 
                 emptyState.classList.add('hidden');
 
-                // 常にコンパクトなリマインダーリスト表示に一本化
-                itemsContainer.className = "space-y-2";
-                itemsContainer.innerHTML = activeItems.map(item => {
-                    const cardColor = getGenreColor(item.category);
-                    const urgentStyle = item.urgent ? 'border-2 border-rose-500 shadow-sm' : 'border border-slate-200/80';
-                    const isPending = item.pendingComplete;
+                // 買う物リスト描画
+                if (remindersActive.length === 0) {
+                    reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">買う物はありません</p>';
+                } else {
+                    reminderItemsContainer.innerHTML = remindersActive.map(item => {
+                        const cardColor = getGenreColor(item.category);
+                        const urgentStyle = item.urgent ? 'border-2 border-rose-500 shadow-sm' : 'border border-slate-200/80';
+                        const isPending = item.pendingComplete;
 
-                    return `
-                        <div onclick="openViewModal(${item.id})" class="p-3 rounded-2xl ${urgentStyle} shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''}" style="background-color: ${cardColor};">
-                            <div class="flex items-center space-x-3 overflow-hidden">
-                                <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="w-6 h-6 rounded-full ${isPending ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-300'} flex items-center justify-center shrink-0 border shadow-xs transition" title="${isPending ? '取り消す' : '完了'}">
-                                    <i class="fa-solid ${isPending ? 'fa-check text-xs' : 'fa-circle text-xs'}"></i>
-                                </button>
+                        return `
+                            <div onclick="openViewModal(${item.id})" class="p-3 rounded-2xl ${urgentStyle} shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''}" style="background-color: ${cardColor};">
+                                <div class="flex items-center space-x-3 overflow-hidden">
+                                    <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="w-6 h-6 rounded-full ${isPending ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-300'} flex items-center justify-center shrink-0 border shadow-xs transition" title="${isPending ? '取り消す' : '完了'}">
+                                        <i class="fa-solid ${isPending ? 'fa-check text-xs' : 'fa-circle text-xs'}"></i>
+                                    </button>
 
-                                ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200">` : ''}
-                                
-                                <div class="truncate">
-                                    <div class="flex items-center space-x-1.5">
-                                        <span class="font-bold text-xs text-slate-800 truncate ${isPending ? 'line-through' : ''}">${item.title}</span>
-                                        ${item.urgent ? '<span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">🔥 急ぎ</span>' : ''}
-                                        ${item.favorite ? '<i class="fa-solid fa-star text-amber-400 text-[10px]"></i>' : ''}
-                                    </div>
-                                    ${item.url ? `<a href="${item.url}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] text-indigo-600 hover:underline truncate block pt-0.5"><i class="fa-solid fa-link mr-1"></i>${item.url}</a>` : ''}
-                                    <div class="flex items-center space-x-2 text-[10px] text-slate-500 pt-0.5">
-                                        <span class="font-bold px-1.5 py-0.2 bg-white/80 rounded text-slate-700">${item.category}</span>
-                                        ${item.store ? `<span><i class="fa-solid fa-store mr-0.5"></i>${item.store}</span>` : ''}
+                                    ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200">` : ''}
+                                    
+                                    <div class="truncate">
+                                        <div class="flex items-center space-x-1.5">
+                                            <span class="font-bold text-xs text-slate-800 truncate ${isPending ? 'line-through' : ''}">${item.title}</span>
+                                            ${item.urgent ? '<span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">🔥 急ぎ</span>' : ''}
+                                            ${item.favorite ? '<i class="fa-solid fa-star text-amber-400 text-[10px]"></i>' : ''}
+                                        </div>
+                                        ${item.url ? `<a href="${item.url}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] text-indigo-600 hover:underline truncate block pt-0.5"><i class="fa-solid fa-link mr-1"></i>${item.url}</a>` : ''}
+                                        <div class="flex items-center space-x-2 text-[10px] text-slate-500 pt-0.5">
+                                            ${item.store ? `<span><i class="fa-solid fa-store mr-0.5"></i>${item.store}</span>` : ''}
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="flex items-center space-x-2 shrink-0">
+                                    <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
+                                </div>
                             </div>
-                            <div class="flex items-center space-x-2 shrink-0">
-                                <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+                        `;
+                    }).join('');
+                }
 
-                if (completedItems.length > 0) {
+                // 履歴描画
+                if (remindersCompleted.length > 0) {
                     completedSection.classList.remove('hidden');
-                    completedCount.innerText = completedItems.length;
+                    completedCount.innerText = remindersCompleted.length;
 
-                    completedContainer.innerHTML = completedItems.map(item => `
+                    completedContainer.innerHTML = remindersCompleted.map(item => `
                         <div onclick="restoreItem(${item.id})" class="p-2.5 rounded-xl border border-slate-200 bg-slate-100/70 flex items-center justify-between cursor-pointer hover:bg-slate-200/60 transition opacity-60">
                             <div class="flex items-center space-x-3 overflow-hidden">
                                 <div class="w-5 h-5 rounded-full bg-slate-400 text-white flex items-center justify-center shrink-0 text-xs">
@@ -494,6 +545,39 @@
                     `).join('');
                 } else {
                     completedSection.classList.add('hidden');
+                }
+
+                // メモ・記録リスト描画（消えない）
+                if (memos.length === 0) {
+                    memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモはありません</p>';
+                } else {
+                    memoItemsContainer.innerHTML = memos.map(item => {
+                        const cardColor = getGenreColor(item.category);
+
+                        return `
+                            <div onclick="openViewModal(${item.id})" class="p-3 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between" style="background-color: ${cardColor};">
+                                <div class="flex items-center space-x-3 overflow-hidden">
+                                    <div class="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-200 text-xs shadow-xs">
+                                        <i class="fa-solid fa-book-open"></i>
+                                    </div>
+
+                                    ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200">` : ''}
+                                    
+                                    <div class="truncate">
+                                        <div class="flex items-center space-x-1.5">
+                                            <span class="font-bold text-xs text-slate-800 truncate">${item.title}</span>
+                                            ${item.favorite ? '<i class="fa-solid fa-star text-amber-400 text-[10px]"></i>' : ''}
+                                        </div>
+                                        ${item.url ? `<a href="${item.url}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] text-indigo-600 hover:underline truncate block pt-0.5"><i class="fa-solid fa-link mr-1"></i>${item.url}</a>` : ''}
+                                        ${item.memo ? `<p class="text-[11px] text-slate-500 truncate pt-0.5">${item.memo}</p>` : ''}
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2 shrink-0">
+                                    <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
                 }
             }
         }
@@ -572,6 +656,9 @@
                 document.getElementById('itemUrgent').checked = item.urgent || false;
                 document.getElementById('itemFavorite').checked = item.favorite || false;
                 
+                const typeVal = item.type || 'reminder';
+                document.querySelector(`input[name="itemType"][value="${typeVal}"]`).checked = true;
+                
                 if (item.image) {
                     document.getElementById('itemImageBase64').value = item.image;
                     document.getElementById('imagePreview').src = item.image;
@@ -595,8 +682,11 @@
         function saveItem(event) {
             event.preventDefault();
             const id = document.getElementById('itemId').value;
+            const typeVal = document.querySelector('input[name="itemType"]:checked').value;
+
             const newItem = {
                 id: id ? Number(id) : Date.now(),
+                type: typeVal,
                 title: document.getElementById('itemTitle').value,
                 url: document.getElementById('itemUrl').value,
                 category: document.getElementById('itemCategory').value,
