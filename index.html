@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>StockMemo - 必要品・ストック管理</title>
+    <title>memory - 必要品・ストック管理</title>
 
     <!-- iPhone ホーム画面アイコン & アプリ設定 -->
     <link rel="apple-touch-icon" href="icon.PNG">
-    <meta name="apple-mobile-web-app-title" content="StockMemo">
+    <meta name="apple-mobile-web-app-title" content="memory">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
@@ -56,7 +56,7 @@
                     <i class="fa-solid fa-box-archive text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">StockMemo</h1>
+                    <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">memory</h1>
                     <p class="text-[10px] text-slate-400">必要品・買い物時期メモ</p>
                 </div>
             </div>
@@ -76,18 +76,6 @@
     </header>
 
     <main class="max-w-4xl mx-auto px-4 pt-4">
-        <!-- 次の給料日インフォメーション -->
-        <div class="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white p-3.5 rounded-2xl shadow-sm mb-4 flex justify-between items-center text-xs">
-            <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-calendar-check text-base text-indigo-200"></i>
-                <div>
-                    <span class="font-semibold block">次回給料日 (26日ルール)</span>
-                    <span id="paydayNotice" class="text-indigo-100 text-[11px]">計算中...</span>
-                </div>
-            </div>
-            <span class="bg-white/20 px-2.5 py-1 rounded-lg font-bold backdrop-blur-sm">26日営業日設定</span>
-        </div>
-
         <!-- 検索・ジャンルフィルター -->
         <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-4 space-y-3">
             <div class="relative">
@@ -148,7 +136,7 @@
             <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4">
                 <input type="hidden" id="itemId">
 
-                <!-- STEP 1: 写真を最初に選択 -->
+                <!-- STEP 1: 写真を最初に選択（自動圧縮機能付き） -->
                 <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
                     <label class="block text-xs font-bold text-slate-700">
                         <i class="fa-solid fa-camera text-indigo-600 mr-1"></i> ① 写真を選択（任意）
@@ -203,7 +191,7 @@
                     </div>
                 </div>
 
-                <!-- STEP 3: カレンダーで時期を選択（iPhoneでの枠はみ出し改善対策済み） -->
+                <!-- STEP 3: カレンダーで時期を選択 -->
                 <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 space-y-2">
                     <div class="flex justify-between items-center">
                         <label class="block text-xs font-bold text-indigo-950">
@@ -239,7 +227,7 @@
             <form onsubmit="addNewGenre(event)" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3 shrink-0">
                 <span class="text-xs font-bold text-slate-700 block">＋ 新しいジャンルを作成</span>
                 <div class="flex items-center space-x-2">
-                    <input type="color" id="newGenreColor" value="#e0e7ff" title="円をタップして好きな色を選択">
+                    <input type="color" id="newGenreColor" value="#e0e7ff" title="タップして好きな色を選択">
                     <input type="text" id="newGenreName" required placeholder="ジャンル名（例: ペット用品）" class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <button type="submit" class="px-3.5 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shrink-0 shadow-sm">追加</button>
                 </div>
@@ -293,27 +281,16 @@
         ];
 
         // データとカスタムジャンルのロード（永続化保護）
-        let customGenres = JSON.parse(localStorage.getItem('stockmemo_genres_v2')) || defaultGenres;
-        let items = JSON.parse(localStorage.getItem('stockmemo_items')) || [];
+        let customGenres = JSON.parse(localStorage.getItem('memory_genres')) || JSON.parse(localStorage.getItem('stockmemo_genres_v2')) || defaultGenres;
+        let items = JSON.parse(localStorage.getItem('memory_items')) || JSON.parse(localStorage.getItem('stockmemo_items')) || [];
 
         let currentGenreFilter = 'すべて';
         let currentTimingFilter = 'all'; // all | urgent | payday | later
 
         function init() {
-            renderPaydayInfo();
             renderGenreTabs();
             renderCategorySelect();
             renderApp();
-        }
-
-        function renderPaydayInfo() {
-            const payday = getNextPayday();
-            const y = payday.getFullYear();
-            const m = payday.getMonth() + 1;
-            const d = payday.getDate();
-            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-            const dayName = dayNames[payday.getDay()];
-            document.getElementById('paydayNotice').innerText = `次回: ${y}年${m}月${d}日 (${dayName})`;
         }
 
         function renderGenreTabs() {
@@ -350,7 +327,7 @@
             renderApp();
         }
 
-        // 時期（緊急度）の自動判定（未定は later）
+        // 時期（緊急度）の自動判定（期限切れ・未定の判定）
         function getTimingStatus(dueDateStr) {
             if (!dueDateStr) return 'later';
             
@@ -359,6 +336,10 @@
 
             const dueDate = new Date(dueDateStr);
             dueDate.setHours(0, 0, 0, 0);
+
+            if (dueDate < today) {
+                return 'expired'; // 期限切れ
+            }
 
             const nextPayday = getNextPayday();
             nextPayday.setHours(0, 0, 0, 0);
@@ -370,7 +351,7 @@
             } else if (dueDate <= nextPayday) {
                 return 'payday'; // 次の給料日までは「給料日まで」
             } else {
-                return 'later';  // 給料日以降・未定は「まだ先」
+                return 'later';  // 給料日以降は「まだ先」
             }
         }
 
@@ -389,7 +370,12 @@
                 if (currentGenreFilter !== 'すべて' && currentGenreFilter !== '⭐ 定番' && item.category !== currentGenreFilter) return false;
                 
                 const timing = getTimingStatus(item.dueDate);
-                if (currentTimingFilter !== 'all' && timing !== currentTimingFilter) return false;
+                if (currentTimingFilter !== 'all' && timing !== currentTimingFilter) {
+                    // 「すべて」以外の個別タブでは期限切れも各カテゴリーに含めて表示させる配慮
+                    if (!(currentTimingFilter !== 'all' && timing === 'expired')) {
+                        return false;
+                    }
+                }
 
                 if (search && !item.title.toLowerCase().includes(search) && !(item.memo && item.memo.toLowerCase().includes(search)) && !(item.store && item.store.toLowerCase().includes(search))) {
                     return false;
@@ -406,6 +392,7 @@
             emptyState.classList.add('hidden');
 
             const badges = {
+                expired: '<span class="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm animate-pulse">⚠️ 期限切れ</span>',
                 urgent: '<span class="bg-rose-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">🔥 いそぎ</span>',
                 payday: '<span class="bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">📅 給料日まで</span>',
                 later: '<span class="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">⏳ まだ先</span>'
@@ -427,7 +414,7 @@
                             <div class="p-3 space-y-1">
                                 <div class="flex justify-between items-center text-[10px]">
                                     <span class="font-bold px-2 py-0.5 rounded-md bg-white/80 text-slate-800 shadow-xs border border-slate-100">${item.category}</span>
-                                    <span class="text-slate-600 font-medium"><i class="fa-regular fa-clock mr-0.5"></i>${dateVal}</span>
+                                    <span class="${timing === 'expired' ? 'text-rose-600 font-bold' : 'text-slate-600 font-medium'}"><i class="fa-regular fa-clock mr-0.5"></i>${dateVal}</span>
                                 </div>
                                 <h3 class="font-bold text-sm text-slate-900 truncate pt-1">${item.title}</h3>
                                 ${item.store ? `<p class="text-xs text-slate-600 truncate"><i class="fa-solid fa-store mr-1"></i>${item.store}</p>` : ''}
@@ -442,16 +429,46 @@
             }).join('');
         }
 
+        // 写真の自動圧縮（容量オーバー対策）
         function handleImagePreview(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                const base64 = e.target.result;
-                document.getElementById('itemImageBase64').value = base64;
-                document.getElementById('imagePreview').src = base64;
-                document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 600;
+                    const MAX_HEIGHT = 600;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // JPEG形式で圧縮（画質0.7）して容量を削減
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                    document.getElementById('itemImageBase64').value = compressedBase64;
+                    document.getElementById('imagePreview').src = compressedBase64;
+                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
 
@@ -528,7 +545,7 @@
                 items.unshift(newItem);
             }
 
-            localStorage.setItem('stockmemo_items', JSON.stringify(items));
+            localStorage.setItem('memory_items', JSON.stringify(items));
             closeModal();
             renderApp();
         }
@@ -536,7 +553,7 @@
         function deleteItem(id) {
             if (confirm('このアイテムを削除してもよろしいですか？')) {
                 items = items.filter(i => i.id !== id);
-                localStorage.setItem('stockmemo_items', JSON.stringify(items));
+                localStorage.setItem('memory_items', JSON.stringify(items));
                 renderApp();
             }
         }
@@ -582,7 +599,7 @@
                 color: colorInput.value
             });
 
-            localStorage.setItem('stockmemo_genres_v2', JSON.stringify(customGenres));
+            localStorage.setItem('memory_genres', JSON.stringify(customGenres));
             nameInput.value = '';
             renderGenreManageList();
             renderGenreTabs();
@@ -594,7 +611,7 @@
             const target = customGenres.find(g => g.id === id);
             if (target) {
                 target.color = newColor;
-                localStorage.setItem('stockmemo_genres_v2', JSON.stringify(customGenres));
+                localStorage.setItem('memory_genres', JSON.stringify(customGenres));
                 renderApp();
             }
         }
@@ -605,7 +622,7 @@
 
             if (confirm(`ジャンル「${target.name}」を削除してもよろしいですか？`)) {
                 customGenres = customGenres.filter(g => g.id !== id);
-                localStorage.setItem('stockmemo_genres_v2', JSON.stringify(customGenres));
+                localStorage.setItem('memory_genres', JSON.stringify(customGenres));
                 
                 if (currentGenreFilter === target.name) {
                     currentGenreFilter = 'すべて';
