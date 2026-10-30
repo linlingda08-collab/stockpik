@@ -84,12 +84,23 @@
 
         <!-- マイリスト（フォルダ）ビューエリア -->
         <div id="folderContainer" class="space-y-3 hidden">
-            <!-- 動的生成 (リマインダー風マイリスト) -->
+            <!-- 動的生成 -->
         </div>
 
-        <!-- リスト表示エリア（サムネイル / コンパクト / カテゴリー詳細） -->
+        <!-- 未完了アイテム表示エリア（サムネイル / コンパクト / カテゴリー詳細） -->
         <div id="itemsContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <!-- 動的生成 -->
+        </div>
+
+        <!-- 履歴（完了済みアイテム）折りたたみエリア -->
+        <div id="completedSection" class="hidden mt-8 pt-4 border-t border-slate-200/80 space-y-3">
+            <button onclick="toggleCompletedAccordion()" class="flex items-center space-x-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition">
+                <i id="completedChevron" class="fa-solid fa-chevron-right text-[10px] transition-transform"></i>
+                <span>完了した項目 (<span id="completedCount">0</span>)</span>
+            </button>
+            <div id="completedContainer" class="hidden space-y-2">
+                <!-- 動的生成 -->
+            </div>
         </div>
 
         <!-- 該当なし表示 -->
@@ -198,11 +209,13 @@
 
     <!-- JavaScript ロジック -->
     <script>
-        let customGenres = JSON.parse(localStorage.getItem('reminders_genres')) || JSON.parse(localStorage.getItem('memory_genres')) || [];
-        let items = JSON.parse(localStorage.getItem('reminders_items')) || JSON.parse(localStorage.getItem('memory_items')) || [];
+        let customGenres = JSON.parse(localStorage.getItem('reminders_genres')) || [];
+        let items = JSON.parse(localStorage.getItem('reminders_items')) || [];
 
         let currentViewMode = localStorage.getItem('reminders_view_mode') || 'folder';
-        let selectedCategoryDetail = null; // 特定カテゴリー単体表示用
+        let selectedCategoryDetail = null; 
+        let pendingTimeouts = {}; // 5秒タイマー管理
+        let showCompletedAccordion = false;
 
         function init() {
             renderCategorySelect();
@@ -211,7 +224,7 @@
         }
 
         function toggleViewMode() {
-            selectedCategoryDetail = null; // 切替時は詳細表示解除
+            selectedCategoryDetail = null; 
             if (currentViewMode === 'folder') currentViewMode = 'thumbnail';
             else if (currentViewMode === 'thumbnail') currentViewMode = 'compact';
             else currentViewMode = 'folder';
@@ -263,25 +276,76 @@
             return found ? found.color : '#ffffff';
         }
 
-        // 〇をタップして完了（リストから削除）
-        function completeItem(id) {
-            items = items.filter(i => i.id !== id);
-            localStorage.setItem('reminders_items', JSON.stringify(items));
-            renderApp();
+        // 〇ボタンタップ時の処理（5秒間保留 or キャンセル）
+        function toggleCheckItem(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+
+            if (item.pendingComplete) {
+                // 5秒以内に再度押された場合：保留キャンセル
+                clearTimeout(pendingTimeouts[id]);
+                delete pendingTimeouts[id];
+                item.pendingComplete = false;
+                renderApp();
+            } else {
+                // 1回目のタップ：5秒間のカウントダウン開始
+                item.pendingComplete = true;
+                renderApp();
+
+                pendingTimeouts[id] = setTimeout(() => {
+                    item.pendingComplete = false;
+                    item.completed = true; // 確定で完了（履歴へ移動）
+                    delete pendingTimeouts[id];
+                    localStorage.setItem('reminders_items', JSON.stringify(items));
+                    renderApp();
+                }, 5000);
+            }
+        }
+
+        // 履歴から未完了へ復帰
+        function restoreItem(id) {
+            const item = items.find(i => i.id === id);
+            if (item) {
+                item.completed = false;
+                item.pendingComplete = false;
+                localStorage.setItem('reminders_items', JSON.stringify(items));
+                renderApp();
+            }
+        }
+
+        function toggleCompletedAccordion() {
+            showCompletedAccordion = !showCompletedAccordion;
+            const container = document.getElementById('completedContainer');
+            const chevron = document.getElementById('completedChevron');
+            if (showCompletedAccordion) {
+                container.classList.remove('hidden');
+                chevron.classList.add('rotate-90');
+            } else {
+                container.classList.add('hidden');
+                chevron.classList.remove('rotate-90');
+            }
         }
 
         function renderApp() {
             const itemsContainer = document.getElementById('itemsContainer');
             const folderContainer = document.getElementById('folderContainer');
+            const completedSection = document.getElementById('completedSection');
+            const completedContainer = document.getElementById('completedContainer');
+            const completedCount = document.getElementById('completedCount');
             const emptyState = document.getElementById('emptyState');
 
-            // フィルター & 急ぎ順（急ぎが一番上）ソート
-            let filteredItems = items.filter(item => {
+            // カテゴリー絞り込み
+            let categoryItems = items.filter(item => {
                 if (selectedCategoryDetail && item.category !== selectedCategoryDetail) return false;
                 return true;
             });
 
-            filteredItems.sort((a, b) => {
+            // 未完了 ＆ 完了(履歴) に分離
+            let activeItems = categoryItems.filter(i => !i.completed);
+            let completedItems = categoryItems.filter(i => i.completed);
+
+            // 急ぎ順ソート
+            activeItems.sort((a, b) => {
                 if (a.urgent && !b.urgent) return -1;
                 if (!a.urgent && b.urgent) return 1;
                 return 0;
@@ -290,6 +354,7 @@
             // 1. マイリスト（フォルダ）表示モード
             if (currentViewMode === 'folder' && !selectedCategoryDetail) {
                 itemsContainer.classList.add('hidden');
+                completedSection.classList.add('hidden');
                 folderContainer.classList.remove('hidden');
 
                 if (customGenres.length === 0) {
@@ -301,8 +366,8 @@
                 emptyState.classList.add('hidden');
 
                 folderContainer.innerHTML = customGenres.map(genre => {
-                    const genreItems = items.filter(i => i.category === genre.name);
-                    const count = genreItems.length;
+                    const genreActiveItems = items.filter(i => i.category === genre.name && !i.completed);
+                    const count = genreActiveItems.length;
 
                     return `
                         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -323,33 +388,36 @@
                 }).join('');
 
             } else {
-                // 2 & 3. サムネイル / コンパクト表示モード (またはカテゴリー詳細画面)
+                // 2 & 3. サムネイル / コンパクト表示モード (またはカテゴリー詳細)
                 folderContainer.classList.add('hidden');
                 itemsContainer.classList.remove('hidden');
 
-                if (filteredItems.length === 0) {
+                if (activeItems.length === 0 && completedItems.length === 0) {
                     itemsContainer.innerHTML = '';
+                    completedSection.classList.add('hidden');
                     emptyState.classList.remove('hidden');
                     return;
                 }
 
                 emptyState.classList.add('hidden');
 
+                // 未完了アイテム描画
                 if (currentViewMode === 'thumbnail') {
                     itemsContainer.className = "grid grid-cols-2 sm:grid-cols-3 gap-3";
-                    itemsContainer.innerHTML = filteredItems.map(item => {
+                    itemsContainer.innerHTML = activeItems.map(item => {
                         const cardColor = getGenreColor(item.category);
                         const urgentBorder = item.urgent ? 'border-2 border-rose-500 shadow-md' : 'border border-slate-200/80 shadow-sm';
+                        const isPending = item.pendingComplete;
 
                         return `
-                            <div onclick="openModal(${item.id})" class="rounded-2xl ${urgentBorder} overflow-hidden hover:shadow-md transition cursor-pointer flex flex-col justify-between group relative" style="background-color: ${cardColor};">
+                            <div onclick="openModal(${item.id})" class="rounded-2xl ${urgentBorder} overflow-hidden hover:shadow-md transition cursor-pointer flex flex-col justify-between group relative ${isPending ? 'opacity-50' : ''}" style="background-color: ${cardColor};">
                                 <div>
                                     <div class="relative w-full h-36 bg-slate-200/40 flex items-center justify-center overflow-hidden">
                                         ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">` : `<i class="fa-solid fa-box text-slate-300 text-3xl"></i>`}
                                         
-                                        <!-- 〇 チェック完了ボタン -->
-                                        <button onclick="event.stopPropagation(); completeItem(${item.id})" class="absolute top-2 left-2 w-7 h-7 rounded-full bg-white/90 hover:bg-emerald-500 hover:text-white text-slate-400 flex items-center justify-center shadow-md transition border border-slate-200" title="完了（消去）">
-                                            <i class="fa-regular fa-circle text-base"></i>
+                                        <!-- 〇 チェック（5秒間保留状態UI） -->
+                                        <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="absolute top-2 left-2 w-7 h-7 rounded-full ${isPending ? 'bg-emerald-500 text-white' : 'bg-white/90 text-slate-400'} flex items-center justify-center shadow-md transition border border-slate-200" title="${isPending ? '取り消す' : '完了'}">
+                                            <i class="fa-solid ${isPending ? 'fa-check' : 'fa-circle'} text-sm"></i>
                                         </button>
 
                                         ${item.urgent ? '<div class="absolute top-2 right-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow animate-pulse">🔥 急ぎ</div>' : ''}
@@ -359,9 +427,8 @@
                                             <span class="font-bold px-2 py-0.5 rounded-md bg-white/80 text-slate-800 shadow-xs border border-slate-100">${item.category}</span>
                                             ${item.favorite ? '<span class="text-amber-500 font-bold"><i class="fa-solid fa-star"></i> 定番</span>' : ''}
                                         </div>
-                                        <h3 class="font-bold text-sm text-slate-900 truncate pt-1">${item.title}</h3>
+                                        <h3 class="font-bold text-sm text-slate-900 truncate pt-1 ${isPending ? 'line-through' : ''}">${item.title}</h3>
                                         ${item.store ? `<p class="text-xs text-slate-600 truncate"><i class="fa-solid fa-store mr-1"></i>${item.store}</p>` : ''}
-                                        ${item.memo ? `<p class="text-[11px] text-slate-500 truncate">${item.memo}</p>` : ''}
                                     </div>
                                 </div>
                                 <div class="px-3 pb-2.5 flex justify-end items-center border-t border-slate-900/5 pt-2 mt-1">
@@ -374,23 +441,24 @@
                 } else {
                     // コンパクトリスト表示
                     itemsContainer.className = "space-y-2";
-                    itemsContainer.innerHTML = filteredItems.map(item => {
+                    itemsContainer.innerHTML = activeItems.map(item => {
                         const cardColor = getGenreColor(item.category);
                         const urgentStyle = item.urgent ? 'border-2 border-rose-500 shadow-sm' : 'border border-slate-200/80';
+                        const isPending = item.pendingComplete;
 
                         return `
-                            <div onclick="openModal(${item.id})" class="p-3 rounded-2xl ${urgentStyle} shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between" style="background-color: ${cardColor};">
+                            <div onclick="openModal(${item.id})" class="p-3 rounded-2xl ${urgentStyle} shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''}" style="background-color: ${cardColor};">
                                 <div class="flex items-center space-x-3 overflow-hidden">
-                                    <!-- 〇 チェック完了ボタン -->
-                                    <button onclick="event.stopPropagation(); completeItem(${item.id})" class="w-6 h-6 rounded-full bg-white hover:bg-emerald-500 hover:text-white text-slate-400 flex items-center justify-center shrink-0 border border-slate-300 shadow-xs transition" title="完了（消去）">
-                                        <i class="fa-regular fa-circle text-sm"></i>
+                                    <!-- 〇 チェック -->
+                                    <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="w-6 h-6 rounded-full ${isPending ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-300'} flex items-center justify-center shrink-0 border shadow-xs transition" title="${isPending ? '取り消す' : '完了'}">
+                                        <i class="fa-solid ${isPending ? 'fa-check text-xs' : 'fa-circle text-xs'}"></i>
                                     </button>
 
                                     ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200">` : ''}
                                     
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
-                                            <span class="font-bold text-xs text-slate-800 truncate">${item.title}</span>
+                                            <span class="font-bold text-xs text-slate-800 truncate ${isPending ? 'line-through' : ''}">${item.title}</span>
                                             ${item.urgent ? '<span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">🔥 急ぎ</span>' : ''}
                                             ${item.favorite ? '<i class="fa-solid fa-star text-amber-400 text-[10px]"></i>' : ''}
                                         </div>
@@ -406,6 +474,29 @@
                             </div>
                         `;
                     }).join('');
+                }
+
+                // 履歴（完了アイテム）描画
+                if (completedItems.length > 0) {
+                    completedSection.classList.remove('hidden');
+                    completedCount.innerText = completedItems.length;
+
+                    completedContainer.innerHTML = completedItems.map(item => `
+                        <div onclick="restoreItem(${item.id})" class="p-2.5 rounded-xl border border-slate-200 bg-slate-100/70 flex items-center justify-between cursor-pointer hover:bg-slate-200/60 transition opacity-60">
+                            <div class="flex items-center space-x-3 overflow-hidden">
+                                <div class="w-5 h-5 rounded-full bg-slate-400 text-white flex items-center justify-center shrink-0 text-xs">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-600 line-through truncate">${item.title}</span>
+                            </div>
+                            <div class="flex items-center space-x-2 shrink-0 text-[10px] text-slate-400">
+                                <span>タップで復活</span>
+                                <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    completedSection.classList.add('hidden');
                 }
             }
         }
@@ -507,12 +598,14 @@
                 store: document.getElementById('itemStore').value,
                 memo: document.getElementById('itemMemo').value,
                 urgent: document.getElementById('itemUrgent').checked,
-                favorite: document.getElementById('itemFavorite').checked
+                favorite: document.getElementById('itemFavorite').checked,
+                completed: false,
+                pendingComplete: false
             };
 
             if (id) {
                 const index = items.findIndex(i => i.id === Number(id));
-                items[index] = newItem;
+                items[index] = { ...items[index], ...newItem };
             } else {
                 items.unshift(newItem);
             }
