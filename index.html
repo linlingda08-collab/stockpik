@@ -47,20 +47,17 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">Reminders</h1>
-                    <p class="text-[10px] text-slate-400">買い物・ストックメモ</p>
+                    <p class="text-[10px] text-slate-400">買い物・レシピ・ストックメモ</p>
                 </div>
             </div>
 
-            <!-- 表示モード切替 ＆ ジャンル編集 ＆ 追加ボタン -->
-            <div class="flex items-center space-x-1.5">
-                <button onclick="toggleViewMode()" id="viewModeBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-2.5 py-2 rounded-xl text-xs transition flex items-center space-x-1 border border-slate-200" title="表示切替">
-                    <i id="viewModeIcon" class="fa-solid fa-folder-tree text-indigo-600"></i>
-                </button>
-                <button onclick="openGenreManageModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-2.5 py-2 rounded-xl text-xs transition flex items-center space-x-1 border border-slate-200">
+            <!-- ジャンル編集 ＆ 追加ボタン（表示切替は廃止） -->
+            <div class="flex items-center space-x-2">
+                <button onclick="openGenreManageModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl text-xs transition flex items-center space-x-1 border border-slate-200">
                     <i class="fa-solid fa-tags text-indigo-600"></i>
-                    <span class="hidden sm:inline">ジャンル</span>
+                    <span>ジャンル</span>
                 </button>
-                <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-2 rounded-xl shadow-md transition flex items-center space-x-1">
+                <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3.5 py-2 rounded-xl shadow-md transition flex items-center space-x-1">
                     <i class="fa-solid fa-plus text-xs"></i>
                     <span class="text-xs sm:text-sm">追加</span>
                 </button>
@@ -83,12 +80,12 @@
         </div>
 
         <!-- マイリスト（フォルダ）ビューエリア -->
-        <div id="folderContainer" class="space-y-3 hidden">
+        <div id="folderContainer" class="space-y-3">
             <!-- 動的生成 -->
         </div>
 
-        <!-- 未完了アイテム表示エリア（サムネイル / コンパクト / カテゴリー詳細） -->
-        <div id="itemsContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <!-- リスト表示エリア（カテゴリー詳細時） -->
+        <div id="itemsContainer" class="space-y-2 hidden">
             <!-- 動的生成 -->
         </div>
 
@@ -110,6 +107,28 @@
         </div>
     </main>
 
+    <!-- アイテム閲覧モーダル（タップ時に開く） -->
+    <div id="viewModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-xl p-5 sm:p-6 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-base">アイテム詳細</h3>
+                <button onclick="closeViewModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div id="viewModalContent" class="space-y-3">
+                <!-- 動的生成 -->
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t">
+                <button type="button" onclick="deleteItemFromView()" class="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition">削除する</button>
+                <div class="space-x-2">
+                    <button type="button" onclick="closeViewModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200 transition">閉じる</button>
+                    <button type="button" onclick="switchToEditFromView()" class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition shadow-sm">編集する</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- アイテム追加・編集モーダル -->
     <div id="itemModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-xl p-5 sm:p-6 space-y-4">
@@ -123,9 +142,12 @@
 
                 <!-- 写真を選択 -->
                 <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
-                    <label class="block text-xs font-bold text-slate-700">
-                        <i class="fa-solid fa-camera text-indigo-600 mr-1"></i> 写真を選択（任意）
-                    </label>
+                    <div class="flex justify-between items-center">
+                        <label class="block text-xs font-bold text-slate-700">
+                            <i class="fa-solid fa-camera text-indigo-600 mr-1"></i> 写真（任意）
+                        </label>
+                        <button type="button" onclick="removeImageInEdit()" class="text-[11px] text-rose-500 font-bold hover:underline">写真を削除</button>
+                    </div>
                     <input type="file" id="itemImageFile" accept="image/*" onchange="handleImagePreview(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
                     <input type="hidden" id="itemImageBase64">
                     
@@ -137,8 +159,13 @@
                 <!-- 詳細入力 -->
                 <div class="space-y-3 pt-1">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル（商品名など） <span class="text-rose-500">*</span></label>
-                        <input type="text" id="itemTitle" required placeholder="例: 柔軟剤 詰め替え" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル（料理名・商品名など） <span class="text-rose-500">*</span></label>
+                        <input type="text" id="itemTitle" required placeholder="例: のり塩ササミチキン" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">参考URL（Instagram / TikTok等）</label>
+                        <input type="url" id="itemUrl" placeholder="https://www.instagram.com/reel/..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -149,7 +176,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">購入先</label>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">購入先・店舗</label>
                             <input type="text" id="itemStore" placeholder="例: スーパー" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
                     </div>
@@ -168,7 +195,7 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">メモ</label>
-                        <textarea id="itemMemo" rows="2" placeholder="サイズや型番など" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                        <textarea id="itemMemo" rows="2" placeholder="分量やポイントなど" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                     </div>
                 </div>
 
@@ -192,7 +219,7 @@
                 <span class="text-xs font-bold text-slate-700 block">＋ 新しいジャンルを作成</span>
                 <div class="flex items-center space-x-2">
                     <input type="color" id="newGenreColor" value="#e0e7ff" title="タップして好きな色を選択">
-                    <input type="text" id="newGenreName" required placeholder="ジャンル名（例: 買い物（スーパー））" class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="text" id="newGenreName" required placeholder="ジャンル名（例: レシピ）" class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <button type="submit" class="px-3.5 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shrink-0 shadow-sm">追加</button>
                 </div>
             </form>
@@ -212,38 +239,14 @@
         let customGenres = JSON.parse(localStorage.getItem('reminders_genres')) || [];
         let items = JSON.parse(localStorage.getItem('reminders_items')) || [];
 
-        let currentViewMode = localStorage.getItem('reminders_view_mode') || 'folder';
         let selectedCategoryDetail = null; 
-        let pendingTimeouts = {}; // 5秒タイマー管理
+        let pendingTimeouts = {}; 
         let showCompletedAccordion = false;
+        let viewingItemId = null; // 現在閲覧中のアイテムID
 
         function init() {
             renderCategorySelect();
-            updateViewModeUI();
             renderApp();
-        }
-
-        function toggleViewMode() {
-            selectedCategoryDetail = null; 
-            if (currentViewMode === 'folder') currentViewMode = 'thumbnail';
-            else if (currentViewMode === 'thumbnail') currentViewMode = 'compact';
-            else currentViewMode = 'folder';
-
-            localStorage.setItem('reminders_view_mode', currentViewMode);
-            updateViewModeUI();
-            renderApp();
-        }
-
-        function updateViewModeUI() {
-            const icon = document.getElementById('viewModeIcon');
-
-            if (currentViewMode === 'folder' && !selectedCategoryDetail) {
-                icon.className = 'fa-solid fa-folder-tree text-indigo-600';
-            } else if (currentViewMode === 'thumbnail') {
-                icon.className = 'fa-solid fa-border-all text-indigo-600';
-            } else {
-                icon.className = 'fa-solid fa-list text-indigo-600';
-            }
         }
 
         function openCategoryDetail(genreName) {
@@ -251,14 +254,12 @@
             document.getElementById('categoryDetailHeader').classList.remove('hidden');
             document.getElementById('activeCategoryTitle').innerText = genreName;
             document.getElementById('activeCategoryColorDot').style.backgroundColor = getGenreColor(genreName);
-            updateViewModeUI();
             renderApp();
         }
 
         function closeCategoryDetail() {
             selectedCategoryDetail = null;
             document.getElementById('categoryDetailHeader').classList.add('hidden');
-            updateViewModeUI();
             renderApp();
         }
 
@@ -276,25 +277,22 @@
             return found ? found.color : '#ffffff';
         }
 
-        // 〇ボタンタップ時の処理（5秒間保留 or キャンセル）
         function toggleCheckItem(id) {
             const item = items.find(i => i.id === id);
             if (!item) return;
 
             if (item.pendingComplete) {
-                // 5秒以内に再度押された場合：保留キャンセル
                 clearTimeout(pendingTimeouts[id]);
                 delete pendingTimeouts[id];
                 item.pendingComplete = false;
                 renderApp();
             } else {
-                // 1回目のタップ：5秒間のカウントダウン開始
                 item.pendingComplete = true;
                 renderApp();
 
                 pendingTimeouts[id] = setTimeout(() => {
                     item.pendingComplete = false;
-                    item.completed = true; // 確定で完了（履歴へ移動）
+                    item.completed = true; 
                     delete pendingTimeouts[id];
                     localStorage.setItem('reminders_items', JSON.stringify(items));
                     renderApp();
@@ -302,7 +300,6 @@
             }
         }
 
-        // 履歴から未完了へ復帰
         function restoreItem(id) {
             const item = items.find(i => i.id === id);
             if (item) {
@@ -326,6 +323,51 @@
             }
         }
 
+        // 閲覧モーダルを開く
+        function openViewModal(id) {
+            viewingItemId = id;
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+
+            const content = document.getElementById('viewModalContent');
+            content.innerHTML = `
+                ${item.image ? `<div class="w-full h-48 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200"><img src="${item.image}" class="w-full h-full object-cover"></div>` : ''}
+                <div>
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${item.category}</span>
+                        ${item.urgent ? '<span class="bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">🔥 急ぎ</span>' : ''}
+                        ${item.favorite ? '<span class="text-amber-500 font-bold text-xs"><i class="fa-solid fa-star"></i> 定番</span>' : ''}
+                    </div>
+                    <h2 class="text-lg font-bold text-slate-900">${item.title}</h2>
+                </div>
+                ${item.url ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">参考URL</p><a href="${item.url}" target="_blank" class="text-xs text-indigo-600 hover:underline break-all block"><i class="fa-solid fa-link mr-1"></i>${item.url}</a></div>` : ''}
+                ${item.store ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">購入先・店舗</p><p class="text-xs text-slate-700"><i class="fa-solid fa-store mr-1"></i>${item.store}</p></div>` : ''}
+                ${item.memo ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">メモ</p><p class="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200 whitespace-pre-wrap">${item.memo}</p></div>` : ''}
+            `;
+
+            document.getElementById('viewModal').classList.remove('hidden');
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.add('hidden');
+            viewingItemId = null;
+        }
+
+        function switchToEditFromView() {
+            const id = viewingItemId;
+            closeViewModal();
+            openModal(id);
+        }
+
+        function deleteItemFromView() {
+            if (confirm('このアイテムを削除してもよろしいですか？')) {
+                items = items.filter(i => i.id !== viewingItemId);
+                localStorage.setItem('reminders_items', JSON.stringify(items));
+                closeViewModal();
+                renderApp();
+            }
+        }
+
         function renderApp() {
             const itemsContainer = document.getElementById('itemsContainer');
             const folderContainer = document.getElementById('folderContainer');
@@ -334,25 +376,21 @@
             const completedCount = document.getElementById('completedCount');
             const emptyState = document.getElementById('emptyState');
 
-            // カテゴリー絞り込み
             let categoryItems = items.filter(item => {
                 if (selectedCategoryDetail && item.category !== selectedCategoryDetail) return false;
                 return true;
             });
 
-            // 未完了 ＆ 完了(履歴) に分離
             let activeItems = categoryItems.filter(i => !i.completed);
             let completedItems = categoryItems.filter(i => i.completed);
 
-            // 急ぎ順ソート
             activeItems.sort((a, b) => {
                 if (a.urgent && !b.urgent) return -1;
                 if (!a.urgent && b.urgent) return 1;
                 return 0;
             });
 
-            // 1. マイリスト（フォルダ）表示モード
-            if (currentViewMode === 'folder' && !selectedCategoryDetail) {
+            if (!selectedCategoryDetail) {
                 itemsContainer.classList.add('hidden');
                 completedSection.classList.add('hidden');
                 folderContainer.classList.remove('hidden');
@@ -388,7 +426,6 @@
                 }).join('');
 
             } else {
-                // 2 & 3. サムネイル / コンパクト表示モード (またはカテゴリー詳細)
                 folderContainer.classList.add('hidden');
                 itemsContainer.classList.remove('hidden');
 
@@ -401,82 +438,42 @@
 
                 emptyState.classList.add('hidden');
 
-                // 未完了アイテム描画
-                if (currentViewMode === 'thumbnail') {
-                    itemsContainer.className = "grid grid-cols-2 sm:grid-cols-3 gap-3";
-                    itemsContainer.innerHTML = activeItems.map(item => {
-                        const cardColor = getGenreColor(item.category);
-                        const urgentBorder = item.urgent ? 'border-2 border-rose-500 shadow-md' : 'border border-slate-200/80 shadow-sm';
-                        const isPending = item.pendingComplete;
+                // 常にコンパクトなリマインダーリスト表示に一本化
+                itemsContainer.className = "space-y-2";
+                itemsContainer.innerHTML = activeItems.map(item => {
+                    const cardColor = getGenreColor(item.category);
+                    const urgentStyle = item.urgent ? 'border-2 border-rose-500 shadow-sm' : 'border border-slate-200/80';
+                    const isPending = item.pendingComplete;
 
-                        return `
-                            <div onclick="openModal(${item.id})" class="rounded-2xl ${urgentBorder} overflow-hidden hover:shadow-md transition cursor-pointer flex flex-col justify-between group relative ${isPending ? 'opacity-50' : ''}" style="background-color: ${cardColor};">
-                                <div>
-                                    <div class="relative w-full h-36 bg-slate-200/40 flex items-center justify-center overflow-hidden">
-                                        ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">` : `<i class="fa-solid fa-box text-slate-300 text-3xl"></i>`}
-                                        
-                                        <!-- 〇 チェック（5秒間保留状態UI） -->
-                                        <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="absolute top-2 left-2 w-7 h-7 rounded-full ${isPending ? 'bg-emerald-500 text-white' : 'bg-white/90 text-slate-400'} flex items-center justify-center shadow-md transition border border-slate-200" title="${isPending ? '取り消す' : '完了'}">
-                                            <i class="fa-solid ${isPending ? 'fa-check' : 'fa-circle'} text-sm"></i>
-                                        </button>
+                    return `
+                        <div onclick="openViewModal(${item.id})" class="p-3 rounded-2xl ${urgentStyle} shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''}" style="background-color: ${cardColor};">
+                            <div class="flex items-center space-x-3 overflow-hidden">
+                                <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="w-6 h-6 rounded-full ${isPending ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-300'} flex items-center justify-center shrink-0 border shadow-xs transition" title="${isPending ? '取り消す' : '完了'}">
+                                    <i class="fa-solid ${isPending ? 'fa-check text-xs' : 'fa-circle text-xs'}"></i>
+                                </button>
 
-                                        ${item.urgent ? '<div class="absolute top-2 right-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow animate-pulse">🔥 急ぎ</div>' : ''}
+                                ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200">` : ''}
+                                
+                                <div class="truncate">
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="font-bold text-xs text-slate-800 truncate ${isPending ? 'line-through' : ''}">${item.title}</span>
+                                        ${item.urgent ? '<span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">🔥 急ぎ</span>' : ''}
+                                        ${item.favorite ? '<i class="fa-solid fa-star text-amber-400 text-[10px]"></i>' : ''}
                                     </div>
-                                    <div class="p-3 space-y-1">
-                                        <div class="flex justify-between items-center text-[10px]">
-                                            <span class="font-bold px-2 py-0.5 rounded-md bg-white/80 text-slate-800 shadow-xs border border-slate-100">${item.category}</span>
-                                            ${item.favorite ? '<span class="text-amber-500 font-bold"><i class="fa-solid fa-star"></i> 定番</span>' : ''}
-                                        </div>
-                                        <h3 class="font-bold text-sm text-slate-900 truncate pt-1 ${isPending ? 'line-through' : ''}">${item.title}</h3>
-                                        ${item.store ? `<p class="text-xs text-slate-600 truncate"><i class="fa-solid fa-store mr-1"></i>${item.store}</p>` : ''}
+                                    ${item.url ? `<a href="${item.url}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] text-indigo-600 hover:underline truncate block pt-0.5"><i class="fa-solid fa-link mr-1"></i>${item.url}</a>` : ''}
+                                    <div class="flex items-center space-x-2 text-[10px] text-slate-500 pt-0.5">
+                                        <span class="font-bold px-1.5 py-0.2 bg-white/80 rounded text-slate-700">${item.category}</span>
+                                        ${item.store ? `<span><i class="fa-solid fa-store mr-0.5"></i>${item.store}</span>` : ''}
                                     </div>
-                                </div>
-                                <div class="px-3 pb-2.5 flex justify-end items-center border-t border-slate-900/5 pt-2 mt-1">
-                                    <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1 transition text-xs"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>
                             </div>
-                        `;
-                    }).join('');
-
-                } else {
-                    // コンパクトリスト表示
-                    itemsContainer.className = "space-y-2";
-                    itemsContainer.innerHTML = activeItems.map(item => {
-                        const cardColor = getGenreColor(item.category);
-                        const urgentStyle = item.urgent ? 'border-2 border-rose-500 shadow-sm' : 'border border-slate-200/80';
-                        const isPending = item.pendingComplete;
-
-                        return `
-                            <div onclick="openModal(${item.id})" class="p-3 rounded-2xl ${urgentStyle} shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''}" style="background-color: ${cardColor};">
-                                <div class="flex items-center space-x-3 overflow-hidden">
-                                    <!-- 〇 チェック -->
-                                    <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="w-6 h-6 rounded-full ${isPending ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-300'} flex items-center justify-center shrink-0 border shadow-xs transition" title="${isPending ? '取り消す' : '完了'}">
-                                        <i class="fa-solid ${isPending ? 'fa-check text-xs' : 'fa-circle text-xs'}"></i>
-                                    </button>
-
-                                    ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200">` : ''}
-                                    
-                                    <div class="truncate">
-                                        <div class="flex items-center space-x-1.5">
-                                            <span class="font-bold text-xs text-slate-800 truncate ${isPending ? 'line-through' : ''}">${item.title}</span>
-                                            ${item.urgent ? '<span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">🔥 急ぎ</span>' : ''}
-                                            ${item.favorite ? '<i class="fa-solid fa-star text-amber-400 text-[10px]"></i>' : ''}
-                                        </div>
-                                        <div class="flex items-center space-x-2 text-[10px] text-slate-500 pt-0.5">
-                                            <span class="font-bold px-1.5 py-0.2 bg-white/80 rounded text-slate-700">${item.category}</span>
-                                            ${item.store ? `<span><i class="fa-solid fa-store mr-0.5"></i>${item.store}</span>` : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-2 shrink-0">
-                                    <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs"><i class="fa-solid fa-trash-can"></i></button>
-                                </div>
+                            <div class="flex items-center space-x-2 shrink-0">
+                                <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
                             </div>
-                        `;
-                    }).join('');
-                }
+                        </div>
+                    `;
+                }).join('');
 
-                // 履歴（完了アイテム）描画
                 if (completedItems.length > 0) {
                     completedSection.classList.remove('hidden');
                     completedCount.innerText = completedItems.length;
@@ -543,6 +540,13 @@
             reader.readAsDataURL(file);
         }
 
+        function removeImageInEdit() {
+            document.getElementById('itemImageBase64').value = '';
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+            document.getElementById('itemImageFile').value = '';
+        }
+
         function openModal(id = null) {
             if (customGenres.length === 0) {
                 alert('先にジャンルを作成してください（右上「ジャンル」ボタンより）');
@@ -561,6 +565,7 @@
                 const item = items.find(i => i.id === id);
                 document.getElementById('itemId').value = item.id;
                 document.getElementById('itemTitle').value = item.title;
+                document.getElementById('itemUrl').value = item.url || '';
                 document.getElementById('itemCategory').value = item.category;
                 document.getElementById('itemStore').value = item.store || '';
                 document.getElementById('itemMemo').value = item.memo || '';
@@ -593,6 +598,7 @@
             const newItem = {
                 id: id ? Number(id) : Date.now(),
                 title: document.getElementById('itemTitle').value,
+                url: document.getElementById('itemUrl').value,
                 category: document.getElementById('itemCategory').value,
                 image: document.getElementById('itemImageBase64').value,
                 store: document.getElementById('itemStore').value,
