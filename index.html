@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- EXIFデータ（位置情報）読み取り用ライブラリ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
+    <!-- 完全無料の文字認識（OCR）ライブラリ (Tesseract.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
 
@@ -23,10 +25,16 @@
                     <p class="text-[10px] text-slate-400">日用品・ストック必要品メモ</p>
                 </div>
             </div>
-            <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl shadow-md transition flex items-center space-x-2">
-                <i class="fa-solid fa-plus"></i>
-                <span class="text-sm">必要品を追加</span>
-            </button>
+            <div class="flex items-center space-x-2">
+                <!-- データバックアップ・復元ボタン -->
+                <button onclick="exportData()" title="データ書き出し" class="bg-slate-100 hover:bg-slate-200 text-slate-600 w-9 h-9 rounded-xl flex items-center justify-center transition">
+                    <i class="fa-solid fa-download text-sm"></i>
+                </button>
+                <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl shadow-md transition flex items-center space-x-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="text-sm">必要品を追加</span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -79,14 +87,16 @@
 
                 <!-- 写真ファーストエリア -->
                 <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 space-y-3">
-                    <label class="block text-xs font-bold text-indigo-900"><i class="fa-solid fa-camera mr-1 text-indigo-600"></i> まず写真を選ぶ（AI自動解析）</label>
-                    <input type="file" id="itemImageFile" accept="image/*" onchange="handleImageAndAI(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
+                    <label class="block text-xs font-bold text-indigo-900"><i class="fa-solid fa-camera mr-1 text-indigo-600"></i> 写真を選択（文字解析で自動入力）</label>
+                    <input type="file" id="itemImageFile" accept="image/*" onchange="handleImageAndOCR(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
                     <input type="hidden" id="itemImageBase64">
                     
-                    <div id="imagePreviewContainer" class="mt-2 hidden flex items-center space-x-3">
-                        <img id="imagePreview" class="w-20 h-20 object-cover rounded-xl border border-slate-200 shadow-sm">
+                    <div id="imagePreviewContainer" class="mt-2 hidden flex items-start space-x-3">
+                        <img id="imagePreview" class="w-20 h-20 object-cover rounded-xl border border-slate-200 shadow-sm shrink-0">
                         <div class="flex-1 space-y-1">
-                            <div id="aiAnalyzing" class="text-xs text-indigo-600 animate-pulse font-medium"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> AIが画像を解析中...</div>
+                            <div id="ocrStatus" class="text-xs text-indigo-600 font-medium hidden">
+                                <i class="fa-solid fa-spinner fa-spin mr-1"></i> <span id="ocrStatusText">画像から文字を読み取っています...</span>
+                            </div>
                             <div id="exifInfo" class="text-[11px] text-slate-500"></div>
                         </div>
                     </div>
@@ -94,7 +104,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル（商品名など） <span class="text-rose-500">*</span></label>
-                    <input type="text" id="itemTitle" required placeholder="例: 〇〇ブランドの柔軟剤" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="text" id="itemTitle" required placeholder="例: 洗濯洗剤 詰め替え" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -120,7 +130,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">購入先</label>
-                        <input type="text" id="itemStore" placeholder="例: 〇〇スーパー / Amazon" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <input type="text" id="itemStore" placeholder="例: スーパー / ドラッグストア" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">価格目安 (円)</label>
@@ -129,7 +139,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">メモ</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">メモ（読み取ったテキストなど）</label>
                     <textarea id="itemMemo" rows="2" placeholder="サイズや型番、お気に入りポイントなど" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                 </div>
 
@@ -148,10 +158,19 @@
 
     <!-- JavaScript ロジック -->
     <script>
-        let items = JSON.parse(localStorage.getItem('stockpik_items')) || [
-            { id: 1, title: '特選 豆乳 1000ml', category: '食品', status: 'ok', image: '', store: '近所のスーパー', price: 218, memo: '毎日飲むのでストック必須', favorite: true },
-            { id: 2, title: '無香料 柔軟剤 詰め替え', category: '日用品', status: 'need', image: '', store: 'Amazon', price: 650, memo: '大容量タイプを選ぶ', favorite: true }
-        ];
+        // データの永続化保護処理（既存データがあれば優先して引き継ぐ）
+        let items = [];
+        const savedData = localStorage.getItem('stockpik_items');
+        if (savedData) {
+            items = JSON.parse(savedData);
+        } else {
+            // 初回アクセス時のみデフォルトデータを挿入
+            items = [
+                { id: 1, title: '特選 豆乳 1000ml', category: '食品', status: 'ok', image: '', store: '近所のスーパー', price: 218, memo: '毎日飲むのでストック必須', favorite: true },
+                { id: 2, title: '無香料 柔軟剤 詰め替え', category: '日用品', status: 'need', image: '', store: 'ドラッグストア', price: 650, memo: '大容量タイプを選ぶ', favorite: true }
+            ];
+            localStorage.setItem('stockpik_items', JSON.stringify(items));
+        }
 
         let currentCategory = 'すべて';
         let currentStatusFilter = 'all';
@@ -241,46 +260,61 @@
             `).join('');
         }
 
-        // 写真選択時：プレビュー表示 ＆ AI解析風の自動入力・EXIF解析
-        function handleImageAndAI(event) {
+        // Tesseract.js を用いた文字解析 (OCR) & EXIF位置情報取得
+        async function handleImageAndOCR(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 const base64 = e.target.result;
                 document.getElementById('itemImageBase64').value = base64;
                 document.getElementById('imagePreview').src = base64;
                 document.getElementById('imagePreviewContainer').classList.remove('hidden');
-                
-                // AI解析シミュレーション（ファイル名や撮影日時等からスマートに初期入力）
-                const analyzingEl = document.getElementById('aiAnalyzing');
-                analyzingEl.classList.remove('hidden');
 
-                setTimeout(() => {
-                    analyzingEl.innerHTML = '<i class="fa-solid fa-check text-emerald-600 mr-1"></i> 解析完了（自由に変更できます）';
-                    
-                    // すでにタイトルが空の場合、ファイル名から拡張子を除いたものを仮タイトルにセット
-                    const titleField = document.getElementById('itemTitle');
-                    if (!titleField.value) {
-                        let cleanName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-                        cleanName = cleanName.replace(/[-_]/g, ' ');
-                        titleField.value = cleanName;
+                const statusEl = document.getElementById('ocrStatus');
+                const statusText = document.getElementById('ocrStatusText');
+                statusEl.classList.remove('hidden');
+
+                try {
+                    // Tesseract.js で画像上の日本語と英語を直接読み取る
+                    statusText.innerText = '画像上の文字を直接解析しています...';
+                    const worker = await Tesseract.createWorker('jpn+eng');
+                    const ret = await worker.recognize(base64);
+                    await worker.terminate();
+
+                    const textLines = ret.data.text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+                    if (textLines.length > 0) {
+                        statusEl.innerHTML = '<i class="fa-solid fa-check text-emerald-600 mr-1"></i> 画像から文字を抽出しました！（手動で修正可能）';
+                        
+                        // 一番目立つ行（1行目）をタイトルの候補にセット
+                        const titleInput = document.getElementById('itemTitle');
+                        if (!titleInput.value || titleInput.value === file.name) {
+                            titleInput.value = textLines[0];
+                        }
+                        
+                        // 残りの文字をメモの初期入力欄に追加
+                        const memoInput = document.getElementById('itemMemo');
+                        if (!memoInput.value) {
+                            memoInput.value = textLines.join(' ');
+                        }
+                    } else {
+                        statusEl.innerHTML = '<i class="fa-solid fa-info-circle text-amber-500 mr-1"></i> 文字が検出されませんでした（直接手動で入力できます）';
                     }
-                }, 800);
-            }
+                } catch (err) {
+                    console.error(err);
+                    statusEl.innerHTML = '<i class="fa-solid fa-exclamation-triangle text-rose-500 mr-1"></i> 解析を完了できませんでした';
+                }
+            };
             reader.readAsDataURL(file);
 
-            // EXIF（位置情報）の読み取り
+            // EXIF（撮影日時・位置情報）の解析
             EXIF.getData(file, function() {
-                const lat = EXIF.getTag(this, "GPSLatitude");
-                const lon = EXIF.getTag(this, "GPSLongitude");
                 const dateTime = EXIF.getTag(this, "DateTimeOriginal");
-
-                let infoText = `📸 撮影: ${dateTime || '本日の写真'}`;
-                if (lat && lon) {
-                    infoText += `<br>📍 位置情報あり`;
-                }
+                const lat = EXIF.getTag(this, "GPSLatitude");
+                let infoText = `📸 撮影: ${dateTime || '本日'}`;
+                if (lat) infoText += `<br>📍 位置情報あり`;
                 document.getElementById('exifInfo').innerHTML = infoText;
             });
         }
@@ -290,7 +324,7 @@
             const form = document.getElementById('itemForm');
             form.reset();
             document.getElementById('imagePreviewContainer').classList.add('hidden');
-            document.getElementById('aiAnalyzing').classList.add('hidden');
+            document.getElementById('ocrStatus').classList.add('hidden');
             document.getElementById('exifInfo').innerHTML = '';
             document.getElementById('itemImageBase64').value = '';
 
@@ -314,7 +348,7 @@
             } else {
                 document.getElementById('modalTitle').innerText = '必要品を追加';
                 document.getElementById('itemId').value = '';
-                document.getElementById('itemStatus').value = 'need'; // 新規追加時はデフォルトで「要購入」
+                document.getElementById('itemStatus').value = 'need';
             }
 
             modal.classList.remove('hidden');
@@ -357,6 +391,17 @@
                 localStorage.setItem('stockpik_items', JSON.stringify(items));
                 renderApp();
             }
+        }
+
+        // バックアップ機能（JSON形式で保存）
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `stockpik_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
         }
 
         init();
