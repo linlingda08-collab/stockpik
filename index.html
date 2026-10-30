@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>StockMemo - 必要品・ストック管理</title>
 
     <!-- iPhone ホーム画面アイコン & アプリ設定 -->
@@ -15,8 +15,37 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- EXIFデータ（撮影日時など）読み取り用ライブラリ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
+
+    <style>
+        /* iPhoneのSafari等でカレンダー(input type="date")が枠からはみ出す現象の対策 */
+        input[type="date"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            min-height: 2.6rem;
+            box-sizing: border-box;
+        }
+        /* 円形カラーピッカーのスタイル調整 */
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            overflow: hidden;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: 2px solid #e2e8f0;
+            border-radius: 50%;
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-24 selection:bg-indigo-100">
 
     <!-- ヘッダー -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
@@ -31,10 +60,16 @@
                     <p class="text-[10px] text-slate-400">必要品・買い物時期メモ</p>
                 </div>
             </div>
-            <div>
-                <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl shadow-md transition flex items-center space-x-2">
-                    <i class="fa-solid fa-plus"></i>
-                    <span class="text-sm">必要品を追加</span>
+            <!-- ジャンル編集 ＆ 必要品追加ボタン -->
+            <div class="flex items-center space-x-2">
+                <button onclick="openGenreManageModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl text-xs transition flex items-center space-x-1 border border-slate-200">
+                    <i class="fa-solid fa-tags text-indigo-600"></i>
+                    <span class="hidden sm:inline">ジャンル編集</span>
+                    <span class="sm:hidden">ジャンル</span>
+                </button>
+                <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3.5 py-2 rounded-xl shadow-md transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span class="text-xs sm:text-sm">追加</span>
                 </button>
             </div>
         </div>
@@ -60,15 +95,11 @@
                 <input type="text" id="searchInput" oninput="renderApp()" placeholder="品名やメモ、購入先で検索..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
-            <!-- カテゴリ（ジャンル）タブ一覧 ＋ ジャンル追加ボタン -->
+            <!-- カテゴリ（ジャンル）タブ一覧 -->
             <div class="flex items-center justify-between gap-2 overflow-x-auto pb-1">
                 <div id="categoryTabs" class="flex flex-nowrap sm:flex-wrap gap-1.5 shrink-0">
                     <!-- 動的生成 -->
                 </div>
-                <button onclick="openGenreModal()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center space-x-1 shrink-0">
-                    <i class="fa-solid fa-plus text-indigo-600"></i>
-                    <span>ジャンル追加</span>
-                </button>
             </div>
         </div>
 
@@ -106,9 +137,9 @@
         </div>
     </nav>
 
-    <!-- 登録・編集モーダル -->
+    <!-- アイテム追加・編集モーダル -->
     <div id="itemModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-xl p-6 space-y-4">
+        <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-xl p-5 sm:p-6 space-y-4">
             <div class="flex justify-between items-center border-b pb-3">
                 <h2 id="modalTitle" class="text-lg font-bold text-slate-900">必要品を追加</h2>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -122,7 +153,7 @@
                     <label class="block text-xs font-bold text-slate-700">
                         <i class="fa-solid fa-camera text-indigo-600 mr-1"></i> ① 写真を選択（任意）
                     </label>
-                    <input type="file" id="itemImageFile" accept="image/*" onchange="handleImagePreview(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                    <input type="file" id="itemImageFile" accept="image/*" onchange="handleImagePreview(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
                     <input type="hidden" id="itemImageBase64">
                     
                     <div id="imagePreviewContainer" class="mt-2 hidden flex items-center space-x-3">
@@ -172,17 +203,19 @@
                     </div>
                 </div>
 
-                <!-- STEP 3: カレンダーで時期を選択（未定ボタン付き） -->
+                <!-- STEP 3: カレンダーで時期を選択（iPhoneでの枠はみ出し改善対策済み） -->
                 <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 space-y-2">
                     <div class="flex justify-between items-center">
                         <label class="block text-xs font-bold text-indigo-950">
-                            <i class="fa-solid fa-calendar-days text-indigo-600 mr-1"></i> ③ いつまでに欲しいか（カレンダー指定）
+                            <i class="fa-solid fa-calendar-days text-indigo-600 mr-1"></i> ③ いつまでに欲しいか
                         </label>
                         <button type="button" onclick="setDueDatePending()" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-white px-2 py-0.5 rounded-md border border-indigo-200 shadow-sm">
                             「未定」にする
                         </button>
                     </div>
-                    <input type="date" id="itemDueDate" class="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                    <div class="w-full">
+                        <input type="date" id="itemDueDate" class="w-full block px-3 py-2 bg-white border border-indigo-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-800">
+                    </div>
                     <p id="dueDateNotice" class="text-[11px] text-slate-500">※未定にすると自動的に「⏳ まだ先」に分類されます</p>
                 </div>
 
@@ -194,29 +227,32 @@
         </div>
     </div>
 
-    <!-- ジャンル追加モーダル -->
-    <div id="genreModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-xl p-5 space-y-4">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-base font-bold text-slate-900">新しいジャンルを追加</h3>
-                <button onclick="closeGenreModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+    <!-- ジャンル管理モーダル -->
+    <div id="genreManageModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-xl p-5 space-y-4 max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-tags text-indigo-600 mr-1.5"></i>ジャンル編集・追加</h3>
+                <button onclick="closeGenreManageModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <form onsubmit="saveNewGenre(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">ジャンル名 <span class="text-rose-500">*</span></label>
-                    <input type="text" id="newGenreName" required placeholder="例: ペット用品 / 文房具" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-2">カードの背景色を選択</label>
-                    <div id="colorPicker" class="grid grid-cols-5 gap-2">
-                        <!-- 動的生成 -->
-                    </div>
-                </div>
-                <div class="flex justify-end space-x-2 pt-2">
-                    <button type="button" onclick="closeGenreModal()" class="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium">キャンセル</button>
-                    <button type="submit" class="px-4 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-medium shadow-sm">追加する</button>
+
+            <!-- 新規ジャンル追加フォーム -->
+            <form onsubmit="addNewGenre(event)" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3 shrink-0">
+                <span class="text-xs font-bold text-slate-700 block">＋ 新しいジャンルを作成</span>
+                <div class="flex items-center space-x-2">
+                    <input type="color" id="newGenreColor" value="#e0e7ff" title="円をタップして好きな色を選択">
+                    <input type="text" id="newGenreName" required placeholder="ジャンル名（例: ペット用品）" class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button type="submit" class="px-3.5 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shrink-0 shadow-sm">追加</button>
                 </div>
             </form>
+
+            <!-- 既存ジャンル一覧 ＆ 編集エリア -->
+            <div class="overflow-y-auto flex-1 space-y-2 pr-1" id="genreListContainer">
+                <!-- 動的生成 -->
+            </div>
+
+            <div class="flex justify-end pt-2 border-t">
+                <button type="button" onclick="closeGenreManageModal()" class="px-5 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">完了</button>
+            </div>
         </div>
     </div>
 
@@ -248,31 +284,16 @@
             }
         }
 
-        // デフォルトのジャンルマスター（名前＋背景色＋文字色）
+        // デフォルトジャンル（名前＋HEXカラーコード）
         const defaultGenres = [
-            { name: '日用品', bgClass: 'bg-indigo-50 border-indigo-100', textClass: 'text-indigo-700' },
-            { name: '食品', bgClass: 'bg-amber-50 border-amber-100', textClass: 'text-amber-700' },
-            { name: 'コスメ・ケア', bgClass: 'bg-rose-50 border-rose-100', textClass: 'text-rose-700' },
-            { name: 'その他', bgClass: 'bg-slate-100 border-slate-200', textClass: 'text-slate-700' }
+            { id: 1, name: '日用品', color: '#e0e7ff' },
+            { id: 2, name: '食品', color: '#fef3c7' },
+            { id: 3, name: 'コスメ・ケア', color: '#ffe4e6' },
+            { id: 4, name: 'その他', color: '#f1f5f9' }
         ];
 
-        // 選択用カラーパレットリスト
-        const colorPalette = [
-            { bgClass: 'bg-indigo-50 border-indigo-100', textClass: 'text-indigo-700', hex: '#e0e7ff' },
-            { bgClass: 'bg-amber-50 border-amber-100', textClass: 'text-amber-700', hex: '#fef3c7' },
-            { bgClass: 'bg-rose-50 border-rose-100', textClass: 'text-rose-700', hex: '#ffe4e6' },
-            { bgClass: 'bg-emerald-50 border-emerald-100', textClass: 'text-emerald-700', hex: '#d1fae5' },
-            { bgClass: 'bg-sky-50 border-sky-100', textClass: 'text-sky-700', hex: '#e0f2fe' },
-            { bgClass: 'bg-purple-50 border-purple-100', textClass: 'text-purple-700', hex: '#f3e8ff' },
-            { bgClass: 'bg-orange-50 border-orange-100', textClass: 'text-orange-700', hex: '#ffedd5' },
-            { bgClass: 'bg-teal-50 border-teal-100', textClass: 'text-teal-700', hex: '#ccfbf1' },
-            { bgClass: 'bg-slate-100 border-slate-200', textClass: 'text-slate-700', hex: '#f1f5f9' }
-        ];
-
-        let selectedColorIndex = 0;
-
-        // データとジャンル設定の読み込み（データ保護設計）
-        let customGenres = JSON.parse(localStorage.getItem('stockmemo_genres')) || defaultGenres;
+        // データとカスタムジャンルのロード（永続化保護）
+        let customGenres = JSON.parse(localStorage.getItem('stockmemo_genres_v2')) || defaultGenres;
         let items = JSON.parse(localStorage.getItem('stockmemo_items')) || [];
 
         let currentGenreFilter = 'すべて';
@@ -329,7 +350,7 @@
             renderApp();
         }
 
-        // 時期（緊急度）の自動判定（未定の場合は later）
+        // 時期（緊急度）の自動判定（未定は later）
         function getTimingStatus(dueDateStr) {
             if (!dueDateStr) return 'later';
             
@@ -353,9 +374,9 @@
             }
         }
 
-        function getGenreStyle(categoryName) {
+        function getGenreColor(categoryName) {
             const found = customGenres.find(g => g.name === categoryName);
-            return found || { bgClass: 'bg-white border-slate-200', textClass: 'text-slate-700' };
+            return found ? found.color : '#ffffff';
         }
 
         function renderApp() {
@@ -393,28 +414,28 @@
             container.innerHTML = filtered.map(item => {
                 const timing = getTimingStatus(item.dueDate);
                 const dateVal = item.dueDate ? `${item.dueDate.replace(/-/g, '/')}` : '未定';
-                const style = getGenreStyle(item.category);
+                const cardColor = getGenreColor(item.category);
 
                 return `
-                    <div onclick="openModal(${item.id})" class="${style.bgClass} rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between group">
+                    <div onclick="openModal(${item.id})" class="rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between group" style="background-color: ${cardColor};">
                         <div>
-                            <div class="relative w-full h-36 bg-slate-200/50 flex items-center justify-center overflow-hidden">
+                            <div class="relative w-full h-36 bg-slate-200/40 flex items-center justify-center overflow-hidden">
                                 ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">` : `<i class="fa-solid fa-box text-slate-300 text-3xl"></i>`}
                                 ${item.favorite ? '<div class="absolute top-2 left-2 bg-amber-400 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shadow"><i class="fa-solid fa-star"></i></div>' : ''}
                                 <div class="absolute bottom-2 right-2">${badges[timing]}</div>
                             </div>
                             <div class="p-3 space-y-1">
                                 <div class="flex justify-between items-center text-[10px]">
-                                    <span class="${style.textClass} font-bold px-2 py-0.5 rounded-md bg-white/80 backdrop-blur-sm shadow-xs">${item.category}</span>
-                                    <span class="text-slate-500 font-medium"><i class="fa-regular fa-clock mr-0.5"></i>${dateVal}</span>
+                                    <span class="font-bold px-2 py-0.5 rounded-md bg-white/80 text-slate-800 shadow-xs border border-slate-100">${item.category}</span>
+                                    <span class="text-slate-600 font-medium"><i class="fa-regular fa-clock mr-0.5"></i>${dateVal}</span>
                                 </div>
                                 <h3 class="font-bold text-sm text-slate-900 truncate pt-1">${item.title}</h3>
-                                ${item.store ? `<p class="text-xs text-slate-500 truncate"><i class="fa-solid fa-store mr-1"></i>${item.store}</p>` : ''}
+                                ${item.store ? `<p class="text-xs text-slate-600 truncate"><i class="fa-solid fa-store mr-1"></i>${item.store}</p>` : ''}
                             </div>
                         </div>
-                        <div class="px-3 pb-3 flex justify-between items-center text-xs text-slate-500 border-t border-slate-200/50 pt-2 mt-1">
+                        <div class="px-3 pb-3 flex justify-between items-center text-xs text-slate-600 border-t border-slate-900/5 pt-2 mt-1">
                             <span class="font-bold">${item.price ? `¥${item.price.toLocaleString()}` : '-'}</span>
-                            <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
                 `;
@@ -520,34 +541,34 @@
             }
         }
 
-        // --- ジャンル追加モーダル関連 ---
-        function openGenreModal() {
-            renderColorPicker();
-            document.getElementById('newGenreName').value = '';
-            document.getElementById('genreModal').classList.remove('hidden');
+        // --- ジャンル管理機能 ---
+        function openGenreManageModal() {
+            renderGenreManageList();
+            document.getElementById('genreManageModal').classList.remove('hidden');
         }
 
-        function closeGenreModal() {
-            document.getElementById('genreModal').classList.add('hidden');
+        function closeGenreManageModal() {
+            document.getElementById('genreManageModal').classList.add('hidden');
         }
 
-        function renderColorPicker() {
-            const picker = document.getElementById('colorPicker');
-            picker.innerHTML = colorPalette.map((c, index) => `
-                <div onclick="selectColor(${index})" class="w-8 h-8 rounded-full cursor-pointer border-2 flex items-center justify-center shadow-xs ${selectedColorIndex === index ? 'border-indigo-600 scale-110' : 'border-transparent'}" style="background-color: ${c.hex}">
-                    ${selectedColorIndex === index ? '<i class="fa-solid fa-check text-indigo-600 text-xs"></i>' : ''}
+        function renderGenreManageList() {
+            const container = document.getElementById('genreListContainer');
+            container.innerHTML = customGenres.map((g, index) => `
+                <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <div class="flex items-center space-x-2 flex-1 mr-2">
+                        <input type="color" value="${g.color}" onchange="updateGenreColor(${g.id}, this.value)" title="タップして背景色を変更">
+                        <span class="text-sm font-bold text-slate-800">${g.name}</span>
+                    </div>
+                    ${customGenres.length > 1 ? `<button onclick="deleteGenre(${g.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>` : ''}
                 </div>
             `).join('');
         }
 
-        function selectColor(index) {
-            selectedColorIndex = index;
-            renderColorPicker();
-        }
-
-        function saveNewGenre(event) {
+        function addNewGenre(event) {
             event.preventDefault();
-            const name = document.getElementById('newGenreName').value.trim();
+            const nameInput = document.getElementById('newGenreName');
+            const colorInput = document.getElementById('newGenreColor');
+            const name = nameInput.value.trim();
             if (!name) return;
 
             if (customGenres.some(g => g.name === name)) {
@@ -555,18 +576,46 @@
                 return;
             }
 
-            const chosenColor = colorPalette[selectedColorIndex];
             customGenres.push({
+                id: Date.now(),
                 name: name,
-                bgClass: chosenColor.bgClass,
-                textClass: chosenColor.textClass
+                color: colorInput.value
             });
 
-            localStorage.setItem('stockmemo_genres', JSON.stringify(customGenres));
+            localStorage.setItem('stockmemo_genres_v2', JSON.stringify(customGenres));
+            nameInput.value = '';
+            renderGenreManageList();
             renderGenreTabs();
             renderCategorySelect();
-            closeGenreModal();
             renderApp();
+        }
+
+        function updateGenreColor(id, newColor) {
+            const target = customGenres.find(g => g.id === id);
+            if (target) {
+                target.color = newColor;
+                localStorage.setItem('stockmemo_genres_v2', JSON.stringify(customGenres));
+                renderApp();
+            }
+        }
+
+        function deleteGenre(id) {
+            const target = customGenres.find(g => g.id === id);
+            if (!target) return;
+
+            if (confirm(`ジャンル「${target.name}」を削除してもよろしいですか？`)) {
+                customGenres = customGenres.filter(g => g.id !== id);
+                localStorage.setItem('stockmemo_genres_v2', JSON.stringify(customGenres));
+                
+                if (currentGenreFilter === target.name) {
+                    currentGenreFilter = 'すべて';
+                }
+                
+                renderGenreManageList();
+                renderGenreTabs();
+                renderCategorySelect();
+                renderApp();
+            }
         }
 
         init();
