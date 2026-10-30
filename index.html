@@ -162,7 +162,7 @@
             <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4">
                 <input type="hidden" id="itemId">
 
-                <!-- 種別選択（買う物か、消えないメモか） -->
+                <!-- 種別選択 -->
                 <div class="bg-indigo-50/60 p-3 rounded-2xl border border-indigo-100 space-y-1.5">
                     <label class="block text-xs font-bold text-indigo-900">種別を選択 <span class="text-rose-500">*</span></label>
                     <div class="grid grid-cols-2 gap-2">
@@ -195,7 +195,8 @@
                     <input type="hidden" id="itemImageBase64">
                     
                     <div id="imagePreviewContainer" class="mt-2 hidden flex items-center space-x-3">
-                        <img id="imagePreview" class="w-16 h-16 object-cover rounded-xl border border-slate-200 shadow-sm shrink-0">
+                        <!-- プレビュー時も全景表示 -->
+                        <img id="imagePreview" class="w-20 h-20 object-contain rounded-xl border border-slate-200 bg-white shadow-sm shrink-0">
                     </div>
                 </div>
 
@@ -224,7 +225,7 @@
                         </div>
                     </div>
 
-                    <!-- フラグ指定（急ぎ・定番） -->
+                    <!-- フラグ指定 -->
                     <div class="flex items-center space-x-4 pt-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <label class="flex items-center space-x-2 cursor-pointer">
                             <input type="checkbox" id="itemUrgent" class="w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500">
@@ -366,6 +367,7 @@
             }
         }
 
+        // 閲覧モーダルを開く（画像を切り取らず全体表示）
         function openViewModal(id) {
             viewingItemId = id;
             const item = items.find(i => i.id === id);
@@ -375,7 +377,7 @@
 
             const content = document.getElementById('viewModalContent');
             content.innerHTML = `
-                ${item.image ? `<div class="w-full h-48 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200"><img src="${item.image}" class="w-full h-full object-cover"></div>` : ''}
+                ${item.image ? `<div class="w-full max-h-80 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center p-1"><img src="${item.image}" class="max-w-full max-h-80 object-contain rounded-xl"></div>` : ''}
                 <div>
                     <div class="flex items-center space-x-2 mb-1">
                         ${typeLabel}
@@ -463,7 +465,6 @@
 
                 let categoryItems = items.filter(i => i.category === selectedCategoryDetail);
 
-                // 1. 買う物（未完了 ＆ 完了）
                 let remindersActive = categoryItems.filter(i => i.type !== 'memo' && !i.completed);
                 let remindersCompleted = categoryItems.filter(i => i.type !== 'memo' && i.completed);
 
@@ -473,7 +474,6 @@
                     return 0;
                 });
 
-                // 2. メモ・記録（消えない）
                 let memos = categoryItems.filter(i => i.type === 'memo');
 
                 if (categoryItems.length === 0) {
@@ -486,23 +486,22 @@
 
                 emptyState.classList.add('hidden');
 
-                // 買う物リスト描画
+                // 買う物リスト描画（背景はすべて白に固定）
                 if (remindersActive.length === 0) {
                     reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">買う物はありません</p>';
                 } else {
                     reminderItemsContainer.innerHTML = remindersActive.map(item => {
-                        const cardColor = getGenreColor(item.category);
-                        const urgentStyle = item.urgent ? 'border-2 border-rose-500 shadow-sm' : 'border border-slate-200/80';
+                        const urgentStyle = item.urgent ? 'border-2 border-rose-500 shadow-sm' : 'border border-slate-200';
                         const isPending = item.pendingComplete;
 
                         return `
-                            <div onclick="openViewModal(${item.id})" class="p-3 rounded-2xl ${urgentStyle} shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''}" style="background-color: ${cardColor};">
+                            <div onclick="openViewModal(${item.id})" class="p-3 rounded-2xl bg-white ${urgentStyle} shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''}">
                                 <div class="flex items-center space-x-3 overflow-hidden">
                                     <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="w-6 h-6 rounded-full ${isPending ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-300'} flex items-center justify-center shrink-0 border shadow-xs transition" title="${isPending ? '取り消す' : '完了'}">
                                         <i class="fa-solid ${isPending ? 'fa-check text-xs' : 'fa-circle text-xs'}"></i>
                                     </button>
 
-                                    ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200">` : ''}
+                                    ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-contain bg-slate-50 border border-slate-200 shrink-0">` : ''}
                                     
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
@@ -547,21 +546,19 @@
                     completedSection.classList.add('hidden');
                 }
 
-                // メモ・記録リスト描画（消えない）
+                // メモ・記録リスト描画（背景はすべて白に固定＆画像は全景表示）
                 if (memos.length === 0) {
                     memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモはありません</p>';
                 } else {
                     memoItemsContainer.innerHTML = memos.map(item => {
-                        const cardColor = getGenreColor(item.category);
-
                         return `
-                            <div onclick="openViewModal(${item.id})" class="p-3 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between" style="background-color: ${cardColor};">
+                            <div onclick="openViewModal(${item.id})" class="p-3 rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between">
                                 <div class="flex items-center space-x-3 overflow-hidden">
                                     <div class="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-200 text-xs shadow-xs">
                                         <i class="fa-solid fa-book-open"></i>
                                     </div>
 
-                                    ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200">` : ''}
+                                    ${item.image ? `<img src="${item.image}" class="w-10 h-10 rounded-xl object-contain bg-slate-50 border border-slate-200 shrink-0">` : ''}
                                     
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
