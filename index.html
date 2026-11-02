@@ -179,15 +179,23 @@
 
     <main class="max-w-4xl mx-auto px-4 pt-4 relative z-10">
 
-        <!-- カテゴリー詳細画面時の「戻るヘッダー」 -->
+        <!-- カテゴリー詳細画面時の「戻る ＆ 共有ヘッダー」 -->
         <div id="categoryDetailHeader" class="hidden mb-4 flex items-center justify-between bg-white/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
             <button onclick="closeCategoryDetail()" class="text-app-theme font-bold text-sm flex items-center space-x-1.5 hover:opacity-80 transition active:scale-95">
                 <i class="fa-solid fa-chevron-left text-xs"></i>
                 <span>一覧に戻る</span>
             </button>
-            <div class="flex items-center space-x-2">
-                <div id="activeCategoryIconContainer" class="w-6 h-6 rounded-lg flex items-center justify-center overflow-hidden shrink-0"></div>
-                <h2 id="activeCategoryTitle" class="font-bold text-slate-900 text-base"></h2>
+            
+            <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-2">
+                    <div id="activeCategoryIconContainer" class="w-6 h-6 rounded-lg flex items-center justify-center overflow-hidden shrink-0"></div>
+                    <h2 id="activeCategoryTitle" class="font-bold text-slate-900 text-base"></h2>
+                </div>
+                <!-- LINE・メッセージ共有ボタン -->
+                <button onclick="shareCategoryText()" class="bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 px-2.5 py-1 rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-2xs" title="LINE等でリストを共有">
+                    <i class="fa-solid fa-arrow-up-from-bracket text-app-theme"></i>
+                    <span>共有</span>
+                </button>
             </div>
         </div>
 
@@ -453,7 +461,7 @@
             renderCategorySelect();
             renderApp();
             initSwipeGesture();
-            autoFetchExistingImages(); // 既存のURLあり＆画像なしアイテムの画像自動取得
+            autoFetchExistingImages();
         }
 
         // モーダルの背景（外側）クリックで閉じる処理
@@ -461,6 +469,59 @@
             const modalOverlay = document.getElementById(modalId);
             if (event.target === modalOverlay) {
                 closeFunction();
+            }
+        }
+
+        // 現在のカテゴリーの未完了リストを綺麗なテキスト形式にしてLINE等で共有する
+        async function shareCategoryText() {
+            if (!selectedCategoryDetail) return;
+
+            const categoryItems = items.filter(i => i.category === selectedCategoryDetail && !i.completed);
+            if (categoryItems.length === 0) {
+                alert('共有できる未完了のアイテムがありません');
+                return;
+            }
+
+            let text = `【${selectedCategoryDetail} のリスト】\n`;
+
+            categoryItems.forEach(item => {
+                let prefix = item.type === 'memo' ? '📖 ' : '・';
+                let urgentMark = item.urgent ? ' (🔥急ぎ)' : '';
+                let favMark = item.favorite ? ' (⭐定番)' : '';
+                
+                text += `${prefix}${item.title}${urgentMark}${favMark}\n`;
+
+                if (item.store) {
+                    text += `  └ 店: ${item.store}\n`;
+                }
+                if (item.memo) {
+                    text += `  └ メモ: ${item.memo}\n`;
+                }
+                if (item.url) {
+                    text += `  └ URL: ${item.url}\n`;
+                }
+                // 手動アップロード画像がある場合の注記・リンク
+                if (item.image && !item.url) {
+                    text += `  └ 📷 [画像添付あり]\n`;
+                }
+            });
+
+            text += `\n※Remindersより送信`;
+
+            // Web Share API（iOS/スマホ標準の共有シート）
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: `${selectedCategoryDetail} のリスト`,
+                        text: text
+                    });
+                } catch (err) {
+                    console.log('共有がキャンセルまたは失敗しました:', err);
+                }
+            } else {
+                // PCなどでWeb Shareが使えない場合はクリップボードにコピー
+                navigator.clipboard.writeText(text);
+                alert('リストのテキストをクリップボードにコピーしました！LINE等に貼り付けてご利用ください。');
             }
         }
 
@@ -665,11 +726,10 @@
             });
         }
 
-        // URLからプレビュー画像のみを自動取得する関数（タイトル自動更新は全廃）
+        // URLからプレビュー画像のみを自動取得する関数（タイトル自動更新はなし）
         async function fetchImageFromUrl(url) {
             if (!url || !url.startsWith('http')) return;
             const currentImg = document.getElementById('itemImageBase64').value;
-            // すでに画像が入っている場合は上書きしない
             if (currentImg) return;
 
             const indicator = document.getElementById('urlLoadingIndicator');
@@ -696,7 +756,6 @@
             }
         }
 
-        // 既存のリストにあるURLあり＆画像なしアイテムの画像自動取得
         async function autoFetchExistingImages() {
             let updated = false;
             for (let item of items) {
@@ -724,7 +783,6 @@
             }
         }
 
-        // URL先の画像をBase64形式に変換
         function toDataURL(url, callback) {
             const img = new Image();
             img.crossOrigin = 'Anonymous';
@@ -809,7 +867,6 @@
 
             const content = document.getElementById('viewModalContent');
             
-            // 画像がある場合、タップでURLへ飛ぶか拡大表示できるリンクにする
             const imgHtml = item.image ? (
                 item.url 
                 ? `<a href="${item.url}" target="_blank" class="block w-full max-h-80 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200/80 flex items-center justify-center p-1 shadow-2xs hover:opacity-90 transition" title="タップしてリンク先へジャンプ"><img src="${item.image}" class="max-w-full max-h-80 object-contain rounded-xl"></a>`
@@ -855,7 +912,6 @@
             }
         }
 
-        // 右側メディアエリアの描画（画像をタップしたらリンクへ遷移）
         function renderRightMedia(item) {
             if (item.image) {
                 if (item.url) {
