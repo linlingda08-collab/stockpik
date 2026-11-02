@@ -538,7 +538,7 @@
             renderApp();
         }
 
-        // 選択された複数のメモを一括共有する関数（LINEプレビュー表示に対応）
+        // 選択された複数のメモを一括共有する関数（※送信者クレジットなし）
         async function shareSelectedItems() {
             if (selectedItemIds.size === 0) return;
 
@@ -550,12 +550,12 @@
                 text += `📖 ${item.title}${favMark}\n`;
                 if (item.store) text += `店舗: ${item.store}\n`;
                 if (item.memo) text += `${item.memo}\n`;
-                // LINEでのプレビュー表示用にWeb URLのみ付与
                 if (item.url) text += `${item.url}\n`;
                 text += `\n`;
             });
 
-            text += `※Remindersより送信`;
+            // 末尾の余分な改行をトリム
+            text = text.trim();
 
             if (navigator.share) {
                 try {
@@ -572,7 +572,7 @@
             }
         }
 
-        // 単一メモのワンタップ共有（LINEプレビュー表示に対応）
+        // 単一メモのワンタップ共有（※送信者クレジットなし）
         async function shareSingleItem(event, itemId) {
             event.stopPropagation();
             const item = items.find(i => i.id === itemId);
@@ -584,10 +584,9 @@
 
             if (item.store) text += `店舗: ${item.store}\n`;
             if (item.memo) text += `メモ: ${item.memo}\n`;
-            // LINEでのプレビュー表示用にWeb URLのみ付与
             if (item.url) text += `${item.url}\n`;
 
-            text += `\n※Remindersより送信`;
+            text = text.trim();
 
             if (navigator.share) {
                 try {
