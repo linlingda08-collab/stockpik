@@ -55,29 +55,29 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen pb-20 selection:bg-indigo-100">
+<body class="bg-gradient-to-b from-slate-100 via-slate-50 to-indigo-50/30 text-slate-800 min-h-screen pb-24 selection:bg-indigo-100">
 
     <!-- ヘッダー -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
         <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <img src="icon.PNG" id="headerIcon" class="w-9 h-9 rounded-xl object-cover shadow-sm border border-slate-100" onerror="this.style.display='none'; document.getElementById('headerIconFallback').style.display='flex';">
-                <div id="headerIconFallback" class="hidden bg-app-theme text-white w-9 h-9 rounded-xl items-center justify-center shadow-md">
-                    <i class="fa-solid fa-list-check text-lg"></i>
+            <div class="flex items-center space-x-2.5">
+                <img src="icon.PNG" id="headerIcon" class="w-9 h-9 rounded-2xl object-cover shadow-sm border border-slate-100" onerror="this.style.display='none'; document.getElementById('headerIconFallback').style.display='flex';">
+                <div id="headerIconFallback" class="hidden bg-app-theme text-white w-9 h-9 rounded-2xl items-center justify-center shadow-sm">
+                    <i class="fa-solid fa-list-check text-base"></i>
                 </div>
                 <div>
                     <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">Reminders</h1>
-                    <p class="text-[10px] text-slate-400">買い物・レシピ・ストックメモ</p>
+                    <p class="text-[10px] text-slate-400 font-medium">買い物・レシピ・ストックメモ</p>
                 </div>
             </div>
 
             <!-- アプリテーマ変更 ＆ ジャンル編集ボタン -->
             <div class="flex items-center space-x-2">
-                <button onclick="openThemeModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-2.5 py-2 rounded-xl text-xs transition flex items-center space-x-1 border border-slate-200" title="テーマカラー変更">
+                <button onclick="openThemeModal()" class="bg-slate-100/80 hover:bg-slate-200/80 active:scale-95 text-slate-700 font-medium px-2.5 py-2 rounded-2xl text-xs transition flex items-center space-x-1 border border-slate-200/60 shadow-2xs" title="テーマカラー変更">
                     <i class="fa-solid fa-palette text-app-theme"></i>
                     <span class="hidden sm:inline">テーマ</span>
                 </button>
-                <button onclick="openGenreManageModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl text-xs transition flex items-center space-x-1 border border-slate-200">
+                <button onclick="openGenreManageModal()" class="bg-slate-100/80 hover:bg-slate-200/80 active:scale-95 text-slate-700 font-medium px-3 py-2 rounded-2xl text-xs transition flex items-center space-x-1 border border-slate-200/60 shadow-2xs">
                     <i class="fa-solid fa-tags text-app-theme"></i>
                     <span>ジャンル</span>
                 </button>
@@ -88,13 +88,13 @@
     <main class="max-w-4xl mx-auto px-4 pt-4">
 
         <!-- カテゴリー詳細画面時の「戻るヘッダー」 -->
-        <div id="categoryDetailHeader" class="hidden mb-4 flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
-            <button onclick="closeCategoryDetail()" class="text-app-theme font-bold text-sm flex items-center space-x-1 hover:opacity-80 transition">
+        <div id="categoryDetailHeader" class="hidden mb-4 flex items-center justify-between bg-white/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
+            <button onclick="closeCategoryDetail()" class="text-app-theme font-bold text-sm flex items-center space-x-1.5 hover:opacity-80 transition active:scale-95">
                 <i class="fa-solid fa-chevron-left text-xs"></i>
                 <span>一覧に戻る</span>
             </button>
             <div class="flex items-center space-x-2">
-                <span id="activeCategoryColorDot" class="w-3.5 h-3.5 rounded-full border border-slate-200"></span>
+                <span id="activeCategoryColorDot" class="w-3.5 h-3.5 rounded-full border border-slate-200 shadow-2xs"></span>
                 <h2 id="activeCategoryTitle" class="font-bold text-slate-900 text-base"></h2>
             </div>
         </div>
@@ -108,12 +108,14 @@
         <div id="categoryContentArea" class="hidden space-y-6">
             
             <!-- ① リマインダー セクション -->
-            <div class="space-y-2">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
-                    <i class="fa-solid fa-basket-shopping text-app-theme"></i>
-                    <span>リマインダー</span>
-                </h3>
-                <div id="reminderItemsContainer" class="space-y-2">
+            <div class="space-y-2.5">
+                <div class="flex items-center space-x-2">
+                    <span class="px-2.5 py-1 bg-white/90 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-600 shadow-2xs flex items-center space-x-1">
+                        <i class="fa-solid fa-basket-shopping text-app-theme"></i>
+                        <span>リマインダー</span>
+                    </span>
+                </div>
+                <div id="reminderItemsContainer" class="space-y-2.5">
                     <!-- 動的生成 -->
                 </div>
             </div>
@@ -130,12 +132,14 @@
             </div>
 
             <!-- ② メモ セクション -->
-            <div class="space-y-2 pt-4 border-t border-slate-200/80">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
-                    <i class="fa-solid fa-book-open text-app-theme"></i>
-                    <span>メモ</span>
-                </h3>
-                <div id="memoItemsContainer" class="space-y-2">
+            <div class="space-y-2.5 pt-4 border-t border-slate-200/80">
+                <div class="flex items-center space-x-2">
+                    <span class="px-2.5 py-1 bg-white/90 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-600 shadow-2xs flex items-center space-x-1">
+                        <i class="fa-solid fa-book-open text-app-theme"></i>
+                        <span>メモ</span>
+                    </span>
+                </div>
+                <div id="memoItemsContainer" class="space-y-2.5">
                     <!-- 動的生成 -->
                 </div>
             </div>
@@ -143,51 +147,51 @@
         </div>
 
         <!-- 該当なし表示 -->
-        <div id="emptyState" class="hidden text-center py-16">
+        <div id="emptyState" class="hidden text-center py-16 bg-white/50 backdrop-blur-sm rounded-3xl border border-slate-200/60 my-4 shadow-xs">
             <div class="text-4xl mb-3">📭</div>
-            <p class="text-slate-500 text-sm">該当するアイテムまたはカテゴリーがありません。<br>右下の「＋」ボタンから追加してみましょう！</p>
+            <p class="text-slate-500 text-sm font-medium">該当するアイテムまたはカテゴリーがありません。<br>右下の「＋」ボタンから追加してみましょう！</p>
         </div>
     </main>
 
     <!-- 右下の円形プラス追加ボタン -->
-    <button onclick="openModal()" class="fixed right-5 bottom-6 w-14 h-14 bg-app-theme hover:opacity-90 active:scale-95 text-white rounded-full shadow-lg flex items-center justify-center z-40 transition" title="追加">
+    <button onclick="openModal()" class="fixed right-6 bottom-7 w-14 h-14 bg-app-theme hover:opacity-95 active:scale-90 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center z-40 transition-all duration-200" title="追加">
         <i class="fa-solid fa-plus text-xl"></i>
     </button>
 
     <!-- アプリテーマカラー変更モーダル -->
-    <div id="themeModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-xs rounded-3xl shadow-xl p-5 space-y-4">
-            <div class="flex justify-between items-center border-b pb-3">
+    <div id="themeModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white/95 backdrop-blur-md w-full max-w-xs rounded-3xl shadow-2xl p-5 space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-palette text-app-theme mr-1.5"></i>全体テーマカラー</h3>
                 <button onclick="closeThemeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
             <div class="space-y-3">
-                <p class="text-xs text-slate-500">アプリのアクセントカラーを選択してください：</p>
+                <p class="text-xs text-slate-500 font-medium">アプリのアクセントカラーを選択してください：</p>
                 <div class="flex items-center justify-around py-2">
-                    <button onclick="setAppThemeColor('#4f46e5')" class="w-8 h-8 rounded-full bg-indigo-600 ring-2 ring-offset-2 ring-indigo-600"></button>
-                    <button onclick="setAppThemeColor('#0284c7')" class="w-8 h-8 rounded-full bg-sky-600 ring-2 ring-offset-2 ring-sky-600"></button>
-                    <button onclick="setAppThemeColor('#059669')" class="w-8 h-8 rounded-full bg-emerald-600 ring-2 ring-offset-2 ring-emerald-600"></button>
-                    <button onclick="setAppThemeColor('#e11d48')" class="w-8 h-8 rounded-full bg-rose-600 ring-2 ring-offset-2 ring-rose-600"></button>
-                    <button onclick="setAppThemeColor('#7c3aed')" class="w-8 h-8 rounded-full bg-violet-600 ring-2 ring-offset-2 ring-violet-600"></button>
+                    <button onclick="setAppThemeColor('#4f46e5')" class="w-8 h-8 rounded-full bg-indigo-600 active:scale-90 transition ring-2 ring-offset-2 ring-indigo-600 shadow-xs"></button>
+                    <button onclick="setAppThemeColor('#0284c7')" class="w-8 h-8 rounded-full bg-sky-600 active:scale-90 transition ring-2 ring-offset-2 ring-sky-600 shadow-xs"></button>
+                    <button onclick="setAppThemeColor('#059669')" class="w-8 h-8 rounded-full bg-emerald-600 active:scale-90 transition ring-2 ring-offset-2 ring-emerald-600 shadow-xs"></button>
+                    <button onclick="setAppThemeColor('#e11d48')" class="w-8 h-8 rounded-full bg-rose-600 active:scale-90 transition ring-2 ring-offset-2 ring-rose-600 shadow-xs"></button>
+                    <button onclick="setAppThemeColor('#7c3aed')" class="w-8 h-8 rounded-full bg-violet-600 active:scale-90 transition ring-2 ring-offset-2 ring-violet-600 shadow-xs"></button>
                 </div>
                 
-                <div class="flex items-center justify-between pt-2 border-t">
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
                     <span class="text-xs font-semibold text-slate-600">カスタムカラーを選択:</span>
                     <input type="color" id="customThemePicker" onchange="setAppThemeColor(this.value)" class="theme-color-input">
                 </div>
             </div>
 
             <div class="flex justify-end pt-2">
-                <button type="button" onclick="closeThemeModal()" class="px-5 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">決定</button>
+                <button type="button" onclick="closeThemeModal()" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 rounded-2xl text-xs font-bold transition">決定</button>
             </div>
         </div>
     </div>
 
     <!-- アイテム閲覧モーダル -->
-    <div id="viewModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-xl p-5 sm:p-6 space-y-4">
-            <div class="flex justify-between items-center border-b pb-3">
+    <div id="viewModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white/95 backdrop-blur-md w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="font-bold text-slate-900 text-base">詳細情報</h3>
                 <button onclick="closeViewModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
@@ -196,20 +200,20 @@
                 <!-- 動的生成 -->
             </div>
 
-            <div class="flex justify-between items-center pt-3 border-t">
-                <button type="button" onclick="deleteItemFromView()" class="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition">削除する</button>
+            <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+                <button type="button" onclick="deleteItemFromView()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-2xl text-xs font-bold transition">削除する</button>
                 <div class="space-x-2">
-                    <button type="button" onclick="closeViewModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200 transition">閉じる</button>
-                    <button type="button" onclick="switchToEditFromView()" class="px-5 py-2 bg-app-theme text-white rounded-xl text-xs font-bold hover:opacity-90 transition shadow-sm">編集する</button>
+                    <button type="button" onclick="closeViewModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl text-xs font-bold transition">閉じる</button>
+                    <button type="button" onclick="switchToEditFromView()" class="px-5 py-2 bg-app-theme text-white rounded-2xl text-xs font-bold hover:opacity-90 active:scale-95 transition shadow-xs">編集する</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- アイテム追加・編集モーダル -->
-    <div id="itemModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-xl p-5 sm:p-6 space-y-4">
-            <div class="flex justify-between items-center border-b pb-3">
+    <div id="itemModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white/95 backdrop-blur-md w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h2 id="modalTitle" class="text-lg font-bold text-slate-900">追加</h2>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
@@ -218,17 +222,17 @@
                 <input type="hidden" id="itemId">
 
                 <!-- 種別選択 -->
-                <div class="bg-slate-100/70 p-3 rounded-2xl border border-slate-200 space-y-1.5">
+                <div class="bg-slate-100/70 p-3 rounded-2xl border border-slate-200/70 space-y-1.5">
                     <label class="block text-xs font-bold text-slate-700">種別を選択 <span class="text-rose-500">*</span></label>
                     <div class="grid grid-cols-2 gap-2">
-                        <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-slate-200 cursor-pointer shadow-xs">
+                        <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-slate-200 cursor-pointer shadow-2xs">
                             <input type="radio" name="itemType" value="reminder" checked class="text-app-theme focus:ring-0">
                             <div>
                                 <span class="text-xs font-bold block text-slate-800">🛒 リマインダー</span>
                                 <span class="text-[10px] text-slate-400 block">チェックで消せる</span>
                             </div>
                         </label>
-                        <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-slate-200 cursor-pointer shadow-xs">
+                        <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-slate-200 cursor-pointer shadow-2xs">
                             <input type="radio" name="itemType" value="memo" class="text-app-theme focus:ring-0">
                             <div>
                                 <span class="text-xs font-bold block text-slate-800">📖 メモ</span>
@@ -239,7 +243,7 @@
                 </div>
 
                 <!-- 写真を選択 -->
-                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-2">
                     <div class="flex justify-between items-center">
                         <label class="block text-xs font-bold text-slate-700">
                             <i class="fa-solid fa-camera text-app-theme mr-1"></i> 写真（任意）
@@ -250,7 +254,7 @@
                     <input type="hidden" id="itemImageBase64">
                     
                     <div id="imagePreviewContainer" class="mt-2 hidden flex items-center space-x-3">
-                        <img id="imagePreview" class="w-20 h-20 object-contain rounded-xl border border-slate-200 bg-white shadow-sm shrink-0">
+                        <img id="imagePreview" class="w-20 h-20 object-contain rounded-xl border border-slate-200 bg-white shadow-2xs shrink-0">
                     </div>
                 </div>
 
@@ -258,24 +262,24 @@
                 <div class="space-y-3 pt-1">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル（品名・製品名など） <span class="text-rose-500">*</span></label>
-                        <input type="text" id="itemTitle" required placeholder="例: 絆創膏 ケアリーヴ" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                        <input type="text" id="itemTitle" required placeholder="例: 絆創膏 ケアリーヴ" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
                     </div>
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">参考URL（Instagram / TikTok / 製品サイト等）</label>
-                        <input type="url" id="itemUrl" placeholder="https://..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                        <input type="url" id="itemUrl" placeholder="https://..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">ジャンル <span class="text-rose-500">*</span></label>
-                            <select id="itemCategory" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                            <select id="itemCategory" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
                                 <!-- 動的生成 -->
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">購入先・店舗</label>
-                            <input type="text" id="itemStore" placeholder="例: 薬局" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                            <input type="text" id="itemStore" placeholder="例: 薬局" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
                         </div>
                     </div>
 
@@ -293,32 +297,32 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">メモ</label>
-                        <textarea id="itemMemo" rows="2" placeholder="型番や製品の特徴など" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"></textarea>
+                        <textarea id="itemMemo" rows="2" placeholder="型番や製品の特徴など" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"></textarea>
                     </div>
                 </div>
 
-                <div class="flex justify-end space-x-2 pt-3 border-t">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-200 transition">キャンセル</button>
-                    <button type="submit" class="px-5 py-2 bg-app-theme text-white rounded-xl text-sm font-medium hover:opacity-90 transition shadow-sm">保存する</button>
+                <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl text-sm font-medium transition">キャンセル</button>
+                    <button type="submit" class="px-5 py-2 bg-app-theme text-white rounded-2xl text-sm font-medium hover:opacity-90 active:scale-95 transition shadow-xs">保存する</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- ジャンル管理モーダル -->
-    <div id="genreManageModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-3xl shadow-xl p-5 space-y-4 max-h-[85vh] flex flex-col">
-            <div class="flex justify-between items-center border-b pb-3">
+    <div id="genreManageModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white/95 backdrop-blur-md w-full max-w-md rounded-3xl shadow-2xl p-5 space-y-4 max-h-[85vh] flex flex-col border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-tags text-app-theme mr-1.5"></i>ジャンル編集・追加</h3>
                 <button onclick="closeGenreManageModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <form onsubmit="addNewGenre(event)" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3 shrink-0">
+            <form onsubmit="addNewGenre(event)" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-3 shrink-0">
                 <span class="text-xs font-bold text-slate-700 block">＋ 新しいジャンルを作成</span>
                 <div class="flex items-center space-x-2">
                     <input type="color" id="newGenreColor" value="#e0e7ff" title="タップして好きな色を選択">
-                    <input type="text" id="newGenreName" required placeholder="ジャンル名（例: 買い物（薬局））" class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
-                    <button type="submit" class="px-3.5 py-1.5 bg-app-theme text-white rounded-xl text-xs font-bold shrink-0 shadow-sm hover:opacity-90 transition">追加</button>
+                    <input type="text" id="newGenreName" required placeholder="ジャンル名（例: 買い物（薬局））" class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
+                    <button type="submit" class="px-3.5 py-1.5 bg-app-theme text-white rounded-2xl text-xs font-bold shrink-0 shadow-2xs hover:opacity-90 active:scale-95 transition">追加</button>
                 </div>
             </form>
 
@@ -326,8 +330,8 @@
                 <!-- 動的生成 -->
             </div>
 
-            <div class="flex justify-end pt-2 border-t">
-                <button type="button" onclick="closeGenreManageModal()" class="px-5 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">完了</button>
+            <div class="flex justify-end pt-2 border-t border-slate-100">
+                <button type="button" onclick="closeGenreManageModal()" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition">完了</button>
             </div>
         </div>
     </div>
@@ -353,7 +357,6 @@
             initSwipeGesture();
         }
 
-        // 全体テーマカラーをCSS変数に適用
         function applyAppThemeColor(color) {
             appThemeColor = color;
             document.documentElement.style.setProperty('--app-theme-color', color);
@@ -474,23 +477,23 @@
             const item = items.find(i => i.id === id);
             if (!item) return;
 
-            const typeLabel = item.type === 'memo' ? '<span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded">📖 メモ</span>' : '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">🛒 リマインダー</span>';
+            const typeLabel = item.type === 'memo' ? '<span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-lg">📖 メモ</span>' : '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-lg">🛒 リマインダー</span>';
 
             const content = document.getElementById('viewModalContent');
             content.innerHTML = `
-                ${item.image ? `<div class="w-full max-h-80 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center p-1"><img src="${item.image}" class="max-w-full max-h-80 object-contain rounded-xl"></div>` : ''}
+                ${item.image ? `<div class="w-full max-h-80 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200/80 flex items-center justify-center p-1 shadow-2xs"><img src="${item.image}" class="max-w-full max-h-80 object-contain rounded-xl"></div>` : ''}
                 <div>
                     <div class="flex items-center space-x-2 mb-1">
                         ${typeLabel}
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${item.category}</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700">${item.category}</span>
                         ${item.urgent ? '<span class="bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">🔥 急ぎ</span>' : ''}
                         ${item.favorite ? '<span class="text-amber-500 font-bold text-xs"><i class="fa-solid fa-star"></i> 定番</span>' : ''}
                     </div>
                     <h2 class="text-lg font-bold text-slate-900">${item.title}</h2>
                 </div>
-                ${item.url ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">参考URL</p><a href="${item.url}" target="_blank" class="text-xs text-app-theme hover:underline break-all block"><i class="fa-solid fa-link mr-1"></i>${item.url}</a></div>` : ''}
+                ${item.url ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">参考URL</p><a href="${item.url}" target="_blank" class="text-xs text-app-theme hover:underline break-all block font-medium"><i class="fa-solid fa-link mr-1"></i>${item.url}</a></div>` : ''}
                 ${item.store ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">購入先・店舗</p><p class="text-xs text-slate-700"><i class="fa-solid fa-store mr-1"></i>${item.store}</p></div>` : ''}
-                ${item.memo ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">メモ</p><p class="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200 whitespace-pre-wrap">${item.memo}</p></div>` : ''}
+                ${item.memo ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">メモ</p><p class="text-xs text-slate-700 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/70 whitespace-pre-wrap">${item.memo}</p></div>` : ''}
             `;
 
             document.getElementById('viewModal').classList.remove('hidden');
@@ -518,10 +521,10 @@
 
         function renderRightMedia(item) {
             if (item.image) {
-                return `<img src="${item.image}" class="w-11 h-11 rounded-xl object-contain bg-slate-50 border border-slate-200 shrink-0">`;
+                return `<img src="${item.image}" class="w-11 h-11 rounded-xl object-contain bg-slate-50 border border-slate-200/80 shrink-0 shadow-2xs">`;
             } else if (item.url) {
                 return `
-                    <a href="${item.url}" target="_blank" onclick="event.stopPropagation();" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-app-theme flex items-center justify-center border border-slate-200 shrink-0 transition" title="リンクを開く">
+                    <a href="${item.url}" target="_blank" onclick="event.stopPropagation();" class="w-10 h-10 rounded-xl bg-slate-100/90 hover:bg-slate-200/90 active:scale-95 text-app-theme flex items-center justify-center border border-slate-200/70 shrink-0 transition shadow-2xs" title="リンクを開く">
                         <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
                     </a>
                 `;
@@ -551,12 +554,13 @@
 
                 emptyState.classList.add('hidden');
 
+                // ホーム画面（立体的な質感・影を追加）
                 folderContainer.innerHTML = customGenres.map(genre => {
                     return `
-                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div onclick="openCategoryDetail('${genre.name}')" class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition" style="border-left: 6px solid ${genre.color};">
+                        <div class="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/70 shadow-xs hover:shadow-md active:scale-[0.98] transition-all duration-200 overflow-hidden">
+                            <div onclick="openCategoryDetail('${genre.name}')" class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 transition" style="border-left: 6px solid ${genre.color};">
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-slate-700 font-bold" style="background-color: ${genre.color};">
+                                    <div class="w-9 h-9 rounded-2xl flex items-center justify-center text-slate-700 font-bold shadow-2xs" style="background-color: ${genre.color};">
                                         <i class="fa-solid fa-list-check text-xs"></i>
                                     </div>
                                     <span class="font-bold text-sm text-slate-800">${genre.name}</span>
@@ -600,13 +604,13 @@
                     reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">リマインダーはありません</p>';
                 } else {
                     reminderItemsContainer.innerHTML = remindersActive.map(item => {
-                        const urgentStyle = item.urgent ? 'border-2 border-rose-500 shadow-sm' : 'border border-slate-200';
+                        const urgentStyle = item.urgent ? 'border-2 border-rose-500 shadow-xs' : 'border border-slate-200/80 shadow-xs';
                         const isPending = item.pendingComplete;
 
                         return `
-                            <div onclick="openViewModal(${item.id})" class="p-3 rounded-2xl bg-white ${urgentStyle} shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''}">
+                            <div onclick="openViewModal(${item.id})" class="p-3.5 rounded-2xl bg-white/90 backdrop-blur-sm ${urgentStyle} hover:shadow-md active:scale-[0.99] transition-all duration-150 cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''}">
                                 <div class="flex items-center space-x-3 overflow-hidden mr-2">
-                                    <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="w-6 h-6 rounded-full ${isPending ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-300'} flex items-center justify-center shrink-0 border shadow-xs transition" title="${isPending ? '取り消す' : '完了'}">
+                                    <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="w-6 h-6 rounded-full ${isPending ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-300'} flex items-center justify-center shrink-0 border shadow-2xs transition active:scale-90" title="${isPending ? '取り消す' : '完了'}">
                                         <i class="fa-solid ${isPending ? 'fa-check text-xs' : 'fa-circle text-xs'}"></i>
                                     </button>
 
@@ -625,7 +629,7 @@
                                 
                                 <div class="flex items-center space-x-2 shrink-0">
                                     ${renderRightMedia(item)}
-                                    <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
+                                    <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs active:scale-90" title="削除"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>
                             </div>
                         `;
@@ -637,9 +641,9 @@
                     completedCount.innerText = remindersCompleted.length;
 
                     completedContainer.innerHTML = remindersCompleted.map(item => `
-                        <div onclick="restoreItem(${item.id})" class="p-2.5 rounded-xl border border-slate-200 bg-slate-100/70 flex items-center justify-between cursor-pointer hover:bg-slate-200/60 transition opacity-60">
+                        <div onclick="restoreItem(${item.id})" class="p-2.5 rounded-2xl border border-slate-200/60 bg-slate-100/70 flex items-center justify-between cursor-pointer hover:bg-slate-200/60 transition opacity-60 active:scale-[0.98]">
                             <div class="flex items-center space-x-3 overflow-hidden">
-                                <div class="w-5 h-5 rounded-full bg-slate-400 text-white flex items-center justify-center shrink-0 text-xs">
+                                <div class="w-5 h-5 rounded-full bg-slate-400 text-white flex items-center justify-center shrink-0 text-xs shadow-2xs">
                                     <i class="fa-solid fa-check"></i>
                                 </div>
                                 <span class="text-xs font-bold text-slate-600 line-through truncate">${item.title}</span>
@@ -659,9 +663,9 @@
                 } else {
                     memoItemsContainer.innerHTML = memos.map(item => {
                         return `
-                            <div onclick="openViewModal(${item.id})" class="p-3 rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition cursor-pointer flex items-center justify-between">
+                            <div onclick="openViewModal(${item.id})" class="p-3.5 rounded-2xl bg-white/90 backdrop-blur-sm border border-slate-200/80 shadow-xs hover:shadow-md active:scale-[0.99] transition-all duration-150 cursor-pointer flex items-center justify-between">
                                 <div class="flex items-center space-x-3 overflow-hidden mr-2">
-                                    <div class="w-6 h-6 rounded-full bg-slate-100 text-app-theme flex items-center justify-center shrink-0 border border-slate-200 text-xs shadow-xs">
+                                    <div class="w-6 h-6 rounded-full bg-slate-100/80 text-app-theme flex items-center justify-center shrink-0 border border-slate-200/60 text-xs shadow-2xs">
                                         <i class="fa-solid fa-book-open"></i>
                                     </div>
 
@@ -678,7 +682,7 @@
 
                                 <div class="flex items-center space-x-2 shrink-0">
                                     ${renderRightMedia(item)}
-                                    <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
+                                    <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs active:scale-90" title="削除"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>
                             </div>
                         `;
@@ -841,12 +845,12 @@
             }
 
             container.innerHTML = customGenres.map((g) => `
-                <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200/80 rounded-2xl shadow-2xs">
                     <div class="flex items-center space-x-2 flex-1 mr-2">
                         <input type="color" value="${g.color}" onchange="updateGenreColor(${g.id}, this.value)" title="タップして背景色を変更">
                         <span class="text-sm font-bold text-slate-800">${g.name}</span>
                     </div>
-                    <button onclick="deleteGenre(${g.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
+                    <button onclick="deleteGenre(${g.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs active:scale-90" title="削除"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
             `).join('');
         }
