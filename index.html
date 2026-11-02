@@ -679,9 +679,9 @@
             return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
         }
 
-        // アイコン部分タップで画像変更ファイルを起動
+        // アイコン部分タップで画像変更ファイルを起動 (stopPropagationで詳細画面への遷移を確実に防止)
         function triggerGenreImageChange(event, genreId) {
-            event.stopPropagation(); // カード全体の「詳細画面へ移動」を阻止
+            event.stopPropagation();
             editingGenreIdForQuickImage = genreId;
             document.getElementById('quickGenreImageInput').click();
         }
