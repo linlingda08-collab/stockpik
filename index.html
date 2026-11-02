@@ -179,23 +179,15 @@
 
     <main class="max-w-4xl mx-auto px-4 pt-4 relative z-10">
 
-        <!-- カテゴリー詳細画面時の「戻る ＆ 共有ヘッダー」 -->
+        <!-- カテゴリー詳細画面時の「戻るヘッダー」 -->
         <div id="categoryDetailHeader" class="hidden mb-4 flex items-center justify-between bg-white/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
             <button onclick="closeCategoryDetail()" class="text-app-theme font-bold text-sm flex items-center space-x-1.5 hover:opacity-80 transition active:scale-95">
                 <i class="fa-solid fa-chevron-left text-xs"></i>
                 <span>一覧に戻る</span>
             </button>
-            
-            <div class="flex items-center space-x-3">
-                <div class="flex items-center space-x-2">
-                    <div id="activeCategoryIconContainer" class="w-6 h-6 rounded-lg flex items-center justify-center overflow-hidden shrink-0"></div>
-                    <h2 id="activeCategoryTitle" class="font-bold text-slate-900 text-base"></h2>
-                </div>
-                <!-- LINE・メッセージ共有ボタン -->
-                <button onclick="shareCategoryText()" class="bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 px-2.5 py-1 rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-2xs" title="LINE等でリストを共有">
-                    <i class="fa-solid fa-arrow-up-from-bracket text-app-theme"></i>
-                    <span>共有</span>
-                </button>
+            <div class="flex items-center space-x-2">
+                <div id="activeCategoryIconContainer" class="w-6 h-6 rounded-lg flex items-center justify-center overflow-hidden shrink-0"></div>
+                <h2 id="activeCategoryTitle" class="font-bold text-slate-900 text-base"></h2>
             </div>
         </div>
 
@@ -472,56 +464,45 @@
             }
         }
 
-        // 現在のカテゴリーの未完了リストを綺麗なテキスト形式にしてLINE等で共有する
-        async function shareCategoryText() {
-            if (!selectedCategoryDetail) return;
+        // 選択した個別のアイテムをLINE等で共有する関数
+        async function shareSingleItem(event, itemId) {
+            event.stopPropagation();
+            const item = items.find(i => i.id === itemId);
+            if (!item) return;
 
-            const categoryItems = items.filter(i => i.category === selectedCategoryDetail && !i.completed);
-            if (categoryItems.length === 0) {
-                alert('共有できる未完了のアイテムがありません');
-                return;
+            let typeTitle = item.type === 'memo' ? '【メモ】' : '【リマインダー】';
+            let urgentMark = item.urgent ? ' (🔥急ぎ)' : '';
+            let favMark = item.favorite ? ' (⭐定番)' : '';
+
+            let text = `${typeTitle} ${item.title}${urgentMark}${favMark}\n`;
+            text += `・ジャンル: ${item.category}\n`;
+
+            if (item.store) {
+                text += `・購入先: ${item.store}\n`;
             }
-
-            let text = `【${selectedCategoryDetail} のリスト】\n`;
-
-            categoryItems.forEach(item => {
-                let prefix = item.type === 'memo' ? '📖 ' : '・';
-                let urgentMark = item.urgent ? ' (🔥急ぎ)' : '';
-                let favMark = item.favorite ? ' (⭐定番)' : '';
-                
-                text += `${prefix}${item.title}${urgentMark}${favMark}\n`;
-
-                if (item.store) {
-                    text += `  └ 店: ${item.store}\n`;
-                }
-                if (item.memo) {
-                    text += `  └ メモ: ${item.memo}\n`;
-                }
-                if (item.url) {
-                    text += `  └ URL: ${item.url}\n`;
-                }
-                // 手動アップロード画像がある場合の注記・リンク
-                if (item.image && !item.url) {
-                    text += `  └ 📷 [画像添付あり]\n`;
-                }
-            });
+            if (item.memo) {
+                text += `・メモ: ${item.memo}\n`;
+            }
+            if (item.url) {
+                text += `・URL: ${item.url}\n`;
+            } else if (item.image) {
+                text += `・📷 [画像添付あり]\n`;
+            }
 
             text += `\n※Remindersより送信`;
 
-            // Web Share API（iOS/スマホ標準の共有シート）
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: `${selectedCategoryDetail} のリスト`,
+                        title: item.title,
                         text: text
                     });
                 } catch (err) {
-                    console.log('共有がキャンセルまたは失敗しました:', err);
+                    console.log('共有がキャンセルされました:', err);
                 }
             } else {
-                // PCなどでWeb Shareが使えない場合はクリップボードにコピー
                 navigator.clipboard.writeText(text);
-                alert('リストのテキストをクリップボードにコピーしました！LINE等に貼り付けてご利用ください。');
+                alert('アイテムの情報をコピーしました！LINE等に貼り付けてご利用ください。');
             }
         }
 
@@ -726,7 +707,6 @@
             });
         }
 
-        // URLからプレビュー画像のみを自動取得する関数（タイトル自動更新はなし）
         async function fetchImageFromUrl(url) {
             if (!url || !url.startsWith('http')) return;
             const currentImg = document.getElementById('itemImageBase64').value;
@@ -1067,8 +1047,9 @@
                                     </div>
                                 </div>
                                 
-                                <div class="flex items-center space-x-2 shrink-0">
+                                <div class="flex items-center space-x-1.5 shrink-0">
                                     ${renderRightMedia(item)}
+                                    <button onclick="shareSingleItem(event, ${item.id})" class="text-slate-400 hover:text-app-theme p-1.5 transition text-xs active:scale-90" title="このアイテムを共有"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
                                     <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs active:scale-90" title="削除"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>
                             </div>
@@ -1122,8 +1103,9 @@
                                     </div>
                                 </div>
 
-                                <div class="flex items-center space-x-2 shrink-0">
+                                <div class="flex items-center space-x-1.5 shrink-0">
                                     ${renderRightMedia(item)}
+                                    <button onclick="shareSingleItem(event, ${item.id})" class="text-slate-400 hover:text-app-theme p-1.5 transition text-xs active:scale-90" title="このメモを共有"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
                                     <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs active:scale-90" title="削除"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>
                             </div>
