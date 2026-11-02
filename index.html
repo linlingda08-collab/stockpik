@@ -13,6 +13,9 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SortableJS（ドラッグ＆ドロップ並び替え用ライブラリ） -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
     <style>
         :root {
@@ -20,14 +23,12 @@
             --app-theme-rgb: 79, 70, 229;
         }
         
-        /* フォント設定 (SF Pro風) */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
             background-color: #f8fafc;
         }
 
-        /* カスタム背景画像用のスタイル */
         #bgCustomContainer {
             position: fixed;
             inset: 0;
@@ -39,7 +40,6 @@
             transition: opacity 0.4s ease;
         }
 
-        /* 動的テーマカラー用ユーティリティクラス */
         .bg-app-theme {
             background-color: var(--app-theme-color) !important;
         }
@@ -50,7 +50,16 @@
             border-color: var(--app-theme-color) !important;
         }
 
-        /* 円形パレット（カラーホイール）スタイル */
+        /* 並び替え中のドラッグスタイル */
+        .sortable-ghost {
+            opacity: 0.4;
+            background: #cbd5e1 !important;
+        }
+        .sortable-chosen {
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+            transform: scale(1.02);
+        }
+
         .color-wheel-wrapper {
             position: relative;
             width: 140px;
@@ -96,14 +105,12 @@
             cursor: pointer;
         }
 
-        /* 定番品（お気に入り）アイテムのゴールドハイライト効果 */
         .favorite-card-glow {
             background: linear-gradient(135deg, rgba(255, 251, 235, 0.95), rgba(254, 243, 199, 0.6)) !important;
             border: 1px solid rgba(245, 158, 11, 0.4) !important;
             box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12) !important;
         }
 
-        /* 円形カラーピッカー（ジャンル用） */
         input[type="color"].genre-color-picker {
             -webkit-appearance: none;
             border: none;
@@ -122,7 +129,6 @@
             border-radius: 50%;
         }
 
-        /* iOS風スライドインモーダル */
         .modal-sheet {
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
         }
@@ -138,7 +144,6 @@
 </head>
 <body class="text-slate-800 min-h-screen pb-24 selection:bg-indigo-100 relative">
 
-    <!-- カスタム背景画像レイヤー -->
     <div id="bgCustomContainer" class="hidden"></div>
     <div id="bgCustomOverlay" class="fixed inset-0 bg-slate-900/10 backdrop-blur-[2px] z-0 pointer-events-none hidden"></div>
 
@@ -156,7 +161,6 @@
                 </div>
             </div>
 
-            <!-- ヘッダー操作ボタン群 -->
             <div class="flex items-center space-x-1.5 sm:space-x-2">
                 <button onclick="openBgModal()" class="bg-white/80 hover:bg-slate-100/80 active:scale-95 text-slate-700 font-medium px-2 py-2 sm:px-2.5 rounded-2xl text-xs transition flex items-center space-x-1 border border-slate-200/70 shadow-2xs" title="背景画像">
                     <i class="fa-solid fa-image text-app-theme"></i>
@@ -183,22 +187,19 @@
                 <span>一覧に戻る</span>
             </button>
             <div class="flex items-center space-x-2">
-                <div id="activeCategoryIconContainer" class="w-6 h-6 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
-                    <!-- 動的画像またはカラー点 -->
-                </div>
+                <div id="activeCategoryIconContainer" class="w-6 h-6 rounded-lg flex items-center justify-center overflow-hidden shrink-0"></div>
                 <h2 id="activeCategoryTitle" class="font-bold text-slate-900 text-base"></h2>
             </div>
         </div>
 
-        <!-- マイリスト（フォルダ）ビューエリア -->
+        <!-- マイリスト（フォルダ）ビューエリア（並び替え対応：sortable-list） -->
         <div id="folderContainer" class="space-y-3">
             <!-- 動的生成 -->
         </div>
 
-        <!-- カテゴリー詳細時：上下分割表示エリア（スワイプ検出対応） -->
+        <!-- カテゴリー詳細時：上下分割表示エリア -->
         <div id="categoryContentArea" class="hidden space-y-6">
             
-            <!-- ① リマインダー セクション -->
             <div class="space-y-2.5">
                 <div class="flex items-center space-x-2">
                     <span class="px-3 py-1 bg-white/90 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-600 shadow-2xs flex items-center space-x-1.5">
@@ -206,23 +207,17 @@
                         <span>リマインダー</span>
                     </span>
                 </div>
-                <div id="reminderItemsContainer" class="space-y-2.5">
-                    <!-- 動的生成 -->
-                </div>
+                <div id="reminderItemsContainer" class="space-y-2.5"></div>
             </div>
 
-            <!-- 完了した項目（履歴）セクション -->
             <div id="completedSection" class="hidden pt-2 space-y-2">
                 <button onclick="toggleCompletedAccordion()" class="flex items-center space-x-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition">
                     <i id="completedChevron" class="fa-solid fa-chevron-right text-[10px] transition-transform"></i>
                     <span>完了した項目 (<span id="completedCount" class="font-mono">0</span>)</span>
                 </button>
-                <div id="completedContainer" class="hidden space-y-2">
-                    <!-- 動的生成 -->
-                </div>
+                <div id="completedContainer" class="hidden space-y-2"></div>
             </div>
 
-            <!-- ② メモ セクション -->
             <div class="space-y-2.5 pt-4 border-t border-slate-200/80">
                 <div class="flex items-center space-x-2">
                     <span class="px-3 py-1 bg-white/90 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-600 shadow-2xs flex items-center space-x-1.5">
@@ -230,9 +225,7 @@
                         <span>メモ</span>
                     </span>
                 </div>
-                <div id="memoItemsContainer" class="space-y-2.5">
-                    <!-- 動的生成 -->
-                </div>
+                <div id="memoItemsContainer" class="space-y-2.5"></div>
             </div>
 
         </div>
@@ -256,39 +249,31 @@
                 <h3 class="text-base font-bold text-slate-900 flex items-center"><i class="fa-solid fa-image text-app-theme mr-2"></i>アプリ背景画像</h3>
                 <button onclick="closeBgModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
             <div class="space-y-3">
                 <p class="text-xs text-slate-500 font-medium">写真ライブラリから写真を選択して、アプリ全体の背景画像に設定できます。</p>
-                
                 <div class="space-y-2">
                     <label class="block w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl cursor-pointer transition active:scale-95 shadow-2xs">
                         <i class="fa-solid fa-file-image mr-1 text-app-theme"></i> 写真から選択する
                         <input type="file" accept="image/*" onchange="handleAppBgSelect(event)" class="hidden">
                     </label>
-
-                    <button type="button" onclick="clearAppBgImage()" class="w-full py-2 text-rose-500 font-bold text-xs hover:underline">
-                        標準背景に戻す
-                    </button>
+                    <button type="button" onclick="clearAppBgImage()" class="w-full py-2 text-rose-500 font-bold text-xs hover:underline">標準背景に戻す</button>
                 </div>
             </div>
-
             <div class="flex justify-end pt-2 border-t border-slate-100">
                 <button type="button" onclick="closeBgModal()" class="w-full py-2 bg-slate-100 text-slate-700 rounded-2xl text-xs font-bold transition">閉じる</button>
             </div>
         </div>
     </div>
 
-    <!-- アプリテーマカラー変更モーダル（円形カラーホイールのみ） -->
+    <!-- アプリテーマカラー変更モーダル -->
     <div id="themeModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div id="themeModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-xs rounded-3xl shadow-2xl p-5 space-y-5 border border-slate-100 text-center">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="text-base font-bold text-slate-900 flex items-center"><i class="fa-solid fa-palette text-app-theme mr-2"></i>テーマカラー</h3>
                 <button onclick="closeThemeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
             <div class="space-y-4">
                 <p class="text-xs text-slate-500 font-medium">円形パレットをタップして好きな色を選択</p>
-                
                 <div class="color-wheel-wrapper">
                     <div class="color-wheel-center">
                         <div id="themeWheelPreview" class="color-wheel-preview"></div>
@@ -296,7 +281,6 @@
                     <input type="color" id="themeWheelInput" oninput="setAppThemeColor(this.value)" onchange="setAppThemeColor(this.value)" class="wheel-native-input">
                 </div>
             </div>
-
             <div class="flex justify-end pt-2 border-t border-slate-100">
                 <button type="button" onclick="closeThemeModal()" class="w-full py-2.5 bg-app-theme text-white rounded-2xl text-xs font-bold transition hover:opacity-90 active:scale-95 shadow-xs">決定</button>
             </div>
@@ -310,11 +294,7 @@
                 <h3 class="font-bold text-slate-900 text-base">詳細情報</h3>
                 <button onclick="closeViewModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
-            <div id="viewModalContent" class="space-y-3">
-                <!-- 動的生成 -->
-            </div>
-
+            <div id="viewModalContent" class="space-y-3"></div>
             <div class="flex justify-between items-center pt-3 border-t border-slate-100">
                 <button type="button" onclick="deleteItemFromView()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-2xl text-xs font-bold transition">削除する</button>
                 <div class="space-x-2">
@@ -332,11 +312,8 @@
                 <h2 id="modalTitle" class="text-lg font-bold text-slate-900">追加</h2>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
             <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4">
                 <input type="hidden" id="itemId">
-
-                <!-- 種別選択 -->
                 <div class="bg-slate-100/70 p-3 rounded-2xl border border-slate-200/70 space-y-1.5">
                     <label class="block text-xs font-bold text-slate-700">種別を選択 <span class="text-rose-500">*</span></label>
                     <div class="grid grid-cols-2 gap-2">
@@ -357,48 +334,37 @@
                     </div>
                 </div>
 
-                <!-- 写真を選択 -->
                 <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-2">
                     <div class="flex justify-between items-center">
-                        <label class="block text-xs font-bold text-slate-700">
-                            <i class="fa-solid fa-camera text-app-theme mr-1"></i> 写真（任意）
-                        </label>
+                        <label class="block text-xs font-bold text-slate-700"><i class="fa-solid fa-camera text-app-theme mr-1"></i> 写真（任意）</label>
                         <button type="button" onclick="removeImageInEdit()" class="text-[11px] text-rose-500 font-bold hover:underline">写真を削除</button>
                     </div>
                     <input type="file" id="itemImageFile" accept="image/*" onchange="handleImagePreview(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
                     <input type="hidden" id="itemImageBase64">
-                    
                     <div id="imagePreviewContainer" class="mt-2 hidden flex items-center space-x-3">
                         <img id="imagePreview" class="w-20 h-20 object-contain rounded-xl border border-slate-200 bg-white shadow-2xs shrink-0">
                     </div>
                 </div>
 
-                <!-- 詳細入力 -->
                 <div class="space-y-3 pt-1">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル（品名・製品名など） <span class="text-rose-500">*</span></label>
                         <input type="text" id="itemTitle" required placeholder="例: 絆創膏 ケアリーヴ" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
                     </div>
-
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">参考URL（Instagram / TikTok / 製品サイト等）</label>
                         <input type="url" id="itemUrl" placeholder="https://..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
                     </div>
-
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">ジャンル <span class="text-rose-500">*</span></label>
-                            <select id="itemCategory" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
-                                <!-- 動的生成 -->
-                            </select>
+                            <select id="itemCategory" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"></select>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">購入先・店舗</label>
                             <input type="text" id="itemStore" placeholder="例: 薬局" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
                         </div>
                     </div>
-
-                    <!-- フラグ指定 -->
                     <div class="flex items-center space-x-4 pt-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <label class="flex items-center space-x-2 cursor-pointer">
                             <input type="checkbox" id="itemUrgent" class="w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500">
@@ -409,7 +375,6 @@
                             <span class="text-xs font-semibold text-amber-600 flex items-center"><i class="fa-solid fa-star mr-1"></i>⭐ 定番品（ゴールド表示）</span>
                         </label>
                     </div>
-
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">メモ</label>
                         <textarea id="itemMemo" rows="2" placeholder="型番や製品の特徴など" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"></textarea>
@@ -432,14 +397,12 @@
                 <button onclick="closeGenreManageModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <!-- 新規ジャンル追加フォーム -->
             <form onsubmit="addNewGenre(event)" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-3 shrink-0">
                 <span class="text-xs font-bold text-slate-700 block">＋ 新しいジャンルを作成</span>
                 <div class="flex items-center space-x-2">
                     <input type="color" id="newGenreColor" value="#e0e7ff" class="genre-color-picker" title="背景色">
                     <input type="text" id="newGenreName" required placeholder="ジャンル名（例: 買い物（薬局））" class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
                 </div>
-
                 <div class="flex items-center justify-between pt-1 border-t border-slate-200/60">
                     <div class="flex items-center space-x-2">
                         <label class="px-2.5 py-1 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs hover:bg-slate-100 transition">
@@ -453,13 +416,10 @@
                         <button type="button" onclick="clearGenreImageInAdd()" class="text-rose-500 text-xs font-bold"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                 </div>
-
                 <button type="submit" class="w-full py-2 bg-app-theme text-white rounded-2xl text-xs font-bold shadow-2xs hover:opacity-90 active:scale-95 transition">ジャンルを追加する</button>
             </form>
 
-            <div class="overflow-y-auto flex-1 space-y-2 pr-1" id="genreListContainer">
-                <!-- 動的生成 -->
-            </div>
+            <div class="overflow-y-auto flex-1 space-y-2 pr-1" id="genreListContainer"></div>
 
             <div class="flex justify-end pt-2 border-t border-slate-100">
                 <button type="button" onclick="closeGenreManageModal()" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition">完了</button>
@@ -467,7 +427,7 @@
         </div>
     </div>
 
-    <!-- 隠しファイル入力（アイコンタップによる画像変更用） -->
+    <!-- 隠しファイル入力 -->
     <input type="file" id="quickGenreImageInput" accept="image/*" class="hidden" onchange="handleQuickGenreImageChange(event)">
 
     <!-- JavaScript ロジック -->
@@ -481,10 +441,11 @@
         let pendingTimeouts = {}; 
         let showCompletedAccordion = false;
         let viewingItemId = null;
-        let editingGenreIdForQuickImage = null; // 画像変更中のジャンルID
+        let editingGenreIdForQuickImage = null;
 
         let touchStartX = 0;
         let touchStartY = 0;
+        let sortableInstance = null;
 
         function init() {
             applyAppThemeColor(appThemeColor);
@@ -531,7 +492,6 @@
         function handleAppBgSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             compressImageFile(file, 1200, 1200, 0.75, (compressedBase64) => {
                 applyAppBgImage(compressedBase64);
                 closeBgModal();
@@ -679,7 +639,6 @@
             return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
         }
 
-        // アイコン部分タップで画像変更ファイルを起動 (stopPropagationで詳細画面への遷移を確実に防止)
         function triggerGenreImageChange(event, genreId) {
             event.stopPropagation();
             editingGenreIdForQuickImage = genreId;
@@ -783,9 +742,7 @@
         function switchToEditFromView() {
             const id = viewingItemId;
             closeViewModal();
-            setTimeout(() => {
-                openModal(id);
-            }, 150);
+            setTimeout(() => { openModal(id); }, 150);
         }
 
         function deleteItemFromView() {
@@ -846,16 +803,18 @@
                     `;
 
                     return `
-                        <div class="rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md active:scale-[0.98] transition-all duration-200 overflow-hidden" style="background: ${bgGrad};">
-                            <div onclick="openCategoryDetail('${genre.name}')" class="p-4 flex items-center justify-between cursor-pointer hover:bg-white/30 transition" style="border-left: 6px solid ${genre.color};">
-                                <div class="flex items-center space-x-3">
-                                    ${iconHtml}
-                                    <div>
+                        <div data-id="${genre.id}" class="rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden" style="background: ${bgGrad};">
+                            <div class="p-4 flex items-center justify-between">
+                                <div class="flex items-center space-x-3 flex-1 cursor-pointer" onclick="openCategoryDetail('${genre.name}')">
+                                    <div onclick="event.stopPropagation(); triggerGenreImageChange(event, ${genre.id})" class="shrink-0">
+                                        ${iconHtml}
+                                    </div>
+                                    <div class="flex-1">
                                         <span class="font-bold text-sm text-slate-800 block">${genre.name}</span>
-                                        <span class="text-[9px] text-slate-400 block">アイコンタップで画像変更可</span>
+                                        <span class="text-[9px] text-slate-400 block">長押しドラッグで並び替え / アイコンタップで画像変更</span>
                                     </div>
                                 </div>
-                                <div class="text-slate-400 text-xs">
+                                <div class="text-slate-400 text-xs pl-2 cursor-pointer" onclick="openCategoryDetail('${genre.name}')">
                                     <i class="fa-solid fa-chevron-right text-xs"></i>
                                 </div>
                             </div>
@@ -863,7 +822,27 @@
                     `;
                 }).join('');
 
+                // SortableJSを適用して、カード全体を長押し＆ドラッグで並び替え可能にする
+                if (sortableInstance) {
+                    sortableInstance.destroy();
+                }
+                sortableInstance = new Sortable(folderContainer, {
+                    animation: 150,
+                    delay: 200, // 0.2秒長押しでドラッグ開始（スクロールと干渉しないため）
+                    delayOnTouchOnly: true,
+                    onEnd: function() {
+                        const newOrderIds = Array.from(folderContainer.children).map(el => Number(el.getAttribute('data-id')));
+                        customGenres.sort((a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
+                        localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
+                    }
+                });
+
             } else {
+                if (sortableInstance) {
+                    sortableInstance.destroy();
+                    sortableInstance = null;
+                }
+
                 folderContainer.classList.add('hidden');
                 categoryContentArea.classList.remove('hidden');
 
@@ -992,7 +971,6 @@
         function handleImagePreview(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             compressImageFile(file, 600, 600, 0.7, (compressedBase64) => {
                 document.getElementById('itemImageBase64').value = compressedBase64;
                 document.getElementById('imagePreview').src = compressedBase64;
@@ -1106,7 +1084,6 @@
         function handleGenreImageSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             compressImageFile(file, 200, 200, 0.8, (compressedBase64) => {
                 document.getElementById('newGenreImageBase64').value = compressedBase64;
                 document.getElementById('newGenreImagePreview').src = compressedBase64;
@@ -1123,7 +1100,6 @@
         function updateGenreImage(id, event) {
             const file = event.target.files[0];
             if (!file) return;
-
             compressImageFile(file, 200, 200, 0.8, (compressedBase64) => {
                 const target = customGenres.find(g => g.id === id);
                 if (target) {
@@ -1172,10 +1148,22 @@
                             ${iconPreview}
                             <span class="text-sm font-bold text-slate-800 truncate">${g.name}</span>
                         </div>
-                        <button onclick="deleteGenre(${g.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs active:scale-90 shrink-0" title="削除"><i class="fa-solid fa-trash-can"></i></button>
+                        <button onclick="confirmDeleteGenre(${g.id}, '${g.name}')" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs active:scale-90 shrink-0" title="削除"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
                 `;
             }).join('');
+        }
+
+        // カテゴリー削除時の確認ポップアップ
+        function confirmDeleteGenre(id, name) {
+            if (confirm(`カテゴリー「${name}」を削除してもよろしいですか？\n※この操作は元に戻せません。`)) {
+                customGenres = customGenres.filter(g => g.id !== id);
+                localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
+                
+                renderGenreManageList();
+                renderCategorySelect();
+                renderApp();
+            }
         }
 
         function addNewGenre(event) {
@@ -1217,21 +1205,6 @@
             if (target) {
                 target.color = newColor;
                 localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
-                renderApp();
-            }
-        }
-
-        function deleteGenre(id) {
-            const target = customGenres.find(g => g.id === id);
-            if (!target) return;
-
-            if (confirm(`ジャンル「${target.name}」を削除してもよろしいですか？`)) {
-                customGenres = customGenres.filter(g => g.id !== id);
-                localStorage.setItem('reminders_items', JSON.stringify(items));
-                localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
-                
-                renderGenreManageList();
-                renderCategorySelect();
                 renderApp();
             }
         }
