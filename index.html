@@ -24,6 +24,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
+            background-color: #f8fafc; /* シンプルで落ち着いた背景ベース */
         }
 
         /* カスタム背景画像用のスタイル */
@@ -47,17 +48,6 @@
         }
         .border-app-theme {
             border-color: var(--app-theme-color) !important;
-        }
-
-        /* 背景の光のオーブ（華やかさ演出） */
-        .bg-orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.25;
-            pointer-events: none;
-            z-index: 1;
-            transition: background 0.5s ease;
         }
 
         /* 円形パレット（カラーホイール）スタイル */
@@ -146,18 +136,14 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-b from-slate-100 via-slate-50 to-indigo-50/40 text-slate-800 min-h-screen pb-24 selection:bg-indigo-100 relative">
+<body class="text-slate-800 min-h-screen pb-24 selection:bg-indigo-100 relative">
 
     <!-- カスタム背景画像レイヤー -->
     <div id="bgCustomContainer" class="hidden"></div>
     <div id="bgCustomOverlay" class="fixed inset-0 bg-slate-900/10 backdrop-blur-[2px] z-0 pointer-events-none hidden"></div>
 
-    <!-- 背景の光のオーブ（標準時） -->
-    <div id="orb1" class="bg-orb w-72 h-72 top-[-50px] left-[-50px] bg-indigo-400"></div>
-    <div id="orb2" class="bg-orb w-80 h-80 bottom-[10%] right-[-80px] bg-sky-300"></div>
-
     <!-- ヘッダー -->
-    <header class="bg-white/75 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
+    <header class="bg-white/85 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
         <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center relative z-10">
             <div class="flex items-center space-x-2.5">
                 <img src="icon.PNG" id="headerIcon" class="w-9 h-9 rounded-2xl object-cover shadow-sm border border-slate-100" onerror="this.style.display='none'; document.getElementById('headerIconFallback').style.display='flex';">
@@ -252,7 +238,7 @@
         </div>
 
         <!-- 該当なし表示 -->
-        <div id="emptyState" class="hidden text-center py-16 bg-white/60 backdrop-blur-md rounded-3xl border border-slate-200/60 my-4 shadow-xs">
+        <div id="emptyState" class="hidden text-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-slate-200/60 my-4 shadow-xs">
             <div class="text-4xl mb-3">📭</div>
             <p class="text-slate-500 text-sm font-medium">該当するアイテムまたはカテゴリーがありません。<br>右下の「＋」ボタンから追加してみましょう！</p>
         </div>
@@ -281,7 +267,7 @@
                     </label>
 
                     <button type="button" onclick="clearAppBgImage()" class="w-full py-2 text-rose-500 font-bold text-xs hover:underline">
-                        標準グラデーション背景に戻す
+                        標準背景に戻す
                     </button>
                 </div>
             </div>
@@ -292,7 +278,7 @@
         </div>
     </div>
 
-    <!-- アプリテーマカラー変更モーダル（円形カラーホイール付き） -->
+    <!-- アプリテーマカラー変更モーダル（円形カラーホイールのみ） -->
     <div id="themeModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div id="themeModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-xs rounded-3xl shadow-2xl p-5 space-y-5 border border-slate-100 text-center">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -308,14 +294,6 @@
                         <div id="themeWheelPreview" class="color-wheel-preview"></div>
                     </div>
                     <input type="color" id="themeWheelInput" oninput="setAppThemeColor(this.value)" onchange="setAppThemeColor(this.value)" class="wheel-native-input">
-                </div>
-
-                <div class="flex items-center justify-center space-x-3 pt-2">
-                    <button onclick="setAppThemeColor('#4f46e5')" class="w-7 h-7 rounded-full bg-indigo-600 active:scale-90 transition shadow-2xs ring-1 ring-white"></button>
-                    <button onclick="setAppThemeColor('#0284c7')" class="w-7 h-7 rounded-full bg-sky-600 active:scale-90 transition shadow-2xs ring-1 ring-white"></button>
-                    <button onclick="setAppThemeColor('#059669')" class="w-7 h-7 rounded-full bg-emerald-600 active:scale-90 transition shadow-2xs ring-1 ring-white"></button>
-                    <button onclick="setAppThemeColor('#e11d48')" class="w-7 h-7 rounded-full bg-rose-600 active:scale-90 transition shadow-2xs ring-1 ring-white"></button>
-                    <button onclick="setAppThemeColor('#7c3aed')" class="w-7 h-7 rounded-full bg-violet-600 active:scale-90 transition shadow-2xs ring-1 ring-white"></button>
                 </div>
             </div>
 
@@ -446,7 +424,7 @@
         </div>
     </div>
 
-    <!-- ジャンル管理モーダル（画像アイコン選択拡張付き） -->
+    <!-- ジャンル管理モーダル -->
     <div id="genreManageModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div id="genreManageModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-md rounded-3xl shadow-2xl p-5 space-y-4 max-h-[85vh] flex flex-col border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -458,11 +436,10 @@
             <form onsubmit="addNewGenre(event)" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-3 shrink-0">
                 <span class="text-xs font-bold text-slate-700 block">＋ 新しいジャンルを作成</span>
                 <div class="flex items-center space-x-2">
-                    <input type="color" id="newGenreColor" value="#e0e7ff" class="genre-color-picker" title="背景グラデーション色">
+                    <input type="color" id="newGenreColor" value="#e0e7ff" class="genre-color-picker" title="背景色">
                     <input type="text" id="newGenreName" required placeholder="ジャンル名（例: 買い物（薬局））" class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
                 </div>
 
-                <!-- 写真から画像アイコンを選択 -->
                 <div class="flex items-center justify-between pt-1 border-t border-slate-200/60">
                     <div class="flex items-center space-x-2">
                         <label class="px-2.5 py-1 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs hover:bg-slate-100 transition">
@@ -490,6 +467,9 @@
         </div>
     </div>
 
+    <!-- 隠しファイル入力（ホーム画面のアイコン長押し用） -->
+    <input type="file" id="quickGenreImageInput" accept="image/*" class="hidden" onchange="handleQuickGenreImageChange(event)">
+
     <!-- JavaScript ロジック -->
     <script>
         let customGenres = JSON.parse(localStorage.getItem('reminders_genres')) || [];
@@ -501,9 +481,11 @@
         let pendingTimeouts = {}; 
         let showCompletedAccordion = false;
         let viewingItemId = null;
+        let editingGenreIdForQuickImage = null; // 長押し変更中のジャンルID
 
         let touchStartX = 0;
         let touchStartY = 0;
+        let longPressTimer = null;
 
         function init() {
             applyAppThemeColor(appThemeColor);
@@ -522,9 +504,6 @@
             const picker = document.getElementById('themeWheelInput');
             if (preview) preview.style.backgroundColor = color;
             if (picker) picker.value = color;
-
-            const orb1 = document.getElementById('orb1');
-            if (orb1) orb1.style.backgroundColor = color;
         }
 
         function setAppThemeColor(color) {
@@ -532,7 +511,6 @@
             renderApp();
         }
 
-        // 背景画像の適用ロジック
         function applyAppBgImage(base64Image) {
             appBgImage = base64Image;
             const bgContainer = document.getElementById('bgCustomContainer');
@@ -574,7 +552,6 @@
             hideSheetModal('bgModal', 'bgModalCard');
         }
 
-        // 画像圧縮共通処理
         function compressImageFile(file, maxWidth, maxHeight, quality, callback) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -701,6 +678,44 @@
             if (c.length === 3) c = c.split('').map(x => x + x).join('');
             const num = parseInt(c, 16);
             return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+        }
+
+        // ホーム画面アイコンの長押しイベントバインド
+        function bindGenreIconLongPress(element, genreId) {
+            const startPress = (e) => {
+                longPressTimer = setTimeout(() => {
+                    e.preventDefault();
+                    editingGenreIdForQuickImage = genreId;
+                    document.getElementById('quickGenreImageInput').click();
+                }, 600); // 0.6秒長押し
+            };
+
+            const cancelPress = () => {
+                clearTimeout(longPressTimer);
+            };
+
+            element.addEventListener('touchstart', startPress, {passive: true});
+            element.addEventListener('touchend', cancelPress);
+            element.addEventListener('touchmove', cancelPress);
+            element.addEventListener('mousedown', startPress);
+            element.addEventListener('mouseup', cancelPress);
+            element.addEventListener('mouseleave', cancelPress);
+        }
+
+        function handleQuickGenreImageChange(event) {
+            const file = event.target.files[0];
+            if (!file || !editingGenreIdForQuickImage) return;
+
+            compressImageFile(file, 200, 200, 0.8, (compressedBase64) => {
+                const target = customGenres.find(g => g.id === editingGenreIdForQuickImage);
+                if (target) {
+                    target.image = compressedBase64;
+                    localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
+                    renderApp();
+                }
+                editingGenreIdForQuickImage = null;
+                event.target.value = '';
+            });
         }
 
         function toggleCheckItem(id) {
@@ -837,12 +852,12 @@
                     const bgGrad = `linear-gradient(135deg, ${hexToRgba(genre.color, 0.22)}, rgba(255, 255, 255, 0.95))`;
 
                     const iconHtml = genre.image ? `
-                        <div class="w-9 h-9 rounded-2xl overflow-hidden shadow-2xs border border-slate-200/60 shrink-0">
-                            <img src="${genre.image}" class="w-full h-full object-cover">
+                        <div id="genre-icon-${genre.id}" class="w-9 h-9 rounded-2xl overflow-hidden shadow-2xs border border-slate-200/60 shrink-0 cursor-pointer" title="長押しで画像変更">
+                            <img src="${genre.image}" class="w-full h-full object-cover pointer-events-none">
                         </div>
                     ` : `
-                        <div class="w-9 h-9 rounded-2xl flex items-center justify-center text-slate-700 font-bold shadow-2xs shrink-0" style="background-color: ${genre.color};">
-                            <i class="fa-solid fa-list-check text-xs"></i>
+                        <div id="genre-icon-${genre.id}" class="w-9 h-9 rounded-2xl flex items-center justify-center text-slate-700 font-bold shadow-2xs shrink-0 cursor-pointer" style="background-color: ${genre.color};" title="長押しで画像変更">
+                            <i class="fa-solid fa-list-check text-xs pointer-events-none"></i>
                         </div>
                     `;
 
@@ -850,8 +865,13 @@
                         <div class="rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md active:scale-[0.98] transition-all duration-200 overflow-hidden" style="background: ${bgGrad};">
                             <div onclick="openCategoryDetail('${genre.name}')" class="p-4 flex items-center justify-between cursor-pointer hover:bg-white/30 transition" style="border-left: 6px solid ${genre.color};">
                                 <div class="flex items-center space-x-3">
-                                    ${iconHtml}
-                                    <span class="font-bold text-sm text-slate-800">${genre.name}</span>
+                                    <div class="genre-icon-wrapper" data-genre-id="${genre.id}">
+                                        ${iconHtml}
+                                    </div>
+                                    <div>
+                                        <span class="font-bold text-sm text-slate-800 block">${genre.name}</span>
+                                        <span class="text-[9px] text-slate-400 block">アイコン長押しで写真変更可</span>
+                                    </div>
                                 </div>
                                 <div class="text-slate-400 text-xs">
                                     <i class="fa-solid fa-chevron-right text-xs"></i>
@@ -860,6 +880,14 @@
                         </div>
                     `;
                 }).join('');
+
+                // アイコンの長押しイベント登録
+                customGenres.forEach(genre => {
+                    const wrapper = document.querySelector(`.genre-icon-wrapper[data-genre-id="${genre.id}"]`);
+                    if (wrapper) {
+                        bindGenreIconLongPress(wrapper, genre.id);
+                    }
+                });
 
             } else {
                 folderContainer.classList.add('hidden');
@@ -1101,7 +1129,6 @@
             hideSheetModal('genreManageModal', 'genreManageModalCard');
         }
 
-        // 新規ジャンル画像アイコン選択
         function handleGenreImageSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1119,7 +1146,6 @@
             document.getElementById('newGenreImagePreviewContainer').classList.add('hidden');
         }
 
-        // 既存ジャンル画像変更
         function updateGenreImage(id, event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1168,7 +1194,7 @@
                 return `
                     <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200/80 rounded-2xl shadow-2xs">
                         <div class="flex items-center space-x-2 flex-1 mr-2 overflow-hidden">
-                            <input type="color" value="${g.color}" onchange="updateGenreColor(${g.id}, this.value)" class="genre-color-picker shrink-0" title="背景グラデーション色">
+                            <input type="color" value="${g.color}" onchange="updateGenreColor(${g.id}, this.value)" class="genre-color-picker shrink-0" title="背景色">
                             ${iconPreview}
                             <span class="text-sm font-bold text-slate-800 truncate">${g.name}</span>
                         </div>
