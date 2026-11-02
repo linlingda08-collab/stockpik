@@ -35,7 +35,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen pb-12 selection:bg-indigo-100">
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-20 selection:bg-indigo-100">
 
     <!-- ヘッダー -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
@@ -51,15 +51,11 @@
                 </div>
             </div>
 
-            <!-- ジャンル編集 ＆ 追加ボタン -->
+            <!-- ジャンル編集ボタン（追加ボタンは右下に移動） -->
             <div class="flex items-center space-x-2">
                 <button onclick="openGenreManageModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl text-xs transition flex items-center space-x-1 border border-slate-200">
                     <i class="fa-solid fa-tags text-indigo-600"></i>
                     <span>ジャンル</span>
-                </button>
-                <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3.5 py-2 rounded-xl shadow-md transition flex items-center space-x-1">
-                    <i class="fa-solid fa-plus text-xs"></i>
-                    <span class="text-xs sm:text-sm">追加</span>
                 </button>
             </div>
         </div>
@@ -125,9 +121,14 @@
         <!-- 該当なし表示 -->
         <div id="emptyState" class="hidden text-center py-16">
             <div class="text-4xl mb-3">📭</div>
-            <p class="text-slate-500 text-sm">該当するアイテムまたはカテゴリーがありません。<br>右上から追加してみましょう！</p>
+            <p class="text-slate-500 text-sm">該当するアイテムまたはカテゴリーがありません。<br>右下の「＋」ボタンから追加してみましょう！</p>
         </div>
     </main>
+
+    <!-- 右下の円形プラス追加ボタン -->
+    <button onclick="openModal()" class="fixed right-5 bottom-6 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-full shadow-lg flex items-center justify-center z-40 transition-transform" title="追加">
+        <i class="fa-solid fa-plus text-xl"></i>
+    </button>
 
     <!-- アイテム閲覧モーダル -->
     <div id="viewModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -438,7 +439,6 @@
             }
         }
 
-        // 右側のサムネイル/リンクボタンのヘルパー関数
         function renderRightMedia(item) {
             if (item.image) {
                 return `<img src="${item.image}" class="w-11 h-11 rounded-xl object-contain bg-slate-50 border border-slate-200 shrink-0">`;
@@ -474,10 +474,8 @@
 
                 emptyState.classList.add('hidden');
 
+                // ホーム画面（数値の表示を削除）
                 folderContainer.innerHTML = customGenres.map(genre => {
-                    const genreActiveItems = items.filter(i => i.category === genre.name && !i.completed);
-                    const count = genreActiveItems.length;
-
                     return `
                         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                             <div onclick="openCategoryDetail('${genre.name}')" class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition" style="border-left: 6px solid ${genre.color};">
@@ -487,8 +485,7 @@
                                     </div>
                                     <span class="font-bold text-sm text-slate-800">${genre.name}</span>
                                 </div>
-                                <div class="flex items-center space-x-2 text-slate-400 text-xs font-bold">
-                                    <span>${count}</span>
+                                <div class="text-slate-400 text-xs">
                                     <i class="fa-solid fa-chevron-right text-xs"></i>
                                 </div>
                             </div>
@@ -523,7 +520,6 @@
 
                 emptyState.classList.add('hidden');
 
-                // リマインダー描画（右端にサムネイル・リンク配置）
                 if (remindersActive.length === 0) {
                     reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">リマインダーはありません</p>';
                 } else {
@@ -551,7 +547,6 @@
                                     </div>
                                 </div>
                                 
-                                <!-- 右側表示：写真サムネイル or リンクアイコン ＆ 削除 -->
                                 <div class="flex items-center space-x-2 shrink-0">
                                     ${renderRightMedia(item)}
                                     <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
@@ -561,7 +556,6 @@
                     }).join('');
                 }
 
-                // 履歴描画
                 if (remindersCompleted.length > 0) {
                     completedSection.classList.remove('hidden');
                     completedCount.innerText = remindersCompleted.length;
@@ -584,7 +578,6 @@
                     completedSection.classList.add('hidden');
                 }
 
-                // メモ描画（右端にサムネイル・リンク配置）
                 if (memos.length === 0) {
                     memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモはありません</p>';
                 } else {
@@ -607,7 +600,6 @@
                                     </div>
                                 </div>
 
-                                <!-- 右側表示：写真サムネイル or リンクアイコン ＆ 削除 -->
                                 <div class="flex items-center space-x-2 shrink-0">
                                     ${renderRightMedia(item)}
                                     <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
@@ -775,7 +767,7 @@
             container.innerHTML = customGenres.map((g) => `
                 <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-2xl">
                     <div class="flex items-center space-x-2 flex-1 mr-2">
-                        <input type="color" value="${g.color}" onchange="updateGenreColor(${g.id}, this.value)" title="タップして背景色を変更">
+                        <input type="color" value="${g.color}" onchange="updateGenreColor(${g.id}, this.value)" title="タップして好きな色を変更">
                         <span class="text-sm font-bold text-slate-800">${g.name}</span>
                     </div>
                     <button onclick="deleteGenre(${g.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs" title="削除"><i class="fa-solid fa-trash-can"></i></button>
