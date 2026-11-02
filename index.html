@@ -53,6 +53,19 @@
             width: 28px !important;
             height: 28px !important;
         }
+
+        /* iOS風スライドインモーダル */
+        .modal-sheet {
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+        }
+        .modal-sheet-hidden {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .modal-sheet-visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-b from-slate-100 via-slate-50 to-indigo-50/30 text-slate-800 min-h-screen pb-24 selection:bg-indigo-100">
@@ -160,7 +173,7 @@
 
     <!-- アプリテーマカラー変更モーダル -->
     <div id="themeModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white/95 backdrop-blur-md w-full max-w-xs rounded-3xl shadow-2xl p-5 space-y-4 border border-slate-100">
+        <div id="themeModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-xs rounded-3xl shadow-2xl p-5 space-y-4 border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-palette text-app-theme mr-1.5"></i>全体テーマカラー</h3>
                 <button onclick="closeThemeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -190,7 +203,7 @@
 
     <!-- アイテム閲覧モーダル -->
     <div id="viewModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white/95 backdrop-blur-md w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-4 border border-slate-100">
+        <div id="viewModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-4 border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="font-bold text-slate-900 text-base">詳細情報</h3>
                 <button onclick="closeViewModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -212,7 +225,7 @@
 
     <!-- アイテム追加・編集モーダル -->
     <div id="itemModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white/95 backdrop-blur-md w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-4 border border-slate-100">
+        <div id="itemModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-4 border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h2 id="modalTitle" class="text-lg font-bold text-slate-900">追加</h2>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -311,7 +324,7 @@
 
     <!-- ジャンル管理モーダル -->
     <div id="genreManageModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white/95 backdrop-blur-md w-full max-w-md rounded-3xl shadow-2xl p-5 space-y-4 max-h-[85vh] flex flex-col border border-slate-100">
+        <div id="genreManageModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-md rounded-3xl shadow-2xl p-5 space-y-4 max-h-[85vh] flex flex-col border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-tags text-app-theme mr-1.5"></i>ジャンル編集・追加</h3>
                 <button onclick="closeGenreManageModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -369,12 +382,33 @@
             renderApp();
         }
 
+        // モーダルのスライドインアニメーションヘルパー
+        function showSheetModal(overlayId, cardId) {
+            const overlay = document.getElementById(overlayId);
+            const card = document.getElementById(cardId);
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                card.classList.remove('modal-sheet-hidden');
+                card.classList.add('modal-sheet-visible');
+            }, 10);
+        }
+
+        function hideSheetModal(overlayId, cardId) {
+            const overlay = document.getElementById(overlayId);
+            const card = document.getElementById(cardId);
+            card.classList.remove('modal-sheet-visible');
+            card.classList.add('modal-sheet-hidden');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 250);
+        }
+
         function openThemeModal() {
-            document.getElementById('themeModal').classList.remove('hidden');
+            showSheetModal('themeModal', 'themeModalCard');
         }
 
         function closeThemeModal() {
-            document.getElementById('themeModal').classList.add('hidden');
+            hideSheetModal('themeModal', 'themeModalCard');
         }
 
         function initSwipeGesture() {
@@ -424,6 +458,14 @@
         function getGenreColor(categoryName) {
             const found = customGenres.find(g => g.name === categoryName);
             return found ? found.color : '#ffffff';
+        }
+
+        // HexカラーをRGBA（透明度付き）に変換するヘルパー
+        function hexToRgba(hex, alpha) {
+            let c = hex.replace('#', '');
+            if (c.length === 3) c = c.split('').map(x => x + x).join('');
+            const num = parseInt(c, 16);
+            return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
         }
 
         function toggleCheckItem(id) {
@@ -496,18 +538,20 @@
                 ${item.memo ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">メモ</p><p class="text-xs text-slate-700 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/70 whitespace-pre-wrap">${item.memo}</p></div>` : ''}
             `;
 
-            document.getElementById('viewModal').classList.remove('hidden');
+            showSheetModal('viewModal', 'viewModalCard');
         }
 
         function closeViewModal() {
-            document.getElementById('viewModal').classList.add('hidden');
+            hideSheetModal('viewModal', 'viewModalCard');
             viewingItemId = null;
         }
 
         function switchToEditFromView() {
             const id = viewingItemId;
             closeViewModal();
-            openModal(id);
+            setTimeout(() => {
+                openModal(id);
+            }, 150);
         }
 
         function deleteItemFromView() {
@@ -554,11 +598,13 @@
 
                 emptyState.classList.add('hidden');
 
-                // ホーム画面（立体的な質感・影を追加）
+                // ホーム画面（極淡グラデーションを各フォルダカードに適用）
                 folderContainer.innerHTML = customGenres.map(genre => {
+                    const bgGrad = `linear-gradient(135deg, ${hexToRgba(genre.color, 0.22)}, rgba(255, 255, 255, 0.95))`;
+
                     return `
-                        <div class="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/70 shadow-xs hover:shadow-md active:scale-[0.98] transition-all duration-200 overflow-hidden">
-                            <div onclick="openCategoryDetail('${genre.name}')" class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 transition" style="border-left: 6px solid ${genre.color};">
+                        <div class="rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md active:scale-[0.98] transition-all duration-200 overflow-hidden" style="background: ${bgGrad};">
+                            <div onclick="openCategoryDetail('${genre.name}')" class="p-4 flex items-center justify-between cursor-pointer hover:bg-white/30 transition" style="border-left: 6px solid ${genre.color};">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-9 h-9 rounded-2xl flex items-center justify-center text-slate-700 font-bold shadow-2xs" style="background-color: ${genre.color};">
                                         <i class="fa-solid fa-list-check text-xs"></i>
@@ -747,7 +793,6 @@
                 return;
             }
 
-            const modal = document.getElementById('itemModal');
             const form = document.getElementById('itemForm');
             form.reset();
             document.getElementById('imagePreviewContainer').classList.add('hidden');
@@ -781,11 +826,11 @@
                 }
             }
 
-            modal.classList.remove('hidden');
+            showSheetModal('itemModal', 'itemModalCard');
         }
 
         function closeModal() {
-            document.getElementById('itemModal').classList.add('hidden');
+            hideSheetModal('itemModal', 'itemModalCard');
         }
 
         function saveItem(event) {
@@ -830,11 +875,11 @@
 
         function openGenreManageModal() {
             renderGenreManageList();
-            document.getElementById('genreManageModal').classList.remove('hidden');
+            showSheetModal('genreManageModal', 'genreManageModalCard');
         }
 
         function closeGenreManageModal() {
-            document.getElementById('genreManageModal').classList.add('hidden');
+            hideSheetModal('genreManageModal', 'genreManageModalCard');
         }
 
         function renderGenreManageList() {
