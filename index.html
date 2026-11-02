@@ -179,7 +179,7 @@
 
     <main class="max-w-4xl mx-auto px-4 pt-4 relative z-10">
 
-        <!-- カテゴリー詳細画面時の「戻る ＆ メモ選択ヘッダー」 -->
+        <!-- カテゴリー詳細画面時の「戻る ＆ 複数選択ヘッダー」 -->
         <div id="categoryDetailHeader" class="hidden mb-4 flex items-center justify-between bg-white/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
             <button onclick="closeCategoryDetail()" class="text-app-theme font-bold text-sm flex items-center space-x-1.5 hover:opacity-80 transition active:scale-95">
                 <i class="fa-solid fa-chevron-left text-xs"></i>
@@ -191,7 +191,7 @@
                     <div id="activeCategoryIconContainer" class="w-6 h-6 rounded-lg flex items-center justify-center overflow-hidden shrink-0"></div>
                     <h2 id="activeCategoryTitle" class="font-bold text-slate-900 text-base"></h2>
                 </div>
-                <!-- メモ複数選択切り替えボタン -->
+                <!-- 複数選択切り替えボタン -->
                 <button id="toggleSelectModeBtn" onclick="toggleSelectShareMode()" class="bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 px-3 py-1 rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-2xs">
                     <i class="fa-solid fa-list-check text-app-theme"></i>
                     <span id="selectBtnLabel">選択</span>
@@ -242,12 +242,12 @@
         </div>
     </main>
 
-    <!-- メモ複数選択時：画面下部に浮き出る一括共有アクションバー -->
+    <!-- 複数選択時：画面下部に浮き出る一括共有アクションバー -->
     <div id="multiShareBar" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 hidden w-[90%] max-w-md bg-slate-900/90 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between border border-slate-700/50">
         <span class="text-xs font-semibold">選択中: <span id="selectedCountDisplay" class="font-bold text-app-theme text-sm">0</span> 件</span>
         <button onclick="shareSelectedItems()" class="bg-app-theme hover:opacity-90 active:scale-95 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-md flex items-center space-x-1.5">
             <i class="fa-solid fa-arrow-up-from-bracket"></i>
-            <span>選択したメモを共有</span>
+            <span>選択したアイテムを共有</span>
         </button>
     </div>
 
@@ -460,7 +460,7 @@
         let viewingItemId = null;
         let editingGenreIdForQuickImage = null;
 
-        // メモ複数選択モードの状態管理
+        // 複数選択共有モードの状態管理
         let isSelectShareMode = false;
         let selectedItemIds = new Set();
 
@@ -485,7 +485,7 @@
             }
         }
 
-        // 複数選択モードのON/OFF切り替え（メモ専用）
+        // 複数選択モードのON/OFF切り替え
         function toggleSelectShareMode() {
             isSelectShareMode = !isSelectShareMode;
             selectedItemIds.clear();
@@ -512,7 +512,7 @@
             renderApp();
         }
 
-        // 選択メモ数のカウント＆バー表示更新
+        // 選択アイテム数のカウント＆バー表示更新
         function updateSelectedCountUI() {
             const countDisplay = document.getElementById('selectedCountDisplay');
             const shareBar = document.getElementById('multiShareBar');
@@ -526,7 +526,7 @@
             }
         }
 
-        // 個別メモの選択・解除をトグル
+        // 個別アイテムの選択・解除をトグル
         function toggleItemSelection(event, itemId) {
             event.stopPropagation();
             if (selectedItemIds.has(itemId)) {
@@ -538,29 +538,31 @@
             renderApp();
         }
 
-        // 選択された複数のメモを一括共有する関数（※送信者クレジットなし）
+        // 選択された複数のアイテムを一括共有する関数
         async function shareSelectedItems() {
             if (selectedItemIds.size === 0) return;
 
             const selectedList = items.filter(i => selectedItemIds.has(i.id));
-            let text = `【${selectedCategoryDetail} の共有メモ (${selectedList.length}件)】\n\n`;
+            let text = `【${selectedCategoryDetail} の共有リスト (${selectedList.length}件)】\n`;
 
             selectedList.forEach(item => {
-                let favMark = item.favorite ? ' ⭐' : '';
-                text += `📖 ${item.title}${favMark}\n`;
-                if (item.store) text += `店舗: ${item.store}\n`;
-                if (item.memo) text += `${item.memo}\n`;
-                if (item.url) text += `${item.url}\n`;
-                text += `\n`;
+                let prefix = item.type === 'memo' ? '📖 ' : '・';
+                let urgentMark = item.urgent ? ' (🔥急ぎ)' : '';
+                let favMark = item.favorite ? ' (⭐定番)' : '';
+
+                text += `${prefix}${item.title}${urgentMark}${favMark}\n`;
+                if (item.store) text += `　 └ 店: ${item.store}\n`;
+                if (item.memo) text += `　 └ メモ: ${item.memo}\n`;
+                if (item.url) text += `　 └ URL: ${item.url}\n`;
+                if (item.image && !item.url) text += `　 └ 📷 [画像添付あり]\n`;
             });
 
-            // 末尾の余分な改行をトリム
-            text = text.trim();
+            text += `\n※Remindersより送信`;
 
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: `${selectedCategoryDetail} の選択メモ`,
+                        title: `${selectedCategoryDetail} の選択リスト`,
                         text: text
                     });
                 } catch (err) {
@@ -568,25 +570,29 @@
                 }
             } else {
                 navigator.clipboard.writeText(text);
-                alert('選択したメモのテキストをコピーしました！LINE等に貼り付けてご利用ください。');
+                alert('選択したアイテムのテキストをコピーしました！LINE等に貼り付けてご利用ください。');
             }
         }
 
-        // 単一メモのワンタップ共有（※送信者クレジットなし）
+        // 単一アイテムのワンタップ共有
         async function shareSingleItem(event, itemId) {
             event.stopPropagation();
             const item = items.find(i => i.id === itemId);
             if (!item) return;
 
-            let favMark = item.favorite ? ' ⭐' : '';
-            let text = `【📖 メモ】${item.title}${favMark}\n`;
-            text += `ジャンル: ${item.category}\n`;
+            let typeTitle = item.type === 'memo' ? '【メモ】' : '【リマインダー】';
+            let urgentMark = item.urgent ? ' (🔥急ぎ)' : '';
+            let favMark = item.favorite ? ' (⭐定番)' : '';
 
-            if (item.store) text += `店舗: ${item.store}\n`;
-            if (item.memo) text += `メモ: ${item.memo}\n`;
-            if (item.url) text += `${item.url}\n`;
+            let text = `${typeTitle} ${item.title}${urgentMark}${favMark}\n`;
+            text += `・ジャンル: ${item.category}\n`;
 
-            text = text.trim();
+            if (item.store) text += `・購入先: ${item.store}\n`;
+            if (item.memo) text += `・メモ: ${item.memo}\n`;
+            if (item.url) text += `・URL: ${item.url}\n`;
+            else if (item.image) text += `・📷 [画像添付あり]\n`;
+
+            text += `\n※Remindersより送信`;
 
             if (navigator.share) {
                 try {
@@ -599,7 +605,7 @@
                 }
             } else {
                 navigator.clipboard.writeText(text);
-                alert('メモの情報をコピーしました！LINE等に貼り付けてご利用ください。');
+                alert('アイテムの情報をコピーしました！LINE等に貼り付けてご利用ください。');
             }
         }
 
@@ -761,7 +767,7 @@
         }
 
         function closeCategoryDetail() {
-            if (isSelectShareMode) toggleSelectShareMode();
+            if (isSelectShareMode) toggleSelectShareMode(); // 選択モード解除
             selectedCategoryDetail = null;
             document.getElementById('categoryDetailHeader').classList.add('hidden');
             renderApp();
@@ -937,7 +943,7 @@
         }
 
         function openViewModal(id) {
-            if (isSelectShareMode) return;
+            if (isSelectShareMode) return; // 選択モード中は詳細モーダルを開かない
 
             viewingItemId = id;
             const item = items.find(i => i.id === id);
@@ -1114,7 +1120,6 @@
 
                 emptyState.classList.add('hidden');
 
-                // リマインダーの描画（共有機能対象外）
                 if (remindersActive.length === 0) {
                     reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">リマインダーはありません</p>';
                 } else {
@@ -1127,13 +1132,23 @@
                         }
                         
                         const isPending = item.pendingComplete;
+                        const isSelected = selectedItemIds.has(item.id);
+
+                        // 選択モード中の左側領域
+                        const leftActionHtml = isSelectShareMode ? `
+                            <button onclick="toggleItemSelection(event, ${item.id})" class="w-6 h-6 rounded-lg ${isSelected ? 'bg-app-theme text-white border-app-theme' : 'bg-white text-slate-300 border-slate-300'} flex items-center justify-center shrink-0 border shadow-2xs transition active:scale-90">
+                                <i class="fa-solid fa-check text-xs"></i>
+                            </button>
+                        ` : `
+                            <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="w-6 h-6 rounded-full ${isPending ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-300'} flex items-center justify-center shrink-0 border shadow-2xs transition active:scale-90" title="${isPending ? '取り消す' : '完了'}">
+                                <i class="fa-solid ${isPending ? 'fa-check text-xs' : 'fa-circle text-xs'}"></i>
+                            </button>
+                        `;
 
                         return `
-                            <div onclick="openViewModal(${item.id})" class="p-3.5 rounded-2xl ${cardClass} hover:shadow-md active:scale-[0.99] transition-all duration-150 cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''}">
+                            <div onclick="${isSelectShareMode ? `toggleItemSelection(event, ${item.id})` : `openViewModal(${item.id})`}" class="p-3.5 rounded-2xl ${cardClass} hover:shadow-md active:scale-[0.99] transition-all duration-150 cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''} ${isSelected ? 'ring-2 ring-indigo-500/50 bg-indigo-50/40' : ''}">
                                 <div class="flex items-center space-x-3 overflow-hidden mr-2">
-                                    <button onclick="event.stopPropagation(); toggleCheckItem(${item.id})" class="w-6 h-6 rounded-full ${isPending ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-300'} flex items-center justify-center shrink-0 border shadow-2xs transition active:scale-90" title="${isPending ? '取り消す' : '完了'}">
-                                        <i class="fa-solid ${isPending ? 'fa-check text-xs' : 'fa-circle text-xs'}"></i>
-                                    </button>
+                                    ${leftActionHtml}
 
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
@@ -1150,7 +1165,8 @@
                                 
                                 <div class="flex items-center space-x-1.5 shrink-0">
                                     ${renderRightMedia(item)}
-                                    <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs active:scale-90" title="削除"><i class="fa-solid fa-trash-can"></i></button>
+                                    ${!isSelectShareMode ? `<button onclick="shareSingleItem(event, ${item.id})" class="text-slate-400 hover:text-app-theme p-1.5 transition text-xs active:scale-90" title="このアイテムを共有"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>` : ''}
+                                    ${!isSelectShareMode ? `<button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs active:scale-90" title="削除"><i class="fa-solid fa-trash-can"></i></button>` : ''}
                                 </div>
                             </div>
                         `;
@@ -1179,7 +1195,6 @@
                     completedSection.classList.add('hidden');
                 }
 
-                // メモの描画（共有機能対象）
                 if (memos.length === 0) {
                     memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモはありません</p>';
                 } else {
