@@ -105,9 +105,9 @@
         }
 
         .favorite-card-glow {
-            background: linear-gradient(135deg, rgba(255, 251, 235, 0.95), rgba(254, 243, 199, 0.6)) !important;
-            border: 1px solid rgba(245, 158, 11, 0.4) !important;
-            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12) !important;
+            background: rgba(255, 255, 255, 0.96) !important;
+            border: 1px solid rgba(245, 158, 11, 0.5) !important;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15) !important;
         }
 
         input[type="color"].genre-color-picker {
@@ -139,15 +139,23 @@
             transform: translateY(0);
             opacity: 1;
         }
+
+        /* 視認性向上のためのカードスタイル強化 */
+        .glass-card-readable {
+            background-color: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+        }
     </style>
 </head>
 <body class="text-slate-800 min-h-screen pb-32 selection:bg-indigo-100 relative">
 
     <div id="bgCustomContainer" class="hidden"></div>
-    <div id="bgCustomOverlay" class="fixed inset-0 bg-slate-900/10 backdrop-blur-[2px] z-0 pointer-events-none hidden"></div>
+    <div id="bgCustomOverlay" class="fixed inset-0 bg-slate-900/15 backdrop-blur-[2px] z-0 pointer-events-none hidden"></div>
 
     <!-- ヘッダー -->
-    <header class="bg-white/85 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
+    <header class="bg-white/92 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-30 shadow-xs">
         <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center relative z-10">
             <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchMainTab('list')">
                 <img src="icon.PNG" id="headerIcon" class="w-9 h-9 rounded-2xl object-cover shadow-sm border border-slate-100" onerror="this.style.display='none'; document.getElementById('headerIconFallback').style.display='flex';">
@@ -156,20 +164,20 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">Reminders</h1>
-                    <p class="text-[10px] text-slate-400 font-semibold tracking-wide">買い物・レシピ・ストックメモ</p>
+                    <p class="text-[10px] text-slate-500 font-semibold tracking-wide">買い物・レシピ・ストックメモ</p>
                 </div>
             </div>
 
             <div class="flex items-center space-x-1 sm:space-x-2">
-                <button onclick="openBgModal()" class="bg-white/80 hover:bg-slate-100/80 active:scale-95 text-slate-700 font-medium px-2 py-2 sm:px-2.5 rounded-2xl text-xs transition flex items-center space-x-1 border border-slate-200/70 shadow-2xs" title="背景画像">
+                <button onclick="openBgModal()" class="bg-white/90 hover:bg-slate-100 active:scale-95 text-slate-700 font-semibold px-2 py-2 sm:px-2.5 rounded-2xl text-xs transition flex items-center space-x-1 border border-slate-200 shadow-2xs" title="背景画像">
                     <i class="fa-solid fa-image text-app-theme"></i>
                     <span class="hidden sm:inline font-semibold">背景</span>
                 </button>
-                <button onclick="openThemeModal()" class="bg-white/80 hover:bg-slate-100/80 active:scale-95 text-slate-700 font-medium px-2 py-2 sm:px-2.5 rounded-2xl text-xs transition flex items-center space-x-1 border border-slate-200/70 shadow-2xs" title="テーマカラー">
+                <button onclick="openThemeModal()" class="bg-white/90 hover:bg-slate-100 active:scale-95 text-slate-700 font-semibold px-2 py-2 sm:px-2.5 rounded-2xl text-xs transition flex items-center space-x-1 border border-slate-200 shadow-2xs" title="テーマカラー">
                     <i class="fa-solid fa-palette text-app-theme"></i>
                     <span class="hidden sm:inline font-semibold">テーマ</span>
                 </button>
-                <button onclick="openGenreManageModal()" class="bg-white/80 hover:bg-slate-100/80 active:scale-95 text-slate-700 font-medium px-2.5 py-2 sm:px-3 rounded-2xl text-xs transition flex items-center space-x-1 border border-slate-200/70 shadow-2xs">
+                <button onclick="openGenreManageModal()" class="bg-white/90 hover:bg-slate-100 active:scale-95 text-slate-700 font-semibold px-2.5 py-2 sm:px-3 rounded-2xl text-xs transition flex items-center space-x-1 border border-slate-200 shadow-2xs">
                     <i class="fa-solid fa-tags text-app-theme"></i>
                     <span class="font-semibold">ジャンル</span>
                 </button>
@@ -180,7 +188,7 @@
     <main class="max-w-4xl mx-auto px-4 pt-4 relative z-10">
 
         <!-- カテゴリー詳細画面時のヘッダー -->
-        <div id="categoryDetailHeader" class="hidden mb-4 flex items-center justify-between bg-white/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div id="categoryDetailHeader" class="hidden mb-4 flex items-center justify-between glass-card-readable p-3.5 rounded-2xl">
             <button onclick="closeCategoryDetail()" class="text-app-theme font-bold text-sm flex items-center space-x-1.5 hover:opacity-80 transition active:scale-95">
                 <i class="fa-solid fa-chevron-left text-xs"></i>
                 <span>一覧に戻る</span>
@@ -201,19 +209,29 @@
 
         <!-- リストビューエリア（ホーム） -->
         <div id="listViewContainer" class="space-y-4">
+            
+            <!-- 【新機能】期限切れ（買い忘れ）セクション（該当がある場合のみ表示） -->
+            <div id="overdueSection" class="hidden bg-gradient-to-br from-rose-500/10 to-amber-500/10 glass-card-readable p-3.5 rounded-2xl border-2 border-rose-300 shadow-xs space-y-2">
+                <div class="flex items-center justify-between border-b border-rose-200 pb-1.5">
+                    <span class="text-xs font-bold text-rose-700 flex items-center"><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600 animate-pulse"></i>買い忘れ・期限切れのアイテム</span>
+                    <span id="overdueCountBadge" class="text-[10px] font-mono font-bold bg-rose-600 text-white px-2 py-0.5 rounded-full">0件</span>
+                </div>
+                <div id="overduePreviewList" class="space-y-1.5"></div>
+            </div>
+
             <!-- 本日・今週の買うものプレビューダッシュボード -->
             <div id="dashboardPreview" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <!-- 本日買うもの -->
-                <div class="bg-gradient-to-br from-rose-50/90 to-amber-50/70 backdrop-blur-md p-3.5 rounded-2xl border border-rose-200/60 shadow-xs space-y-2">
-                    <div class="flex items-center justify-between border-b border-rose-200/50 pb-1.5">
+                <div class="glass-card-readable p-3.5 rounded-2xl space-y-2 border-rose-200/80">
+                    <div class="flex items-center justify-between border-b border-rose-100 pb-1.5">
                         <span class="text-xs font-bold text-rose-700 flex items-center"><i class="fa-solid fa-fire mr-1.5 text-rose-500"></i>本日買うもの</span>
                         <span id="todayCountBadge" class="text-[10px] font-mono font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">0件</span>
                     </div>
                     <div id="todayPreviewList" class="space-y-1.5"></div>
                 </div>
                 <!-- 今週買うもの -->
-                <div class="bg-gradient-to-br from-indigo-50/90 to-slate-50/70 backdrop-blur-md p-3.5 rounded-2xl border border-indigo-200/60 shadow-xs space-y-2">
-                    <div class="flex items-center justify-between border-b border-indigo-200/50 pb-1.5">
+                <div class="glass-card-readable p-3.5 rounded-2xl space-y-2 border-indigo-200/80">
+                    <div class="flex items-center justify-between border-b border-indigo-100 pb-1.5">
                         <span class="text-xs font-bold text-indigo-700 flex items-center"><i class="fa-solid fa-calendar-week mr-1.5 text-indigo-500"></i>今週買うもの</span>
                         <span id="weekCountBadge" class="text-[10px] font-mono font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">0件</span>
                     </div>
@@ -221,37 +239,37 @@
                 </div>
             </div>
 
-            <!-- マイリスト（フォルダ）カード一覧（コンパクト化） -->
-            <div id="folderContainer" class="space-y-2 pt-1"></div>
+            <!-- マイリスト（フォルダ）カード一覧 -->
+            <div id="folderContainer" class="space-y-2.5 pt-1"></div>
         </div>
 
         <!-- カレンダービューエリア -->
         <div id="calendarViewContainer" class="hidden space-y-4">
-            <div class="bg-white/70 backdrop-blur-md p-3.5 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div class="glass-card-readable p-3.5 rounded-3xl flex flex-col sm:flex-row justify-between items-center gap-2">
                 <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-start">
-                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-xl bg-white/80 hover:bg-white text-slate-700 flex items-center justify-center transition shadow-2xs"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-                    <!-- 年月セレクトボックス（月を明確に） -->
+                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-xl bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center transition shadow-2xs border border-slate-200"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <!-- 年月セレクトボックス -->
                     <div class="flex items-center space-x-1.5">
-                        <select id="calendarYearSelect" onchange="onCalendarSelectChange()" class="bg-white/80 border border-slate-200 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none shadow-2xs"></select>
-                        <select id="calendarMonthSelect" onchange="onCalendarSelectChange()" class="bg-white/80 border border-slate-200 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none shadow-2xs"></select>
+                        <select id="calendarYearSelect" onchange="onCalendarSelectChange()" class="bg-white border border-slate-200 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none shadow-2xs"></select>
+                        <select id="calendarMonthSelect" onchange="onCalendarSelectChange()" class="bg-white border border-slate-200 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none shadow-2xs"></select>
                     </div>
-                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-xl bg-white/80 hover:bg-white text-slate-700 flex items-center justify-center transition shadow-2xs"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-xl bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center transition shadow-2xs border border-slate-200"><i class="fa-solid fa-chevron-right text-xs"></i></button>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <span id="currentMonthBigLabel" class="text-xs font-bold text-app-theme bg-indigo-50/80 px-3 py-1 rounded-xl border border-indigo-100"></span>
-                    <button onclick="currentMonthToday()" class="px-3 py-1 bg-white/80 hover:bg-white text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs">今月</button>
+                    <span id="currentMonthBigLabel" class="text-xs font-bold text-app-theme bg-indigo-50 px-3 py-1 rounded-xl border border-indigo-100"></span>
+                    <button onclick="currentMonthToday()" class="px-3 py-1 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs border border-slate-200">今月</button>
                 </div>
             </div>
-            <!-- カレンダーグリッド（暦・ガラス風） -->
-            <div class="bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
-                <div class="grid grid-cols-7 text-center text-xs font-bold text-slate-400 pb-2 border-b border-slate-200/50">
+            <!-- カレンダーグリッド -->
+            <div class="glass-card-readable p-4 rounded-3xl space-y-3">
+                <div class="grid grid-cols-7 text-center text-xs font-bold text-slate-500 pb-2 border-b border-slate-200/60">
                     <span class="text-rose-500">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="text-indigo-500">土</span>
                 </div>
                 <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1"></div>
             </div>
-            <!-- 選択された日の予定リスト（ガラス風） -->
-            <div class="bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
-                <h3 id="selectedDateTitle" class="font-bold text-xs text-slate-600 border-b border-slate-200/50 pb-2">本日の予定</h3>
+            <!-- 選択された日の予定リスト -->
+            <div class="glass-card-readable p-4 rounded-3xl space-y-3">
+                <h3 id="selectedDateTitle" class="font-bold text-xs text-slate-700 border-b border-slate-200/60 pb-2">本日の予定</h3>
                 <div id="selectedDateScheduleList" class="space-y-2"></div>
             </div>
         </div>
@@ -270,7 +288,7 @@
 
             <div id="completedSection" class="hidden pt-2 space-y-2">
                 <div class="flex items-center justify-between">
-                    <button onclick="toggleCompletedAccordion()" class="flex items-center space-x-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition">
+                    <button onclick="toggleCompletedAccordion()" class="flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition">
                         <i id="completedChevron" class="fa-solid fa-chevron-right text-[10px] transition-transform"></i>
                         <span>完了した項目 (<span id="completedCount" class="font-mono">0</span>)</span>
                     </button>
@@ -291,14 +309,14 @@
         </div>
 
         <!-- 該当なし表示 -->
-        <div id="emptyState" class="hidden text-center py-16 bg-white/70 backdrop-blur-md rounded-3xl border border-slate-200/60 my-4 shadow-xs">
+        <div id="emptyState" class="hidden text-center py-16 glass-card-readable rounded-3xl my-4">
             <div class="text-4xl mb-3">📭</div>
             <p class="text-slate-500 text-sm font-medium">該当するアイテムまたはカテゴリーがありません。<br>右下の「＋」ボタンから追加してみましょう！</p>
         </div>
     </main>
 
-    <!-- 画面下部固定タブ（リスト / カレンダー切り替え） -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/80 py-2.5 px-6 z-30 shadow-lg flex justify-around items-center max-w-lg mx-auto rounded-t-3xl">
+    <!-- 画面下部固定タブ -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/92 backdrop-blur-md border-t border-slate-200/90 py-2.5 px-6 z-30 shadow-lg flex justify-around items-center max-w-lg mx-auto rounded-t-3xl">
         <button onclick="switchMainTab('list')" id="navTabList" class="flex flex-col items-center space-y-1 text-app-theme transition active:scale-95">
             <i class="fa-solid fa-list-check text-lg"></i>
             <span class="text-[10px] font-bold">リスト</span>
@@ -309,8 +327,8 @@
         </button>
     </nav>
 
-    <!-- 複数選択時：画面下部に浮き出る一括操作アクションバー -->
-    <div id="multiShareBar" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 hidden w-[90%] max-w-md bg-slate-900/90 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between border border-slate-700/50">
+    <!-- 複数選択時：一括操作バー -->
+    <div id="multiShareBar" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 hidden w-[90%] max-w-md bg-slate-900/95 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between border border-slate-700/50">
         <span class="text-xs font-semibold">選択中: <span id="selectedCountDisplay" class="font-bold text-app-theme text-sm">0</span> 件</span>
         <div class="flex items-center space-x-2">
             <button onclick="deleteSelectedItems()" class="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold px-3 py-2 rounded-xl text-xs transition shadow-md flex items-center space-x-1">
@@ -392,88 +410,87 @@
         </div>
     </div>
 
-    <!-- アイテム追加・編集モーダル（レイアウト・重なり修復・種別微調整版） -->
+    <!-- 【スクロール不要・幅拡張最適化】アイテム追加・編集モーダル -->
     <div id="itemModal" onclick="handleModalOutsideClick(event, 'itemModal', closeModal)" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div id="itemModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-md h-[78vh] sm:h-auto rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 flex flex-col justify-between border border-slate-100">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3 shrink-0">
+        <div id="itemModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl p-4 sm:p-5 flex flex-col justify-between border border-slate-100 my-auto">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2.5 shrink-0">
                 <h2 id="modalTitle" class="text-base font-bold text-slate-900">追加</h2>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1.5"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4 overflow-y-auto flex-1 pr-1 py-2">
+            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-3 py-2">
                 <input type="hidden" id="itemId">
                 <input type="hidden" id="itemImageBase64">
                 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">種別</label>
-                        <div class="grid grid-cols-2 gap-1.5 bg-slate-100/70 p-1 rounded-xl border border-slate-200/80">
-                            <label class="flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer transition-all has-[:checked]:bg-white has-[:checked]:shadow-2xs">
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">種別</label>
+                        <div class="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/70">
+                            <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all has-[:checked]:bg-white has-[:checked]:shadow-2xs">
                                 <input type="radio" name="itemType" value="reminder" checked class="hidden">
-                                <span class="text-[11px] font-bold text-slate-700 whitespace-nowrap">リマインダー</span>
+                                <span class="text-[10.5px] font-bold text-slate-700 whitespace-nowrap">リマインダー</span>
                             </label>
-                            <label class="flex items-center justify-center py-2 px-1 rounded-lg cursor-pointer transition-all has-[:checked]:bg-white has-[:checked]:shadow-2xs">
+                            <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all has-[:checked]:bg-white has-[:checked]:shadow-2xs">
                                 <input type="radio" name="itemType" value="memo" class="hidden">
-                                <span class="text-[11px] font-bold text-slate-700 whitespace-nowrap">メモ</span>
+                                <span class="text-[10.5px] font-bold text-slate-700 whitespace-nowrap">メモ</span>
                             </label>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">ジャンル</label>
-                        <select id="itemCategory" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none h-[42px]"></select>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">ジャンル</label>
+                        <select id="itemCategory" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none h-[34px]"></select>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">タイトル <span class="text-rose-500">*</span></label>
-                    <input type="text" id="itemTitle" required placeholder="例: 絆創膏 ケアリーヴ" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">タイトル <span class="text-rose-500">*</span></label>
+                    <input type="text" id="itemTitle" required placeholder="例: 絆創膏 ケアリーヴ" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">購入予定日（任意）</label>
-                        <input type="date" id="itemTargetDate" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none appearance-none min-h-[40px]">
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">購入予定日（任意）</label>
+                        <input type="date" id="itemTargetDate" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none appearance-none h-[34px]">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">購入先・店舗</label>
-                        <input type="text" id="itemStore" placeholder="例: 薬局" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none min-h-[40px]">
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">購入先・店舗</label>
+                        <input type="text" id="itemStore" placeholder="例: 薬局" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none h-[34px]">
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-6 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200">
-                    <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" id="itemUrgent" class="w-4 h-4 text-rose-600 border-slate-300 rounded">
-                        <span class="text-xs font-bold text-rose-600"><i class="fa-solid fa-fire mr-1"></i>急ぎ</span>
-                    </label>
-                    <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" id="itemFavorite" class="w-4 h-4 text-amber-500 border-slate-300 rounded">
-                        <span class="text-xs font-semibold text-amber-600"><i class="fa-solid fa-star mr-1"></i>定番品</span>
-                    </label>
-                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-5 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 flex-1 mr-3">
+                        <label class="flex items-center space-x-1.5 cursor-pointer">
+                            <input type="checkbox" id="itemUrgent" class="w-3.5 h-3.5 text-rose-600 border-slate-300 rounded">
+                            <span class="text-[11px] font-bold text-rose-600"><i class="fa-solid fa-fire mr-0.5"></i>急ぎ</span>
+                        </label>
+                        <label class="flex items-center space-x-1.5 cursor-pointer">
+                            <input type="checkbox" id="itemFavorite" class="w-3.5 h-3.5 text-amber-500 border-slate-300 rounded">
+                            <span class="text-[11px] font-semibold text-amber-600"><i class="fa-solid fa-star mr-0.5"></i>定番品</span>
+                        </label>
+                    </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">メモ / 参考URL</label>
-                    <input type="text" id="itemMemo" oninput="checkUrlInput(this.value)" placeholder="型番やURLなど" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
-                </div>
-
-                <!-- 写真添付機能 -->
-                <div class="pt-1">
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">写真添付（任意）</label>
-                    <div class="flex items-center space-x-3">
-                        <label class="py-2 px-3.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer shadow-2xs transition active:scale-95 flex items-center space-x-1.5">
-                            <i class="fa-solid fa-camera text-app-theme"></i>
-                            <span>写真を選択</span>
+                    <!-- 写真選択（コンパクト配置） -->
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <label class="py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-bold text-slate-700 cursor-pointer shadow-2xs transition active:scale-95 flex items-center space-x-1">
+                            <i class="fa-solid fa-camera text-app-theme text-xs"></i>
+                            <span>写真</span>
                             <input type="file" accept="image/*" onchange="handleItemImageSelect(event)" class="hidden">
                         </label>
-                        <div id="modalImagePreviewWrapper" class="hidden flex items-center space-x-2">
-                            <img id="modalImagePreview" class="w-9 h-9 rounded-xl object-cover border border-slate-200 shadow-2xs">
-                            <button type="button" onclick="clearItemImage()" class="text-rose-500 text-xs font-bold hover:underline">削除</button>
+                        <div id="modalImagePreviewWrapper" class="hidden flex items-center space-x-1">
+                            <img id="modalImagePreview" class="w-8 h-8 rounded-lg object-cover border border-slate-200">
+                            <button type="button" onclick="clearItemImage()" class="text-rose-500 text-[10px] font-bold p-0.5"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                     </div>
                 </div>
+
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">メモ / 参考URL</label>
+                    <input type="text" id="itemMemo" oninput="checkUrlInput(this.value)" placeholder="型番やURLなど" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                </div>
             </form>
-            <div class="flex justify-end space-x-2.5 pt-3 border-t border-slate-100 shrink-0">
-                <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium transition">キャンセル</button>
-                <button type="button" onclick="document.getElementById('itemForm').requestSubmit()" class="px-5 py-2 bg-app-theme text-white rounded-xl text-xs font-medium hover:opacity-90 active:scale-95 transition shadow-xs">保存する</button>
+            <div class="flex justify-end space-x-2 pt-2.5 border-t border-slate-100 shrink-0">
+                <button type="button" onclick="closeModal()" class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium transition">キャンセル</button>
+                <button type="button" onclick="document.getElementById('itemForm').requestSubmit()" class="px-5 py-1.5 bg-app-theme text-white rounded-xl text-xs font-medium hover:opacity-90 active:scale-95 transition shadow-xs">保存する</button>
             </div>
         </div>
     </div>
@@ -1043,7 +1060,7 @@
                 ${item.image ? `<div class="rounded-2xl overflow-hidden border border-slate-200 max-h-48 bg-slate-100 flex items-center justify-center"><img src="${item.image}" class="max-h-48 object-contain"></div>` : ''}
                 ${item.targetDate ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">購入予定日</p><p class="text-xs text-slate-700 font-bold"><i class="fa-solid fa-calendar-days mr-1 text-app-theme"></i>${item.targetDate}</p></div>` : ''}
                 ${item.store ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">購入先・店舗</p><p class="text-xs text-slate-700"><i class="fa-solid fa-store mr-1"></i>${item.store}</p></div>` : ''}
-                ${item.memo ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">メモ / リンク</p><p class="text-xs text-slate-700 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/70 whitespace-pre-wrap">${item.memo}</p></div>` : ''}
+                ${item.memo ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">メモ / リンク</p><p class="text-xs text-slate-700 bg-slate-50 p-3 rounded-2xl border border-slate-200/70 whitespace-pre-wrap">${item.memo}</p></div>` : ''}
             `;
 
             showSheetModal('viewModal', 'viewModalCard');
@@ -1142,8 +1159,8 @@
                     reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">リマインダーはありません</p>';
                 } else {
                     reminderItemsContainer.innerHTML = remindersActive.map(item => {
-                        let cardClass = "bg-white/90 backdrop-blur-sm border border-slate-200/80 shadow-xs";
-                        if (item.urgent) cardClass = "bg-white/95 backdrop-blur-sm border-2 border-rose-500 shadow-xs";
+                        let cardClass = "glass-card-readable";
+                        if (item.urgent) cardClass = "bg-white/95 border-2 border-rose-500 shadow-xs";
                         else if (item.favorite) cardClass = "favorite-card-glow";
                         
                         const isPending = item.pendingComplete;
@@ -1158,7 +1175,6 @@
                             </button>
                         `;
 
-                        // サムネイル画像の配置を「共有ボタンのすぐ左」に変更
                         const thumbnailHtml = item.image ? `<div class="w-9 h-9 rounded-xl overflow-hidden border border-slate-200 shrink-0 shadow-2xs bg-slate-100"><img src="${item.image}" class="w-full h-full object-cover"></div>` : '';
 
                         return `
@@ -1167,14 +1183,14 @@
                                     ${leftActionHtml}
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
-                                            <span class="font-bold text-xs text-slate-800 truncate ${isPending ? 'line-through' : ''}">${item.title}</span>
+                                            <span class="font-bold text-xs text-slate-900 truncate ${isPending ? 'line-through' : ''}">${item.title}</span>
                                             ${item.urgent ? '<span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">🔥 急ぎ</span>' : ''}
                                             ${item.favorite ? '<i class="fa-solid fa-star text-amber-500 text-[10px]"></i>' : ''}
                                         </div>
-                                        <div class="flex items-center space-x-2 text-[10px] text-slate-500 pt-0.5">
+                                        <div class="flex items-center space-x-2 text-[10px] text-slate-600 pt-0.5 font-medium">
                                             ${item.targetDate ? `<span><i class="fa-solid fa-calendar-days mr-0.5 text-app-theme"></i>${item.targetDate}</span>` : ''}
                                             ${item.store ? `<span><i class="fa-solid fa-store mr-0.5"></i>${item.store}</span>` : ''}
-                                            ${item.memo ? `<span class="truncate text-slate-400">${item.memo}</span>` : ''}
+                                            ${item.memo ? `<span class="truncate text-slate-500">${item.memo}</span>` : ''}
                                         </div>
                                     </div>
                                 </div>
@@ -1192,12 +1208,12 @@
                     completedSection.classList.remove('hidden');
                     completedCount.innerText = remindersCompleted.length;
                     completedContainer.innerHTML = remindersCompleted.map(item => `
-                        <div onclick="restoreItem(${item.id})" class="p-2.5 rounded-2xl border border-slate-200/60 bg-slate-100/70 flex items-center justify-between cursor-pointer hover:bg-slate-200/60 transition opacity-60 active:scale-[0.98]">
+                        <div onclick="restoreItem(${item.id})" class="p-2.5 rounded-2xl border border-slate-200/60 bg-slate-100/80 flex items-center justify-between cursor-pointer hover:bg-slate-200/60 transition opacity-60 active:scale-[0.98]">
                             <div class="flex items-center space-x-3 overflow-hidden">
                                 <div class="w-5 h-5 rounded-full bg-slate-400 text-white flex items-center justify-center shrink-0 text-xs shadow-2xs"><i class="fa-solid fa-check"></i></div>
                                 <span class="text-xs font-bold text-slate-600 line-through truncate">${item.title}</span>
                             </div>
-                            <div class="flex items-center space-x-2 shrink-0 text-[10px] text-slate-400">
+                            <div class="flex items-center space-x-2 shrink-0 text-[10px] text-slate-500 font-semibold">
                                 <span>タップで復活</span>
                                 <button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>
                             </div>
@@ -1211,19 +1227,18 @@
                     memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモはありません</p>';
                 } else {
                     memoItemsContainer.innerHTML = memos.map(item => {
-                        let cardClass = item.favorite ? "favorite-card-glow" : "bg-white/90 backdrop-blur-sm border border-slate-200/80 shadow-xs";
+                        let cardClass = item.favorite ? "favorite-card-glow" : "glass-card-readable";
                         const isSelected = selectedItemIds.has(item.id);
                         const leftActionHtml = isSelectShareMode ? `
                             <button onclick="toggleItemSelection(event, ${item.id})" class="w-6 h-6 rounded-lg ${isSelected ? 'bg-app-theme text-white border-app-theme' : 'bg-white text-slate-300 border-slate-300'} flex items-center justify-center shrink-0 border shadow-2xs transition active:scale-90">
                                 <i class="fa-solid fa-check text-xs"></i>
                             </button>
                         ` : `
-                            <div class="w-6 h-6 rounded-full bg-slate-100/80 text-app-theme flex items-center justify-center shrink-0 border border-slate-200/60 text-xs shadow-2xs">
+                            <div class="w-6 h-6 rounded-full bg-slate-100/90 text-app-theme flex items-center justify-center shrink-0 border border-slate-200 text-xs shadow-2xs">
                                 <i class="fa-solid fa-book-open"></i>
                             </div>
                         `;
 
-                        // サムネイル画像の配置を「共有ボタンのすぐ左」に変更
                         const thumbnailHtml = item.image ? `<div class="w-9 h-9 rounded-xl overflow-hidden border border-slate-200 shrink-0 shadow-2xs bg-slate-100"><img src="${item.image}" class="w-full h-full object-cover"></div>` : '';
 
                         return `
@@ -1232,12 +1247,12 @@
                                     ${leftActionHtml}
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
-                                            <span class="font-bold text-xs text-slate-800 truncate">${item.title}</span>
+                                            <span class="font-bold text-xs text-slate-900 truncate">${item.title}</span>
                                             ${item.favorite ? '<i class="fa-solid fa-star text-amber-500 text-[10px]"></i>' : ''}
                                         </div>
-                                        <div class="flex items-center space-x-2 text-[10px] text-slate-500 pt-0.5">
+                                        <div class="flex items-center space-x-2 text-[10px] text-slate-600 pt-0.5 font-medium">
                                             ${item.targetDate ? `<span><i class="fa-solid fa-calendar-days mr-0.5 text-app-theme"></i>${item.targetDate}</span>` : ''}
-                                            ${item.memo ? `<span class="truncate text-slate-400">${item.memo}</span>` : ''}
+                                            ${item.memo ? `<span class="truncate text-slate-500">${item.memo}</span>` : ''}
                                         </div>
                                     </div>
                                 </div>
@@ -1260,8 +1275,30 @@
             const todayStr = new Date().toISOString().split('T')[0];
 
             let activeReminders = items.filter(i => i.type !== 'memo' && !i.completed);
+            
+            // 期限切れ（今日より前の予定日で未完了）
+            let overdueItems = activeReminders.filter(i => i.targetDate && i.targetDate < todayStr);
             let todayItems = activeReminders.filter(i => i.urgent || i.targetDate === todayStr);
-            let weekItems = activeReminders.filter(i => !i.urgent && i.targetDate && i.targetDate !== todayStr && isDateInCurrentWeek(i.targetDate));
+            let weekItems = activeReminders.filter(i => !i.urgent && i.targetDate && i.targetDate > todayStr && isDateInCurrentWeek(i.targetDate));
+
+            // 期限切れセクションの制御
+            const overdueSection = document.getElementById('overdueSection');
+            const overdueListEl = document.getElementById('overduePreviewList');
+            if (overdueItems.length > 0) {
+                overdueSection.classList.remove('hidden');
+                document.getElementById('overdueCountBadge').innerText = `${overdueItems.length}件`;
+                overdueListEl.innerHTML = overdueItems.map(item => `
+                    <div onclick="openViewModal(${item.id})" class="p-2 bg-white/95 hover:bg-white rounded-xl border border-rose-200 flex items-center justify-between cursor-pointer transition shadow-2xs">
+                        <div class="flex items-center space-x-2 truncate mr-2">
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">${item.category}</span>
+                            <span class="text-xs font-bold text-slate-800 truncate">${item.title}</span>
+                        </div>
+                        <span class="text-[10px] font-bold text-rose-600 shrink-0 font-mono"><i class="fa-solid fa-clock-rotate-left mr-0.5"></i>${item.targetDate}</span>
+                    </div>
+                `).join('');
+            } else {
+                overdueSection.classList.add('hidden');
+            }
 
             document.getElementById('todayCountBadge').innerText = `${todayItems.length}件`;
             document.getElementById('weekCountBadge').innerText = `${weekItems.length}件`;
@@ -1271,13 +1308,13 @@
                 todayListEl.innerHTML = '<p class="text-[11px] text-slate-400 py-1">本日の予定はありません</p>';
             } else {
                 todayListEl.innerHTML = todayItems.map(item => `
-                    <div onclick="openViewModal(${item.id})" class="p-2 bg-white/80 hover:bg-white rounded-xl border border-rose-100 flex items-center justify-between cursor-pointer transition shadow-2xs">
+                    <div onclick="openViewModal(${item.id})" class="p-2 bg-white/90 hover:bg-white rounded-xl border border-rose-100 flex items-center justify-between cursor-pointer transition shadow-2xs">
                         <div class="flex items-center space-x-2 truncate mr-2">
                             <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">${item.category}</span>
                             <span class="text-xs font-bold text-slate-800 truncate">${item.title}</span>
                             ${item.urgent ? '<span class="text-[9px] text-rose-600 font-bold">🔥急ぎ</span>' : ''}
                         </div>
-                        ${item.store ? `<span class="text-[10px] text-slate-400 shrink-0">${item.store}</span>` : ''}
+                        ${item.store ? `<span class="text-[10px] text-slate-500 shrink-0 font-medium">${item.store}</span>` : ''}
                     </div>
                 `).join('');
             }
@@ -1287,7 +1324,7 @@
                 weekListEl.innerHTML = '<p class="text-[11px] text-slate-400 py-1">今週の予定はありません</p>';
             } else {
                 weekListEl.innerHTML = weekItems.map(item => `
-                    <div onclick="openViewModal(${item.id})" class="p-2 bg-white/80 hover:bg-white rounded-xl border border-indigo-100 flex items-center justify-between cursor-pointer transition shadow-2xs">
+                    <div onclick="openViewModal(${item.id})" class="p-2 bg-white/90 hover:bg-white rounded-xl border border-indigo-100 flex items-center justify-between cursor-pointer transition shadow-2xs">
                         <div class="flex items-center space-x-2 truncate mr-2">
                             <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">${item.category}</span>
                             <span class="text-xs font-bold text-slate-800 truncate">${item.title}</span>
@@ -1306,19 +1343,19 @@
             emptyState.classList.add('hidden');
 
             folderContainer.innerHTML = customGenres.map(genre => {
-                const bgGrad = `linear-gradient(135deg, ${hexToRgba(genre.color, 0.22)}, rgba(255, 255, 255, 0.95))`;
+                const bgGrad = `linear-gradient(135deg, ${hexToRgba(genre.color, 0.35)}, rgba(255, 255, 255, 0.96))`;
                 const iconHtml = genre.image ? `
-                    <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-8 h-8 rounded-xl overflow-hidden shadow-2xs border border-slate-200/60 shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" title="タップして画像を変更">
+                    <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-8.5 h-8.5 rounded-xl overflow-hidden shadow-2xs border border-slate-200 shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" title="タップして画像を変更">
                         <img src="${genre.image}" class="w-full h-full object-cover pointer-events-none">
                     </div>
                 ` : `
-                    <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-700 font-bold shadow-2xs shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" style="background-color: ${genre.color};" title="タップして画像を変更">
+                    <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-8.5 h-8.5 rounded-xl flex items-center justify-center text-slate-700 font-bold shadow-2xs shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" style="background-color: ${genre.color};" title="タップして画像を変更">
                         <i class="fa-solid fa-list-check text-xs pointer-events-none"></i>
                     </div>
                 `;
 
                 return `
-                    <div data-id="${genre.id}" class="rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden" style="background: ${bgGrad};">
+                    <div data-id="${genre.id}" class="rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 overflow-hidden" style="background: ${bgGrad}; backdrop-filter: blur(6px);">
                         <div class="px-3.5 py-2.5 flex items-center justify-between">
                             <div class="flex items-center space-x-3 flex-1 cursor-pointer" onclick="openCategoryDetail('${genre.name}')">
                                 <div onclick="event.stopPropagation(); triggerGenreImageChange(event, ${genre.id})" class="shrink-0">
@@ -1349,7 +1386,7 @@
             });
         }
 
-        // カレンダービュー描画
+        // カレンダービュー描画（期限切れインジケーター対応）
         function renderCalendarView() {
             document.getElementById('calendarYearSelect').value = calendarYear;
             document.getElementById('calendarMonthSelect').value = calendarMonth;
@@ -1372,17 +1409,19 @@
                 const dateStr = `${calendarYear}-${mStr}-${dStr}`;
 
                 const hasItem = items.some(i => i.targetDate === dateStr && !i.completed);
+                const isOverdue = (dateStr < todayStr && hasItem); // 期限切れ買い忘れ
                 const isSelected = (selectedCalendarDateStr === dateStr);
                 const isToday = (todayStr === dateStr);
 
-                let btnClass = "bg-white/80 hover:bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs";
+                let btnClass = "bg-white/90 hover:bg-slate-100 text-slate-700 border border-slate-200/90 shadow-2xs";
                 if (isSelected) btnClass = "bg-app-theme text-white border-app-theme shadow-sm font-bold";
                 else if (isToday) btnClass = "bg-indigo-50 text-indigo-700 border-indigo-300 font-bold shadow-2xs";
+                else if (isOverdue) btnClass = "bg-rose-50 text-rose-700 border-rose-300 font-bold shadow-2xs";
 
                 daysHtml += `
                     <button onclick="selectCalendarDate('${dateStr}')" class="h-10 rounded-xl flex flex-col items-center justify-center text-xs transition relative active:scale-95 ${btnClass}">
                         <span>${day}</span>
-                        ${hasItem ? `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-rose-500'} absolute bottom-1"></span>` : ''}
+                        ${hasItem ? `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : (isOverdue ? 'bg-rose-600 animate-pulse' : 'bg-indigo-500')} absolute bottom-1"></span>` : ''}
                     </button>
                 `;
             }
@@ -1424,12 +1463,12 @@
             }
 
             container.innerHTML = targetItems.map(item => `
-                <div onclick="openViewModal(${item.id})" class="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/60 flex items-center justify-between cursor-pointer transition">
+                <div onclick="openViewModal(${item.id})" class="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-between cursor-pointer transition">
                     <div class="flex items-center space-x-2">
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700">${item.category}</span>
                         <span class="text-xs font-bold text-slate-800">${item.title}</span>
                     </div>
-                    ${item.store ? `<span class="text-[10px] text-slate-400"><i class="fa-solid fa-store mr-0.5"></i>${item.store}</span>` : ''}
+                    ${item.store ? `<span class="text-[10px] text-slate-500 font-medium"><i class="fa-solid fa-store mr-0.5"></i>${item.store}</span>` : ''}
                 </div>
             `).join('');
         }
