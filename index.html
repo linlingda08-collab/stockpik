@@ -20,7 +20,10 @@
     <style>
         :root {
             --app-theme-color: #4f46e5;
-            --app-card-bg: rgba(255, 255, 255, 0.85);
+            --app-card-bg-r: 255;
+            --app-card-bg-g: 255;
+            --app-card-bg-b: 255;
+            --app-card-opacity: 0.85;
             --app-bg-color: #f8fafc;
         }
         
@@ -106,7 +109,7 @@
         }
 
         .favorite-card-glow {
-            background-color: var(--app-card-bg) !important;
+            background-color: rgba(var(--app-card-bg-r), var(--app-card-bg-g), var(--app-card-bg-b), var(--app-card-opacity)) !important;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(245, 158, 11, 0.5) !important;
@@ -143,9 +146,9 @@
             opacity: 1;
         }
 
-        /* アプリ全体で共有するガラス風（すりガラス）カードスタイル */
+        /* カレンダーやリスト等で共通のガラス風カードスタイル */
         .glass-card-readable {
-            background-color: var(--app-card-bg);
+            background-color: rgba(var(--app-card-bg-r), var(--app-card-bg-g), var(--app-card-bg-b), var(--app-card-opacity));
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.4);
@@ -200,7 +203,7 @@
                     <h2 id="activeCategoryTitle" class="font-bold text-slate-900 text-base"></h2>
                 </div>
                 <!-- 複数選択切り替えボタン -->
-                <button id="toggleSelectModeBtn" onclick="toggleSelectShareMode()" class="bg-white/60 hover:bg-white active:scale-95 text-slate-700 px-3 py-1 rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-2xs border border-white/40">
+                <button id="toggleSelectModeBtn" onclick="toggleSelectShareMode()" class="bg-white/60 hover:bg-white active:scale-95 text-slate-700 px-3 py-1 rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-2xs border border-white/40 backdrop-blur-md">
                     <i class="fa-solid fa-list-check text-app-theme"></i>
                     <span id="selectBtnLabel">選択</span>
                 </button>
@@ -247,17 +250,17 @@
         <div id="calendarViewContainer" class="hidden space-y-4">
             <div class="glass-card-readable p-3.5 rounded-3xl flex flex-col sm:flex-row justify-between items-center gap-2">
                 <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-start">
-                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-xl bg-white/80 hover:bg-white text-slate-700 flex items-center justify-center transition shadow-2xs border border-slate-200/60"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-xl bg-white/80 hover:bg-white text-slate-700 flex items-center justify-center transition shadow-2xs border border-slate-200/60 backdrop-blur-md"><i class="fa-solid fa-chevron-left text-xs"></i></button>
                     <!-- 年月セレクトボックス -->
                     <div class="flex items-center space-x-1.5">
-                        <select id="calendarYearSelect" onchange="onCalendarSelectChange()" class="bg-white/80 border border-slate-200/60 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none shadow-2xs"></select>
-                        <select id="calendarMonthSelect" onchange="onCalendarSelectChange()" class="bg-white/80 border border-slate-200/60 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none shadow-2xs"></select>
+                        <select id="calendarYearSelect" onchange="onCalendarSelectChange()" class="bg-white/80 border border-slate-200/60 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none shadow-2xs backdrop-blur-md"></select>
+                        <select id="calendarMonthSelect" onchange="onCalendarSelectChange()" class="bg-white/80 border border-slate-200/60 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none shadow-2xs backdrop-blur-md"></select>
                     </div>
-                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-xl bg-white/80 hover:bg-white text-slate-700 flex items-center justify-center transition shadow-2xs border border-slate-200/60"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-xl bg-white/80 hover:bg-white text-slate-700 flex items-center justify-center transition shadow-2xs border border-slate-200/60 backdrop-blur-md"><i class="fa-solid fa-chevron-right text-xs"></i></button>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <span id="currentMonthBigLabel" class="text-xs font-bold text-app-theme bg-indigo-50/80 px-3 py-1 rounded-xl border border-indigo-100/60"></span>
-                    <button onclick="currentMonthToday()" class="px-3 py-1 bg-white/80 hover:bg-white text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs border border-slate-200/60">今月</button>
+                    <span id="currentMonthBigLabel" class="text-xs font-bold text-app-theme bg-indigo-50/80 px-3 py-1 rounded-xl border border-indigo-100/60 backdrop-blur-md"></span>
+                    <button onclick="currentMonthToday()" class="px-3 py-1 bg-white/80 hover:bg-white text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs border border-slate-200/60 backdrop-blur-md">今月</button>
                 </div>
             </div>
             <!-- カレンダーグリッド -->
@@ -367,7 +370,7 @@
                     </div>
                 </div>
 
-                <!-- 2. カード・ベースカラー（カラーホイール自由選択：デフォルトボタンなし） -->
+                <!-- 2. カード・ベースカラー（カラーホイール自由選択） -->
                 <div class="space-y-2 pt-2 border-t border-slate-200/40">
                     <span class="text-xs font-bold text-slate-700 block">② カード・パネルの背景色</span>
                     <div class="color-wheel-wrapper">
@@ -378,9 +381,18 @@
                     </div>
                 </div>
 
-                <!-- 3. アプリ全体の背景変更 -->
+                <!-- 3. カードの透け感（透明度）調整スライダー -->
                 <div class="space-y-2 pt-2 border-t border-slate-200/40">
-                    <span class="text-xs font-bold text-slate-700 block">③ アプリ全体の背景</span>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-700 block">③ パネルの透け感（透明度）</span>
+                        <span id="opacityValueLabel" class="text-xs font-mono font-bold text-app-theme">85%</span>
+                    </div>
+                    <input type="range" id="cardOpacityRange" min="0.1" max="1.0" step="0.05" value="0.85" oninput="setCardOpacity(this.value)" class="w-full accent-indigo-600 cursor-pointer">
+                </div>
+
+                <!-- 4. アプリ全体の背景変更 -->
+                <div class="space-y-2 pt-2 border-t border-slate-200/40">
+                    <span class="text-xs font-bold text-slate-700 block">④ アプリ全体の背景</span>
                     <div class="space-y-2">
                         <label class="block w-full py-2 px-3 bg-white/80 hover:bg-white text-slate-700 font-bold text-xs rounded-xl cursor-pointer transition active:scale-95 shadow-2xs border border-slate-200/60 text-center backdrop-blur-md">
                             <i class="fa-solid fa-file-image mr-1 text-app-theme"></i> 写真から背景を選択する
@@ -552,7 +564,10 @@
         let appThemeColor = localStorage.getItem('reminders_app_theme') || '#4f46e5';
         let appBgImage = localStorage.getItem('reminders_app_bg') || '';
         let appBgColor = localStorage.getItem('reminders_app_bgcolor') || '#f8fafc';
-        let cardBgColorSetting = localStorage.getItem('reminders_card_bgcolor') || 'rgba(255, 255, 255, 0.85)';
+        let cardBgR = localStorage.getItem('reminders_card_r') || '255';
+        let cardBgG = localStorage.getItem('reminders_card_g') || '255';
+        let cardBgB = localStorage.getItem('reminders_card_b') || '255';
+        let cardOpacity = localStorage.getItem('reminders_card_opacity') || '0.85';
 
         let mainTab = 'list';
         let selectedCategoryDetail = null; 
@@ -576,7 +591,7 @@
             applyAppThemeColor(appThemeColor);
             applyAppBgImage(appBgImage);
             applyAppBgColor(appBgColor);
-            applyCardBgColor(cardBgColorSetting);
+            applyCardBgColor(cardBgR, cardBgG, cardBgB, cardOpacity);
             renderCategorySelect();
             initCalendarSelects();
             renderApp();
@@ -737,32 +752,40 @@
             renderApp();
         }
 
-        function applyCardBgColor(colorVal) {
-            cardBgColorSetting = colorVal;
-            localStorage.setItem('reminders_card_bgcolor', colorVal);
-            document.documentElement.style.setProperty('--app-card-bg', colorVal);
+        function applyCardBgColor(r, g, b, opacity) {
+            cardBgR = r; cardBgG = g; cardBgB = b; cardOpacity = opacity;
+            localStorage.setItem('reminders_card_r', r);
+            localStorage.setItem('reminders_card_g', g);
+            localStorage.setItem('reminders_card_b', b);
+            localStorage.setItem('reminders_card_opacity', opacity);
+
+            document.documentElement.style.setProperty('--app-card-bg-r', r);
+            document.documentElement.style.setProperty('--app-card-bg-g', g);
+            document.documentElement.style.setProperty('--app-card-bg-b', b);
+            document.documentElement.style.setProperty('--app-card-opacity', opacity);
 
             const preview = document.getElementById('cardBgWheelPreview');
             const picker = document.getElementById('cardBgWheelInput');
-            let hexForPicker = colorVal;
-            if (colorVal.startsWith('rgba')) {
-                const match = colorVal.match(/[\d.]+/g);
-                if (match && match.length >= 3) {
-                    hexForPicker = "#" + ((1 << 24) + (parseInt(match[0]) << 16) + (parseInt(match[1]) << 8) + parseInt(match[2])).toString(16).slice(1);
-                }
-            }
+            const range = document.getElementById('cardOpacityRange');
+            const label = document.getElementById('opacityValueLabel');
+
+            let hexForPicker = "#" + ((1 << 24) + (parseInt(r) << 16) + (parseInt(g) << 8) + parseInt(b)).toString(16).slice(1);
             if (preview) preview.style.backgroundColor = hexForPicker;
             if (picker) picker.value = hexForPicker;
+            if (range) range.value = opacity;
+            if (label) label.innerText = `${Math.round(opacity * 100)}%`;
         }
 
         function setCardBgColor(hexColor) {
-            // 自由選択した色を少しだけ半透明のガラス風（約88%不透明）にして綺麗に透けるようにする
             let r = parseInt(hexColor.slice(1,3), 16);
             let g = parseInt(hexColor.slice(3,5), 16);
             let b = parseInt(hexColor.slice(5,7), 16);
-            let rgbaVal = `rgba(${r}, ${g}, ${b}, 0.88)`;
-            
-            applyCardBgColor(rgbaVal);
+            applyCardBgColor(r, g, b, cardOpacity);
+            renderApp();
+        }
+
+        function setCardOpacity(val) {
+            applyCardBgColor(cardBgR, cardBgG, cardBgB, val);
             renderApp();
         }
 
@@ -1392,7 +1415,7 @@
             emptyState.classList.add('hidden');
 
             folderContainer.innerHTML = customGenres.map(genre => {
-                const bgGrad = `linear-gradient(135deg, ${hexToRgba(genre.color, 0.35)}, var(--app-card-bg))`;
+                const bgGrad = `linear-gradient(135deg, ${hexToRgba(genre.color, 0.35)}, rgba(var(--app-card-bg-r), var(--app-card-bg-g), var(--app-card-bg-b), var(--app-card-opacity)))`;
                 
                 const iconHtml = genre.image ? `
                     <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-8 h-8 rounded-xl overflow-hidden shadow-2xs border border-white/60 shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" title="タップして画像を変更">
