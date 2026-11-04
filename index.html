@@ -20,8 +20,7 @@
     <style>
         :root {
             --app-theme-color: #4f46e5;
-            --app-theme-rgb: 79, 70, 229;
-            --app-card-bg: rgba(255, 255, 255, 0.94);
+            --app-card-bg: #ffffff;
             --app-bg-color: #f8fafc;
         }
         
@@ -61,10 +60,11 @@
             transform: scale(1.02);
         }
 
+        /* カラーホイール共通スタイル */
         .color-wheel-wrapper {
             position: relative;
-            width: 120px;
-            height: 120px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             background: conic-gradient(
                 red, yellow, lime, cyan, blue, magenta, red
@@ -72,15 +72,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 20px -4px rgba(0,0,0,0.15);
             cursor: pointer;
             overflow: hidden;
             margin: 0 auto;
         }
 
         .color-wheel-center {
-            width: 50px;
-            height: 50px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: white;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 4px 10px rgba(0,0,0,0.1);
@@ -90,10 +90,9 @@
             pointer-events: none;
         }
         .color-wheel-preview {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            background: var(--app-theme-color);
             transition: background-color 0.2s ease;
         }
 
@@ -145,7 +144,6 @@
         /* ユーザーカスタマイズ可能なカードベーススタイル */
         .glass-card-readable {
             background-color: var(--app-card-bg);
-            backdrop-filter: blur(8px);
             border: 1px solid rgba(226, 232, 240, 0.9);
             box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
         }
@@ -154,7 +152,7 @@
 <body class="text-slate-800 min-h-screen pb-32 selection:bg-indigo-100 relative">
 
     <div id="bgCustomContainer" class="hidden"></div>
-    <div id="bgCustomOverlay" class="fixed inset-0 bg-slate-900/15 backdrop-blur-[2px] z-0 pointer-events-none hidden"></div>
+    <div id="bgCustomOverlay" class="fixed inset-0 bg-slate-900/10 backdrop-blur-[1px] z-0 pointer-events-none hidden"></div>
 
     <!-- ヘッダー -->
     <header class="glass-card-readable border-b border-slate-200/90 sticky top-0 z-30 shadow-xs">
@@ -354,7 +352,7 @@
             </div>
             
             <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-                <!-- 1. テーマカラー変更 -->
+                <!-- 1. テーマカラー変更（カラーホイール） -->
                 <div class="space-y-2">
                     <span class="text-xs font-bold text-slate-700 block">① アクセント・テーマカラー</span>
                     <div class="color-wheel-wrapper">
@@ -365,37 +363,30 @@
                     </div>
                 </div>
 
-                <!-- 2. カード・ベースカラー（自由に配色＆透明度保持） -->
+                <!-- 2. カード・ベースカラー（カラーホイール自由選択） -->
                 <div class="space-y-2 pt-2 border-t border-slate-200/60">
-                    <span class="text-xs font-bold text-slate-700 block">② カード・パネルの背景色（完全自由配色）</span>
-                    <div class="flex items-center space-x-3 bg-slate-50/80 p-2.5 rounded-2xl border border-slate-200/60">
-                        <div class="flex flex-col items-center space-y-1">
-                            <input type="color" id="cardBgColorPicker" value="#ffffff" oninput="updateCardBgColor(this.value)" onchange="updateCardBgColor(this.value)" class="genre-color-picker" title="カード色を選択">
-                            <span class="text-[9px] font-bold text-slate-500">色選択</span>
+                    <span class="text-xs font-bold text-slate-700 block">② カード・パネルの背景色</span>
+                    <div class="color-wheel-wrapper">
+                        <div class="color-wheel-center">
+                            <div id="cardBgWheelPreview" class="color-wheel-preview"></div>
                         </div>
-                        <div class="flex-1 space-y-1">
-                            <div class="flex justify-between text-[11px] font-bold text-slate-700">
-                                <span>透明度（透過率）</span>
-                                <span id="cardOpacityLabel" class="text-app-theme font-mono">94%</span>
-                            </div>
-                            <input type="range" id="cardOpacityRange" min="0.3" max="1.0" step="0.05" value="0.94" oninput="updateCardBgOpacity(this.value)" class="w-full accent-indigo-600">
-                        </div>
+                        <input type="color" id="cardBgWheelInput" oninput="setCardBgColor(this.value)" onchange="setCardBgColor(this.value)" class="wheel-native-input">
                     </div>
                     <!-- クイックプリセット -->
                     <div class="grid grid-cols-4 gap-1.5 pt-1">
-                        <button type="button" onclick="setCardPreset('#ffffff', 0.94)" class="py-1.5 bg-white border border-slate-200 rounded-xl text-[10px] font-bold text-slate-700 shadow-2xs">ホワイト</button>
-                        <button type="button" onclick="setCardPreset('#fef3c7', 0.90)" class="py-1.5 bg-amber-100 border border-amber-200 rounded-xl text-[10px] font-bold text-amber-800 shadow-2xs">クリーム</button>
-                        <button type="button" onclick="setCardPreset('#f3e8ff', 0.90)" class="py-1.5 bg-purple-100 border border-purple-200 rounded-xl text-[10px] font-bold text-purple-800 shadow-2xs">ラベンダー</button>
-                        <button type="button" onclick="setCardPreset('#0f172a', 0.85)" class="py-1.5 bg-slate-900 text-white rounded-xl text-[10px] font-bold shadow-2xs">ダーク</button>
+                        <button type="button" onclick="setCardBgColor('#ffffff')" class="py-1.5 bg-white border border-slate-200 rounded-xl text-[10px] font-bold text-slate-700 shadow-2xs">ホワイト</button>
+                        <button type="button" onclick="setCardBgColor('#fef3c7')" class="py-1.5 bg-amber-100 border border-amber-200 rounded-xl text-[10px] font-bold text-amber-800 shadow-2xs">クリーム</button>
+                        <button type="button" onclick="setCardBgColor('#f3e8ff')" class="py-1.5 bg-purple-100 border border-purple-200 rounded-xl text-[10px] font-bold text-purple-800 shadow-2xs">ラベンダー</button>
+                        <button type="button" onclick="setCardBgColor('#1e293b')" class="py-1.5 bg-slate-800 text-white rounded-xl text-[10px] font-bold shadow-2xs">ダーク</button>
                     </div>
                 </div>
 
-                <!-- 3. アプリ全体の背景変更 -->
+                <!-- 3. アプリ全体の背景変更（写真自動抽出機能つき） -->
                 <div class="space-y-2 pt-2 border-t border-slate-200/60">
                     <span class="text-xs font-bold text-slate-700 block">③ アプリ全体の背景</span>
                     <div class="space-y-2">
                         <label class="block w-full py-2 px-3 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl cursor-pointer transition active:scale-95 shadow-2xs border border-slate-200 text-center">
-                            <i class="fa-solid fa-file-image mr-1 text-app-theme"></i> 写真から背景を選択する
+                            <i class="fa-solid fa-file-image mr-1 text-app-theme"></i> 写真から背景を選択（自動カラー抽出）
                             <input type="file" accept="image/*" onchange="handleAppBgSelect(event)" class="hidden">
                         </label>
                         <div class="flex items-center space-x-2">
@@ -565,7 +556,6 @@
         let appBgImage = localStorage.getItem('reminders_app_bg') || '';
         let appBgColor = localStorage.getItem('reminders_app_bgcolor') || '#f8fafc';
         let cardBgColorSetting = localStorage.getItem('reminders_card_bgcolor') || '#ffffff';
-        let cardBgOpacitySetting = localStorage.getItem('reminders_card_opacity') || '0.94';
 
         let mainTab = 'list';
         let selectedCategoryDetail = null; 
@@ -589,7 +579,7 @@
             applyAppThemeColor(appThemeColor);
             applyAppBgImage(appBgImage);
             applyAppBgColor(appBgColor);
-            applyCardBgCustom(cardBgColorSetting, cardBgOpacitySetting);
+            applyCardBgColor(cardBgColorSetting);
             renderCategorySelect();
             initCalendarSelects();
             renderApp();
@@ -750,33 +740,20 @@
             renderApp();
         }
 
-        function applyCardBgCustom(hexColor, opacity) {
+        function applyCardBgColor(hexColor) {
             cardBgColorSetting = hexColor;
-            cardBgOpacitySetting = opacity;
             localStorage.setItem('reminders_card_bgcolor', hexColor);
-            localStorage.setItem('reminders_card_opacity', opacity);
+            document.documentElement.style.setProperty('--app-card-bg', hexColor);
 
-            let rgba = hexToRgba(hexColor, opacity);
-            document.documentElement.style.setProperty('--app-card-bg', rgba);
-
-            const colorPicker = document.getElementById('cardBgColorPicker');
-            const rangePicker = document.getElementById('cardOpacityRange');
-            const label = document.getElementById('cardOpacityLabel');
-            if (colorPicker) colorPicker.value = hexColor;
-            if (rangePicker) rangePicker.value = opacity;
-            if (label) label.innerText = `${Math.round(opacity * 100)}%`;
+            const preview = document.getElementById('cardBgWheelPreview');
+            const picker = document.getElementById('cardBgWheelInput');
+            if (preview) preview.style.backgroundColor = hexColor;
+            if (picker) picker.value = hexColor;
         }
 
-        function updateCardBgColor(hexColor) {
-            applyCardBgCustom(hexColor, cardBgOpacitySetting);
-        }
-
-        function updateCardBgOpacity(opacity) {
-            applyCardBgCustom(cardBgColorSetting, opacity);
-        }
-
-        function setCardPreset(hexColor, opacity) {
-            applyCardBgCustom(hexColor, opacity);
+        function setCardBgColor(hexColor) {
+            applyCardBgColor(hexColor);
+            renderApp();
         }
 
         function applyAppBgColor(color) {
@@ -817,7 +794,51 @@
             if (!file) return;
             compressImageFile(file, 1200, 1200, 0.75, (compressedBase64) => {
                 applyAppBgImage(compressedBase64);
+                extractColorsFromImage(compressedBase64);
             });
+        }
+
+        /* 画像からメインカラー・適したカード色を自動解析してセット */
+        function extractColorsFromImage(base64Image) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 50;
+                canvas.height = 50;
+                ctx.drawImage(img, 0, 0, 50, 50);
+                
+                const imageData = ctx.getImageData(0, 0, 50, 50).data;
+                let rSum = 0, gSum = 0, bSum = 0, count = 0;
+
+                for (let i = 0; i < imageData.length; i += 16) {
+                    rSum += imageData[i];
+                    gSum += imageData[i + 1];
+                    bSum += imageData[i + 2];
+                    count++;
+                }
+
+                let avgR = Math.round(rSum / count);
+                let avgG = Math.round(gSum / count);
+                let avgB = Math.round(bSum / count);
+
+                let themeHex = rgbToHex(avgR, avgG, avgB);
+                
+                // 明るさを判定（輝度計算）
+                let luminance = (0.299 * avgR + 0.587 * avgG + 0.114 * avgB) / 255;
+                
+                // 明るい写真ならカードは真っ白、暗い写真ならアイボリーまたはダーク色を自動計算
+                let cardHex = luminance > 0.6 ? '#ffffff' : (luminance < 0.3 ? '#1e293b' : '#f8fafc');
+
+                applyAppThemeColor(themeHex);
+                applyCardBgColor(cardHex);
+                renderApp();
+            };
+            img.src = base64Image;
+        }
+
+        function rgbToHex(r, g, b) {
+            return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
         }
 
         function clearAppBgImage() {
@@ -1418,7 +1439,7 @@
                 `;
 
                 return `
-                    <div data-id="${genre.id}" class="rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 overflow-hidden" style="background: ${bgGrad}; backdrop-filter: blur(6px);">
+                    <div data-id="${genre.id}" class="rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 overflow-hidden" style="background: ${bgGrad};">
                         <div class="px-3.5 py-2.5 flex items-center justify-between">
                             <div class="flex items-center space-x-3 flex-1 cursor-pointer" onclick="openCategoryDetail('${genre.name}')">
                                 <div onclick="event.stopPropagation(); triggerGenreImageChange(event, ${genre.id})" class="shrink-0">
