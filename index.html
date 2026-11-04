@@ -575,7 +575,6 @@
         let appBgImage = localStorage.getItem('reminders_app_bg') || '';
         let appBgColor = localStorage.getItem('reminders_app_bgcolor') || '#f8fafc';
         
-        // パネル背景を「純白（255, 255, 255）のガラス仕様」に固定初期化
         let cardBgR = localStorage.getItem('reminders_card_r') || '255';
         let cardBgG = localStorage.getItem('reminders_card_g') || '255';
         let cardBgB = localStorage.getItem('reminders_card_b') || '255';
@@ -1290,13 +1289,16 @@
                         `;
 
                         let thumbnailHtml = '';
+                        let targetUrl = item.url || extractUrl(item.memo);
                         if (item.image) {
-                            let targetUrl = item.url || extractUrl(item.memo);
                             if (targetUrl) {
                                 thumbnailHtml = `<div onclick="event.stopPropagation(); window.open('${targetUrl}', '_blank')" class="w-9 h-9 rounded-xl overflow-hidden border border-slate-200/50 shrink-0 shadow-2xs bg-white/60 cursor-pointer hover:opacity-80 transition active:scale-90 relative" title="タップしてリンク先を開く"><img src="${item.image}" class="w-full h-full object-cover pointer-events-none"></div>`;
                             } else {
                                 thumbnailHtml = `<div class="w-9 h-9 rounded-xl overflow-hidden border border-slate-200/50 shrink-0 shadow-2xs bg-white/60"><img src="${item.image}" class="w-full h-full object-cover"></div>`;
                             }
+                        } else if (targetUrl) {
+                            // サムネイルがまだない場合でもリンクがある場合はアイコンを表示してタップで飛べるようにする
+                            thumbnailHtml = `<div onclick="event.stopPropagation(); window.open('${targetUrl}', '_blank')" class="w-9 h-9 rounded-xl overflow-hidden border border-indigo-200 shrink-0 shadow-2xs bg-indigo-50 flex items-center justify-center text-app-theme cursor-pointer hover:opacity-80 transition active:scale-90" title="タップしてリンク先を開く"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></div>`;
                         }
 
                         return `
@@ -1362,13 +1364,15 @@
                         `;
 
                         let thumbnailHtml = '';
+                        let targetUrl = item.url || extractUrl(item.memo);
                         if (item.image) {
-                            let targetUrl = item.url || extractUrl(item.memo);
                             if (targetUrl) {
                                 thumbnailHtml = `<div onclick="event.stopPropagation(); window.open('${targetUrl}', '_blank')" class="w-9 h-9 rounded-xl overflow-hidden border border-slate-200/50 shrink-0 shadow-2xs bg-white/60 cursor-pointer hover:opacity-80 transition active:scale-90 relative" title="タップしてリンク先を開く"><img src="${item.image}" class="w-full h-full object-cover pointer-events-none"></div>`;
                             } else {
                                 thumbnailHtml = `<div class="w-9 h-9 rounded-xl overflow-hidden border border-slate-200/50 shrink-0 shadow-2xs bg-white/60"><img src="${item.image}" class="w-full h-full object-cover"></div>`;
                             }
+                        } else if (targetUrl) {
+                            thumbnailHtml = `<div onclick="event.stopPropagation(); window.open('${targetUrl}', '_blank')" class="w-9 h-9 rounded-xl overflow-hidden border border-indigo-200 shrink-0 shadow-2xs bg-indigo-50 flex items-center justify-center text-app-theme cursor-pointer hover:opacity-80 transition active:scale-90" title="タップしてリンク先を開く"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></div>`;
                         }
 
                         return `
@@ -1565,7 +1569,6 @@
             renderCalendarView();
         }
 
-        // 「今日」ボタンを押した際に自動で今日の日付・年月へセット
         function currentMonthToday() {
             const now = new Date();
             calendarYear = now.getFullYear();
@@ -1647,14 +1650,30 @@
 
         function closeModal() { hideSheetModal('itemModal', 'itemModalCard'); }
 
-        function saveItem(event) {
+        async function saveItem(event) {
             event.preventDefault();
             const id = document.getElementById('itemId').value;
             const typeVal = document.querySelector('input[name="itemType"]:checked').value;
-            const imageBase64 = document.getElementById('itemImageBase64').value;
+            let imageBase64 = document.getElementById('itemImageBase64').value;
             const memoVal = document.getElementById('itemMemo').value;
             const extractedUrl = extractUrl(memoVal);
             const savedUrl = document.getElementById('itemUrl').value || extractedUrl;
+
+            // 新規追加や編集時で画像が未設定かつURLがある場合、保存時に自動でサムネイル（OGP）取得を試みる
+            if (!imageBase64 && savedUrl) {
+                try {
+                    const response = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(savedUrl)}`);
+                    const json = await response.json();
+                    if (json.status === 'success' && json.data && json.data.image && json.data.image.url) {
+                        await new Promise((resolve) => {
+                            toDataURL(json.data.image.url, (b64) => {
+                                if (b64) imageBase64 = b64;
+                                resolve();
+                            });
+                        });
+                    }
+                } catch (e) {}
+            }
 
             const newItem = {
                 id: id ? Number(id) : Date.now(),
@@ -1780,6 +1799,12 @@
                 renderCategorySelect();
                 renderApp();
             }
+        }
+
+        function normalizeInstagramUrl(url) {
+            if (!url) return url;
+            // Instagramのリール等でURLが途切れている・パラメータがある場合の対策や補正
+            return url.trim();
         }
 
         function addNewGenre(event) {
