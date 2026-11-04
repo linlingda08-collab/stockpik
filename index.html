@@ -225,30 +225,33 @@
             <div id="folderContainer" class="space-y-2 pt-1"></div>
         </div>
 
-        <!-- カレンダービューエリア（ガラス風デザイン統一 ＆ 年月選択対応） -->
+        <!-- カレンダービューエリア -->
         <div id="calendarViewContainer" class="hidden space-y-4">
-            <div class="bg-white/90 backdrop-blur-md p-3.5 rounded-3xl border border-slate-200/80 shadow-xs flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-                    <!-- 年月セレクトボックス -->
-                    <div class="flex items-center space-x-1">
-                        <select id="calendarYearSelect" onchange="onCalendarSelectChange()" class="bg-slate-100/80 border border-slate-200 rounded-xl px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none"></select>
-                        <select id="calendarMonthSelect" onchange="onCalendarSelectChange()" class="bg-slate-100/80 border border-slate-200 rounded-xl px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none"></select>
+            <div class="bg-white/70 backdrop-blur-md p-3.5 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row justify-between items-center gap-2">
+                <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-start">
+                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-xl bg-white/80 hover:bg-white text-slate-700 flex items-center justify-center transition shadow-2xs"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <!-- 年月セレクトボックス（月を明確に） -->
+                    <div class="flex items-center space-x-1.5">
+                        <select id="calendarYearSelect" onchange="onCalendarSelectChange()" class="bg-white/80 border border-slate-200 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none shadow-2xs"></select>
+                        <select id="calendarMonthSelect" onchange="onCalendarSelectChange()" class="bg-white/80 border border-slate-200 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none shadow-2xs"></select>
                     </div>
-                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-xl bg-white/80 hover:bg-white text-slate-700 flex items-center justify-center transition shadow-2xs"><i class="fa-solid fa-chevron-right text-xs"></i></button>
                 </div>
-                <button onclick="currentMonthToday()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">今月</button>
+                <div class="flex items-center space-x-2">
+                    <span id="currentMonthBigLabel" class="text-xs font-bold text-app-theme bg-indigo-50/80 px-3 py-1 rounded-xl border border-indigo-100"></span>
+                    <button onclick="currentMonthToday()" class="px-3 py-1 bg-white/80 hover:bg-white text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs">今月</button>
+                </div>
             </div>
-            <!-- カレンダーグリッド（暦） -->
-            <div class="bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
-                <div class="grid grid-cols-7 text-center text-xs font-bold text-slate-400 pb-2 border-b border-slate-100">
+            <!-- カレンダーグリッド（暦・ガラス風） -->
+            <div class="bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
+                <div class="grid grid-cols-7 text-center text-xs font-bold text-slate-400 pb-2 border-b border-slate-200/50">
                     <span class="text-rose-500">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="text-indigo-500">土</span>
                 </div>
                 <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1"></div>
             </div>
-            <!-- 選択された日の予定リスト -->
-            <div class="bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
-                <h3 id="selectedDateTitle" class="font-bold text-xs text-slate-500 border-b border-slate-100 pb-2">本日の予定</h3>
+            <!-- 選択された日の予定リスト（ガラス風） -->
+            <div class="bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
+                <h3 id="selectedDateTitle" class="font-bold text-xs text-slate-600 border-b border-slate-200/50 pb-2">本日の予定</h3>
                 <div id="selectedDateScheduleList" class="space-y-2"></div>
             </div>
         </div>
@@ -389,53 +392,53 @@
         </div>
     </div>
 
-    <!-- アイテム追加・編集モーダル（改良版：iPhone画面の約2/3の高さでゆとりを持たせた入力フォーム） -->
+    <!-- アイテム追加・編集モーダル（文字かぶり完全解消版：ゆとりあるパディング） -->
     <div id="itemModal" onclick="handleModalOutsideClick(event, 'itemModal', closeModal)" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div id="itemModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-md h-[65vh] sm:h-auto rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 flex flex-col justify-between border border-slate-100">
+        <div id="itemModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-md h-[72vh] sm:h-auto rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 flex flex-col justify-between border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3 shrink-0">
                 <h2 id="modalTitle" class="text-base font-bold text-slate-900">追加</h2>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1.5"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-3.5 overflow-y-auto flex-1 pr-1 py-1">
+            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4 overflow-y-auto flex-1 pr-1 py-2">
                 <input type="hidden" id="itemId">
                 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">種別</label>
-                        <div class="grid grid-cols-2 gap-1.5">
-                            <label class="flex items-center justify-center space-x-1 bg-white py-2.5 px-1 rounded-xl border border-slate-200 cursor-pointer shadow-2xs">
-                                <input type="radio" name="itemType" value="reminder" checked class="text-app-theme focus:ring-0">
-                                <span class="text-xs font-bold text-slate-800 whitespace-nowrap">リマインダー</span>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">種別</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center justify-center py-2.5 px-2 bg-white rounded-xl border border-slate-200 cursor-pointer shadow-2xs hover:bg-slate-50 transition">
+                                <input type="radio" name="itemType" value="reminder" checked class="text-app-theme focus:ring-0 mr-1.5">
+                                <span class="text-[11px] font-bold text-slate-800">リマインダー</span>
                             </label>
-                            <label class="flex items-center justify-center space-x-1 bg-white py-2.5 px-1 rounded-xl border border-slate-200 cursor-pointer shadow-2xs">
-                                <input type="radio" name="itemType" value="memo" class="text-app-theme focus:ring-0">
-                                <span class="text-xs font-bold text-slate-800 whitespace-nowrap">メモ</span>
+                            <label class="flex items-center justify-center py-2.5 px-2 bg-white rounded-xl border border-slate-200 cursor-pointer shadow-2xs hover:bg-slate-50 transition">
+                                <input type="radio" name="itemType" value="memo" class="text-app-theme focus:ring-0 mr-1.5">
+                                <span class="text-[11px] font-bold text-slate-800">メモ</span>
                             </label>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">ジャンル</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">ジャンル</label>
                         <select id="itemCategory" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none"></select>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル <span class="text-rose-500">*</span></label>
-                    <input type="text" id="itemTitle" required placeholder="例: 絆創膏 ケアリーヴ" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">タイトル <span class="text-rose-500">*</span></label>
+                    <input type="text" id="itemTitle" required placeholder="例: 絆創膏 ケアリーヴ" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">購入予定日（任意）</label>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">購入予定日（任意）</label>
                         <input type="date" id="itemTargetDate" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">購入先・店舗</label>
-                        <input type="text" id="itemStore" placeholder="例: 薬局" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">購入先・店舗</label>
+                        <input type="text" id="itemStore" placeholder="例: 薬局" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-5 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200">
+                <div class="flex items-center space-x-6 bg-slate-50 px-4 py-3 rounded-xl border border-slate-200">
                     <label class="flex items-center space-x-2 cursor-pointer">
                         <input type="checkbox" id="itemUrgent" class="w-4 h-4 text-rose-600 border-slate-300 rounded">
                         <span class="text-xs font-bold text-rose-600"><i class="fa-solid fa-fire mr-1"></i>急ぎ</span>
@@ -447,11 +450,11 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">メモ / 参考URL</label>
-                    <input type="text" id="itemMemo" placeholder="型番やURLなど" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">メモ / 参考URL</label>
+                    <input type="text" id="itemMemo" placeholder="型番やURLなど" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                 </div>
             </form>
-            <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 shrink-0">
+            <div class="flex justify-end space-x-2.5 pt-3 border-t border-slate-100 shrink-0">
                 <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium transition">キャンセル</button>
                 <button type="button" onclick="document.getElementById('itemForm').requestSubmit()" class="px-5 py-2 bg-app-theme text-white rounded-xl text-xs font-medium hover:opacity-90 active:scale-95 transition shadow-xs">保存する</button>
             </div>
@@ -532,7 +535,6 @@
             initCalendarSelects();
             renderApp();
             initSwipeGesture();
-            autoFetchExistingImages();
         }
 
         function switchMainTab(tab) {
@@ -868,63 +870,6 @@
             });
         }
 
-        async function fetchImageFromUrl(url) {
-            if (!url || !url.startsWith('http')) return;
-            const currentImg = document.getElementById('itemImageBase64').value;
-            if (currentImg) return;
-            try {
-                const response = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`);
-                const json = await response.json();
-                if (json.status === 'success' && json.data && json.data.image && json.data.image.url) {
-                    toDataURL(json.data.image.url, function(base64Img) {
-                        if (base64Img) document.getElementById('itemImageBase64').value = base64Img;
-                    });
-                }
-            } catch (err) {}
-        }
-
-        async function autoFetchExistingImages() {
-            let updated = false;
-            for (let item of items) {
-                if (item.url && !item.image) {
-                    try {
-                        const res = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(item.url)}`);
-                        const json = await res.json();
-                        if (json.status === 'success' && json.data && json.data.image && json.data.image.url) {
-                            await new Promise(resolve => {
-                                toDataURL(json.data.image.url, (b64) => {
-                                    if (b64) { item.image = b64; updated = true; }
-                                    resolve();
-                                });
-                            });
-                        }
-                    } catch (e) {}
-                }
-            }
-            if (updated) {
-                localStorage.setItem('reminders_items', JSON.stringify(items));
-                renderApp();
-            }
-        }
-
-        function toDataURL(url, callback) {
-            const img = new Image();
-            img.crossOrigin = 'Anonymous';
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                let width = img.width; let height = img.height;
-                const maxDim = 600;
-                if (width > height && width > maxDim) { height *= maxDim / width; width = maxDim; }
-                else if (height > maxDim) { width *= maxDim / height; height = maxDim; }
-                canvas.width = width; canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                try { callback(canvas.toDataURL('image/jpeg', 0.75)); } catch (e) { callback(null); }
-            };
-            img.onerror = function() { callback(null); };
-            img.src = `https://images.weserv.nl/?url=${encodeURIComponent(url)}`;
-        }
-
         function toggleCheckItem(id) {
             const item = items.find(i => i.id === id);
             if (!item) return;
@@ -1245,7 +1190,6 @@
 
             emptyState.classList.add('hidden');
 
-            // カテゴリーカードをよりコンパクトに調整
             folderContainer.innerHTML = customGenres.map(genre => {
                 const bgGrad = `linear-gradient(135deg, ${hexToRgba(genre.color, 0.22)}, rgba(255, 255, 255, 0.95))`;
                 const iconHtml = genre.image ? `
@@ -1294,6 +1238,7 @@
         function renderCalendarView() {
             document.getElementById('calendarYearSelect').value = calendarYear;
             document.getElementById('calendarMonthSelect').value = calendarMonth;
+            document.getElementById('currentMonthBigLabel').innerText = `${calendarYear}年 ${calendarMonth + 1}月`;
 
             const gridEl = document.getElementById('calendarDaysGrid');
             const firstDayIndex = new Date(calendarYear, calendarMonth, 1).getDay();
@@ -1315,9 +1260,9 @@
                 const isSelected = (selectedCalendarDateStr === dateStr);
                 const isToday = (todayStr === dateStr);
 
-                let btnClass = "bg-white/80 hover:bg-slate-100 text-slate-700 border border-slate-200/80";
-                if (isSelected) btnClass = "bg-app-theme text-white border-app-theme shadow-xs";
-                else if (isToday) btnClass = "bg-indigo-50 text-indigo-700 border-indigo-300 font-bold";
+                let btnClass = "bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80 shadow-2xs";
+                if (isSelected) btnClass = "bg-app-theme text-white border-app-theme shadow-sm font-bold";
+                else if (isToday) btnClass = "bg-indigo-50 text-indigo-700 border-indigo-300 font-bold shadow-2xs";
 
                 daysHtml += `
                     <button onclick="selectCalendarDate('${dateStr}')" class="h-10 rounded-xl flex flex-col items-center justify-center text-xs transition relative active:scale-95 ${btnClass}">
