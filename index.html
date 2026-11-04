@@ -450,6 +450,7 @@
             <form id="itemForm" onsubmit="saveItem(event)" class="space-y-3 py-2">
                 <input type="hidden" id="itemId">
                 <input type="hidden" id="itemImageBase64">
+                <input type="hidden" id="itemUrl">
                 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -605,7 +606,7 @@
             initCalendarSelects();
             renderApp();
             initSwipeGesture();
-            autoFetchExistingImages();
+            autoFetchExistingImagesAndUrls();
         }
 
         function switchMainTab(tab) {
@@ -689,11 +690,9 @@
                 text += `${typePrefix}${item.title}${urgentMark}${favMark}\n`;
                 if (item.targetDate) text += `予定日: ${item.targetDate}\n`;
                 if (item.store) text += `店舗: ${item.store}\n`;
-                if (item.memo) {
-                    text += `メモ: ${item.memo}\n`;
-                    const urlMatch = item.memo.match(/(https?:\/\/[^\s]+)/g);
-                    if (urlMatch) text += `リンク: ${urlMatch[0]}\n`;
-                }
+                if (item.memo) text += `メモ: ${item.memo}\n`;
+                let shareUrl = item.url || extractUrl(item.memo);
+                if (shareUrl) text += `リンク: ${shareUrl}\n`;
                 text += `\n`;
             });
 
@@ -737,11 +736,9 @@
             text += `ジャンル: ${item.category}\n`;
             if (item.targetDate) text += `予定日: ${item.targetDate}\n`;
             if (item.store) text += `店舗: ${item.store}\n`;
-            if (item.memo) {
-                text += `メモ: ${item.memo}\n`;
-                const urlMatch = item.memo.match(/(https?:\/\/[^\s]+)/g);
-                if (urlMatch) text += `リンク: ${urlMatch[0]}\n`;
-            }
+            if (item.memo) text += `メモ: ${item.memo}\n`;
+            let shareUrl = item.url || extractUrl(item.memo);
+            if (shareUrl) text += `リンク: ${shareUrl}\n`;
 
             text = text.trim();
             if (navigator.share) {
@@ -752,6 +749,12 @@
                 navigator.clipboard.writeText(text);
                 alert('アイテムの情報をコピーしました！');
             }
+        }
+
+        function extractUrl(text) {
+            if (!text) return '';
+            const match = text.match(/(https?:\/\/[^\s]+)/g);
+            return match ? match[0] : '';
         }
 
         function applyAppThemeColor(color) {
@@ -1014,9 +1017,10 @@
         }
 
         function checkUrlInput(val) {
-            const match = val.match(/(https?:\/\/[^\s]+)/g);
-            if (match && match.length > 0) {
-                fetchImageFromUrl(match[0]);
+            const url = extractUrl(val);
+            if (url) {
+                document.getElementById('itemUrl').value = url;
+                fetchImageFromUrl(url);
             }
         }
 
@@ -1039,14 +1043,18 @@
             } catch (err) {}
         }
 
-        async function autoFetchExistingImages() {
+        async function autoFetchExistingImagesAndUrls() {
             let updated = false;
             for (let item of items) {
-                if (item.memo && !item.image) {
-                    const match = item.memo.match(/(https?:\/\/[^\s]+)/g);
-                    if (match && match.length > 0) {
+                if (item.memo) {
+                    const url = extractUrl(item.memo);
+                    if (url && !item.url) {
+                        item.url = url;
+                        updated = true;
+                    }
+                    if (url && !item.image) {
                         try {
-                            const res = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(match[0])}`);
+                            const res = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`);
                             const json = await res.json();
                             if (json.status === 'success' && json.data && json.data.image && json.data.image.url) {
                                 await new Promise(resolve => {
@@ -1139,12 +1147,10 @@
             const typeLabel = item.type === 'memo' ? '<span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-lg">📖 メモ</span>' : '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-lg">🛒 リマインダー</span>';
             const content = document.getElementById('viewModalContent');
             
+            let targetUrl = item.url || extractUrl(item.memo);
             let urlLinkHtml = '';
-            if (item.memo) {
-                const match = item.memo.match(/(https?:\/\/[^\s]+)/g);
-                if (match) {
-                    urlLinkHtml = `<div class="pt-1"><a href="${match[0]}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs font-bold text-app-theme hover:underline bg-indigo-50/80 px-3 py-1.5 rounded-xl border border-indigo-100/60"><i class="fa-solid fa-arrow-up-right-from-square"><span>リンクを開く: ${match[0]}</span></i></a></div>`;
-                }
+            if (targetUrl) {
+                urlLinkHtml = `<div class="pt-1"><a href="${targetUrl}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs font-bold text-app-theme hover:underline bg-indigo-50/80 px-3 py-1.5 rounded-xl border border-indigo-100/60"><i class="fa-solid fa-arrow-up-right-from-square"><span>リンクを開く: ${targetUrl}</span></i></a></div>`;
             }
 
             content.innerHTML = `
@@ -1158,8 +1164,6 @@
                     <h2 class="text-lg font-bold text-slate-900">${item.title}</h2>
                 </div>
                 ${item.image ? (() => {
-                    let matchUrl = item.memo ? item.memo.match(/(https?:\/\/[^\s]+)/) : null;
-                    let targetUrl = matchUrl ? matchUrl[0] : '';
                     if (targetUrl) {
                         return `<div class="rounded-2xl overflow-hidden border border-slate-200/50 max-h-48 bg-white/60 flex items-center justify-center cursor-pointer relative group" onclick="window.open('${targetUrl}', '_blank')" title="タップしてリンク先を開く"><img src="${item.image}" class="max-h-48 object-contain"><div class="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white font-bold text-xs"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>リンクを開く</div></div>`;
                     } else {
@@ -1285,8 +1289,7 @@
 
                         let thumbnailHtml = '';
                         if (item.image) {
-                            let matchUrl = item.memo ? item.memo.match(/(https?:\/\/[^\s]+)/) : null;
-                            let targetUrl = matchUrl ? matchUrl[0] : '';
+                            let targetUrl = item.url || extractUrl(item.memo);
                             if (targetUrl) {
                                 thumbnailHtml = `<div onclick="event.stopPropagation(); window.open('${targetUrl}', '_blank')" class="w-9 h-9 rounded-xl overflow-hidden border border-slate-200/50 shrink-0 shadow-2xs bg-white/60 cursor-pointer hover:opacity-80 transition active:scale-90 relative" title="タップしてリンク先を開く"><img src="${item.image}" class="w-full h-full object-cover pointer-events-none"></div>`;
                             } else {
@@ -1358,8 +1361,7 @@
 
                         let thumbnailHtml = '';
                         if (item.image) {
-                            let matchUrl = item.memo ? item.memo.match(/(https?:\/\/[^\s]+)/) : null;
-                            let targetUrl = matchUrl ? matchUrl[0] : '';
+                            let targetUrl = item.url || extractUrl(item.memo);
                             if (targetUrl) {
                                 thumbnailHtml = `<div onclick="event.stopPropagation(); window.open('${targetUrl}', '_blank')" class="w-9 h-9 rounded-xl overflow-hidden border border-slate-200/50 shrink-0 shadow-2xs bg-white/60 cursor-pointer hover:opacity-80 transition active:scale-90 relative" title="タップしてリンク先を開く"><img src="${item.image}" class="w-full h-full object-cover pointer-events-none"></div>`;
                             } else {
@@ -1606,6 +1608,7 @@
             const form = document.getElementById('itemForm');
             form.reset();
             clearItemImage();
+            document.getElementById('itemUrl').value = '';
 
             if (id) {
                 document.getElementById('modalTitle').innerText = '編集';
@@ -1616,6 +1619,7 @@
                 document.getElementById('itemTargetDate').value = item.targetDate || '';
                 document.getElementById('itemStore').value = item.store || '';
                 document.getElementById('itemMemo').value = item.memo || '';
+                document.getElementById('itemUrl').value = item.url || extractUrl(item.memo) || '';
                 document.getElementById('itemUrgent').checked = item.urgent || false;
                 document.getElementById('itemFavorite').checked = item.favorite || false;
                 
@@ -1645,6 +1649,9 @@
             const id = document.getElementById('itemId').value;
             const typeVal = document.querySelector('input[name="itemType"]:checked').value;
             const imageBase64 = document.getElementById('itemImageBase64').value;
+            const memoVal = document.getElementById('itemMemo').value;
+            const extractedUrl = extractUrl(memoVal);
+            const savedUrl = document.getElementById('itemUrl').value || extractedUrl;
 
             const newItem = {
                 id: id ? Number(id) : Date.now(),
@@ -1653,7 +1660,8 @@
                 category: document.getElementById('itemCategory').value,
                 targetDate: document.getElementById('itemTargetDate').value,
                 store: document.getElementById('itemStore').value,
-                memo: document.getElementById('itemMemo').value,
+                memo: memoVal,
+                url: savedUrl,
                 urgent: document.getElementById('itemUrgent').checked,
                 favorite: document.getElementById('itemFavorite').checked,
                 image: imageBase64 || '',
