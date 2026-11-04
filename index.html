@@ -392,27 +392,28 @@
         </div>
     </div>
 
-    <!-- アイテム追加・編集モーダル（文字かぶり完全解消版：ゆとりあるパディング） -->
+    <!-- アイテム追加・編集モーダル（種別1行化 & 写真添付機能復活） -->
     <div id="itemModal" onclick="handleModalOutsideClick(event, 'itemModal', closeModal)" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div id="itemModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-md h-[72vh] sm:h-auto rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 flex flex-col justify-between border border-slate-100">
+        <div id="itemModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-md h-[75vh] sm:h-auto rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 flex flex-col justify-between border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3 shrink-0">
                 <h2 id="modalTitle" class="text-base font-bold text-slate-900">追加</h2>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1.5"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-4 overflow-y-auto flex-1 pr-1 py-2">
+            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-3.5 overflow-y-auto flex-1 pr-1 py-2">
                 <input type="hidden" id="itemId">
+                <input type="hidden" id="itemImageBase64">
                 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">種別</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <label class="flex items-center justify-center py-2.5 px-2 bg-white rounded-xl border border-slate-200 cursor-pointer shadow-2xs hover:bg-slate-50 transition">
-                                <input type="radio" name="itemType" value="reminder" checked class="text-app-theme focus:ring-0 mr-1.5">
-                                <span class="text-[11px] font-bold text-slate-800">リマインダー</span>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <label class="flex items-center justify-center py-2.5 px-1 bg-white rounded-xl border border-slate-200 cursor-pointer shadow-2xs hover:bg-slate-50 transition whitespace-nowrap">
+                                <input type="radio" name="itemType" value="reminder" checked class="text-app-theme focus:ring-0 mr-1">
+                                <span class="text-[10.5px] font-bold text-slate-800">リマインダー</span>
                             </label>
-                            <label class="flex items-center justify-center py-2.5 px-2 bg-white rounded-xl border border-slate-200 cursor-pointer shadow-2xs hover:bg-slate-50 transition">
-                                <input type="radio" name="itemType" value="memo" class="text-app-theme focus:ring-0 mr-1.5">
-                                <span class="text-[11px] font-bold text-slate-800">メモ</span>
+                            <label class="flex items-center justify-center py-2.5 px-1 bg-white rounded-xl border border-slate-200 cursor-pointer shadow-2xs hover:bg-slate-50 transition whitespace-nowrap">
+                                <input type="radio" name="itemType" value="memo" class="text-app-theme focus:ring-0 mr-1">
+                                <span class="text-[10.5px] font-bold text-slate-800">メモ</span>
                             </label>
                         </div>
                     </div>
@@ -438,7 +439,7 @@
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-6 bg-slate-50 px-4 py-3 rounded-xl border border-slate-200">
+                <div class="flex items-center space-x-6 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200">
                     <label class="flex items-center space-x-2 cursor-pointer">
                         <input type="checkbox" id="itemUrgent" class="w-4 h-4 text-rose-600 border-slate-300 rounded">
                         <span class="text-xs font-bold text-rose-600"><i class="fa-solid fa-fire mr-1"></i>急ぎ</span>
@@ -451,7 +452,23 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1.5">メモ / 参考URL</label>
-                    <input type="text" id="itemMemo" placeholder="型番やURLなど" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                    <input type="text" id="itemMemo" oninput="checkUrlInput(this.value)" placeholder="型番やURLなど" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                </div>
+
+                <!-- 写真添付機能復活エリア -->
+                <div class="pt-1">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">写真添付（任意）</label>
+                    <div class="flex items-center space-x-3">
+                        <label class="py-2 px-3.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer shadow-2xs transition active:scale-95 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-camera text-app-theme"></i>
+                            <span>写真を選択</span>
+                            <input type="file" accept="image/*" onchange="handleItemImageSelect(event)" class="hidden">
+                        </label>
+                        <div id="modalImagePreviewWrapper" class="hidden flex items-center space-x-2">
+                            <img id="modalImagePreview" class="w-9 h-9 rounded-xl object-cover border border-slate-200 shadow-2xs">
+                            <button type="button" onclick="clearItemImage()" class="text-rose-500 text-xs font-bold hover:underline">削除</button>
+                        </div>
+                    </div>
                 </div>
             </form>
             <div class="flex justify-end space-x-2.5 pt-3 border-t border-slate-100 shrink-0">
@@ -535,6 +552,7 @@
             initCalendarSelects();
             renderApp();
             initSwipeGesture();
+            autoFetchExistingImages();
         }
 
         function switchMainTab(tab) {
@@ -870,6 +888,95 @@
             });
         }
 
+        // アイテム画像ハンドラ（写真添付機能復活）
+        function handleItemImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            compressImageFile(file, 600, 600, 0.75, (compressedBase64) => {
+                document.getElementById('itemImageBase64').value = compressedBase64;
+                document.getElementById('modalImagePreview').src = compressedBase64;
+                document.getElementById('modalImagePreviewWrapper').classList.remove('hidden');
+            });
+        }
+
+        function clearItemImage() {
+            document.getElementById('itemImageBase64').value = '';
+            document.getElementById('modalImagePreview').src = '';
+            document.getElementById('modalImagePreviewWrapper').classList.add('hidden');
+        }
+
+        // URLリンクからの自動サムネイル取得機能復活
+        function checkUrlInput(val) {
+            const match = val.match(/(https?:\/\/[^\s]+)/g);
+            if (match && match.length > 0) {
+                fetchImageFromUrl(match[0]);
+            }
+        }
+
+        async function fetchImageFromUrl(url) {
+            if (!url || !url.startsWith('http')) return;
+            const currentImg = document.getElementById('itemImageBase64').value;
+            if (currentImg) return; // 既に画像がある場合は上書きしない
+            try {
+                const response = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`);
+                const json = await response.json();
+                if (json.status === 'success' && json.data && json.data.image && json.data.image.url) {
+                    toDataURL(json.data.image.url, function(base64Img) {
+                        if (base64Img && !document.getElementById('itemImageBase64').value) {
+                            document.getElementById('itemImageBase64').value = base64Img;
+                            document.getElementById('modalImagePreview').src = base64Img;
+                            document.getElementById('modalImagePreviewWrapper').classList.remove('hidden');
+                        }
+                    });
+                }
+            } catch (err) {}
+        }
+
+        async function autoFetchExistingImages() {
+            let updated = false;
+            for (let item of items) {
+                if (item.memo && !item.image) {
+                    const match = item.memo.match(/(https?:\/\/[^\s]+)/g);
+                    if (match && match.length > 0) {
+                        try {
+                            const res = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(match[0])}`);
+                            const json = await res.json();
+                            if (json.status === 'success' && json.data && json.data.image && json.data.image.url) {
+                                await new Promise(resolve => {
+                                    toDataURL(json.data.image.url, (b64) => {
+                                        if (b64) { item.image = b64; updated = true; }
+                                        resolve();
+                                    });
+                                });
+                            }
+                        } catch (e) {}
+                    }
+                }
+            }
+            if (updated) {
+                localStorage.setItem('reminders_items', JSON.stringify(items));
+                renderApp();
+            }
+        }
+
+        function toDataURL(url, callback) {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width; let height = img.height;
+                const maxDim = 600;
+                if (width > height && width > maxDim) { height *= maxDim / width; width = maxDim; }
+                else if (height > maxDim) { width *= maxDim / height; height = maxDim; }
+                canvas.width = width; canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                try { callback(canvas.toDataURL('image/jpeg', 0.75)); } catch (e) { callback(null); }
+            };
+            img.onerror = function() { callback(null); };
+            img.src = `https://images.weserv.nl/?url=${encodeURIComponent(url)}`;
+        }
+
         function toggleCheckItem(id) {
             const item = items.find(i => i.id === id);
             if (!item) return;
@@ -935,9 +1042,10 @@
                     </div>
                     <h2 class="text-lg font-bold text-slate-900">${item.title}</h2>
                 </div>
+                ${item.image ? `<div class="rounded-2xl overflow-hidden border border-slate-200 max-h-48 bg-slate-100 flex items-center justify-center"><img src="${item.image}" class="max-h-48 object-contain"></div>` : ''}
                 ${item.targetDate ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">購入予定日</p><p class="text-xs text-slate-700 font-bold"><i class="fa-solid fa-calendar-days mr-1 text-app-theme"></i>${item.targetDate}</p></div>` : ''}
                 ${item.store ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">購入先・店舗</p><p class="text-xs text-slate-700"><i class="fa-solid fa-store mr-1"></i>${item.store}</p></div>` : ''}
-                ${item.memo ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">メモ</p><p class="text-xs text-slate-700 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/70 whitespace-pre-wrap">${item.memo}</p></div>` : ''}
+                ${item.memo ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">メモ / リンク</p><p class="text-xs text-slate-700 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/70 whitespace-pre-wrap">${item.memo}</p></div>` : ''}
             `;
 
             showSheetModal('viewModal', 'viewModalCard');
@@ -1052,10 +1160,13 @@
                             </button>
                         `;
 
+                        const thumbnailHtml = item.image ? `<div class="w-9 h-9 rounded-xl overflow-hidden border border-slate-200 shrink-0 shadow-2xs bg-slate-100"><img src="${item.image}" class="w-full h-full object-cover"></div>` : '';
+
                         return `
                             <div onclick="${isSelectShareMode ? `toggleItemSelection(event, ${item.id})` : `openViewModal(${item.id})`}" class="p-3.5 rounded-2xl ${cardClass} hover:shadow-md active:scale-[0.99] transition-all duration-150 cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''} ${isSelected ? 'ring-2 ring-indigo-500/50 bg-indigo-50/40' : ''}">
                                 <div class="flex items-center space-x-3 overflow-hidden mr-2">
                                     ${leftActionHtml}
+                                    ${thumbnailHtml}
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
                                             <span class="font-bold text-xs text-slate-800 truncate ${isPending ? 'line-through' : ''}">${item.title}</span>
@@ -1112,10 +1223,14 @@
                                 <i class="fa-solid fa-book-open"></i>
                             </div>
                         `;
+
+                        const thumbnailHtml = item.image ? `<div class="w-9 h-9 rounded-xl overflow-hidden border border-slate-200 shrink-0 shadow-2xs bg-slate-100"><img src="${item.image}" class="w-full h-full object-cover"></div>` : '';
+
                         return `
                             <div onclick="${isSelectShareMode ? `toggleItemSelection(event, ${item.id})` : `openViewModal(${item.id})`}" class="p-3.5 rounded-2xl ${cardClass} hover:shadow-md active:scale-[0.99] transition-all duration-150 cursor-pointer flex items-center justify-between ${isSelected ? 'ring-2 ring-indigo-500/50 bg-indigo-50/40' : ''}">
                                 <div class="flex items-center space-x-3 overflow-hidden mr-2">
                                     ${leftActionHtml}
+                                    ${thumbnailHtml}
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
                                             <span class="font-bold text-xs text-slate-800 truncate">${item.title}</span>
@@ -1328,6 +1443,7 @@
 
             const form = document.getElementById('itemForm');
             form.reset();
+            clearItemImage();
 
             if (id) {
                 document.getElementById('modalTitle').innerText = '編集';
@@ -1341,6 +1457,12 @@
                 document.getElementById('itemUrgent').checked = item.urgent || false;
                 document.getElementById('itemFavorite').checked = item.favorite || false;
                 
+                if (item.image) {
+                    document.getElementById('itemImageBase64').value = item.image;
+                    document.getElementById('modalImagePreview').src = item.image;
+                    document.getElementById('modalImagePreviewWrapper').classList.remove('hidden');
+                }
+
                 const typeVal = item.type || 'reminder';
                 document.querySelector(`input[name="itemType"][value="${typeVal}"]`).checked = true;
             } else {
@@ -1360,6 +1482,7 @@
             event.preventDefault();
             const id = document.getElementById('itemId').value;
             const typeVal = document.querySelector('input[name="itemType"]:checked').value;
+            const imageBase64 = document.getElementById('itemImageBase64').value;
 
             const newItem = {
                 id: id ? Number(id) : Date.now(),
@@ -1371,6 +1494,7 @@
                 memo: document.getElementById('itemMemo').value,
                 urgent: document.getElementById('itemUrgent').checked,
                 favorite: document.getElementById('itemFavorite').checked,
+                image: imageBase64 || '',
                 completed: false,
                 pendingComplete: false
             };
