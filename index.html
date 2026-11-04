@@ -269,7 +269,7 @@
                 </div>
                 <div class="flex items-center space-x-2">
                     <span id="currentMonthBigLabel" class="text-xs font-bold text-app-theme bg-indigo-50/80 px-3 py-1 rounded-xl border border-indigo-100/60 backdrop-blur-md"></span>
-                    <button onclick="currentMonthToday()" class="px-3 py-1 bg-white/80 hover:bg-white text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs border border-slate-200/60 backdrop-blur-md">今月</button>
+                    <button onclick="currentMonthToday()" class="px-3 py-1 bg-white/80 hover:bg-white text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs border border-slate-200/60 backdrop-blur-md">今日</button>
                 </div>
             </div>
             <!-- カレンダーグリッド -->
@@ -574,6 +574,8 @@
         let appThemeColor = localStorage.getItem('reminders_app_theme') || '#4f46e5';
         let appBgImage = localStorage.getItem('reminders_app_bg') || '';
         let appBgColor = localStorage.getItem('reminders_app_bgcolor') || '#f8fafc';
+        
+        // パネル背景を「純白（255, 255, 255）のガラス仕様」に固定初期化
         let cardBgR = localStorage.getItem('reminders_card_r') || '255';
         let cardBgG = localStorage.getItem('reminders_card_g') || '255';
         let cardBgB = localStorage.getItem('reminders_card_b') || '255';
@@ -1563,6 +1565,7 @@
             renderCalendarView();
         }
 
+        // 「今日」ボタンを押した際に自動で今日の日付・年月へセット
         function currentMonthToday() {
             const now = new Date();
             calendarYear = now.getFullYear();
