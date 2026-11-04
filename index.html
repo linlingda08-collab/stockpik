@@ -141,7 +141,7 @@
         }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen pb-28 selection:bg-indigo-100 relative">
+<body class="text-slate-800 min-h-screen pb-32 selection:bg-indigo-100 relative">
 
     <div id="bgCustomContainer" class="hidden"></div>
     <div id="bgCustomOverlay" class="fixed inset-0 bg-slate-900/10 backdrop-blur-[2px] z-0 pointer-events-none hidden"></div>
@@ -149,7 +149,7 @@
     <!-- ヘッダー -->
     <header class="bg-white/85 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
         <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center relative z-10">
-            <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchView('home')">
+            <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchMainTab('list')">
                 <img src="icon.PNG" id="headerIcon" class="w-9 h-9 rounded-2xl object-cover shadow-sm border border-slate-100" onerror="this.style.display='none'; document.getElementById('headerIconFallback').style.display='flex';">
                 <div id="headerIconFallback" class="hidden bg-app-theme text-white w-9 h-9 rounded-2xl items-center justify-center shadow-sm">
                     <i class="fa-solid fa-list-check text-base"></i>
@@ -161,11 +161,6 @@
             </div>
 
             <div class="flex items-center space-x-1 sm:space-x-2">
-                <!-- カレンダー表示切り替えボタン -->
-                <button onclick="switchView('calendar')" id="calendarNavBtn" class="bg-white/80 hover:bg-slate-100/80 active:scale-95 text-slate-700 font-medium px-2.5 py-2 rounded-2xl text-xs transition flex items-center space-x-1 border border-slate-200/70 shadow-2xs" title="カレンダー">
-                    <i class="fa-solid fa-calendar-days text-app-theme"></i>
-                    <span class="hidden sm:inline font-semibold">予定</span>
-                </button>
                 <button onclick="openBgModal()" class="bg-white/80 hover:bg-slate-100/80 active:scale-95 text-slate-700 font-medium px-2 py-2 sm:px-2.5 rounded-2xl text-xs transition flex items-center space-x-1 border border-slate-200/70 shadow-2xs" title="背景画像">
                     <i class="fa-solid fa-image text-app-theme"></i>
                     <span class="hidden sm:inline font-semibold">背景</span>
@@ -204,21 +199,58 @@
             </div>
         </div>
 
+        <!-- リストビューエリア（ホーム） -->
+        <div id="listViewContainer" class="space-y-4">
+            <!-- 本日・今週の買うものプレビューダッシュボード -->
+            <div id="dashboardPreview" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- 本日買うもの -->
+                <div class="bg-gradient-to-br from-rose-50/90 to-amber-50/70 backdrop-blur-md p-3.5 rounded-2xl border border-rose-200/60 shadow-xs space-y-2">
+                    <div class="flex items-center justify-between border-b border-rose-200/50 pb-1.5">
+                        <span class="text-xs font-bold text-rose-700 flex items-center"><i class="fa-solid fa-fire mr-1.5 text-rose-500"></i>本日買うもの</span>
+                        <span id="todayCountBadge" class="text-[10px] font-mono font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">0件</span>
+                    </div>
+                    <div id="todayPreviewList" class="space-y-1.5"></div>
+                </div>
+                <!-- 今週買うもの -->
+                <div class="bg-gradient-to-br from-indigo-50/90 to-slate-50/70 backdrop-blur-md p-3.5 rounded-2xl border border-indigo-200/60 shadow-xs space-y-2">
+                    <div class="flex items-center justify-between border-b border-indigo-200/50 pb-1.5">
+                        <span class="text-xs font-bold text-indigo-700 flex items-center"><i class="fa-solid fa-calendar-week mr-1.5 text-indigo-500"></i>今週買うもの</span>
+                        <span id="weekCountBadge" class="text-[10px] font-mono font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">0件</span>
+                    </div>
+                    <div id="weekPreviewList" class="space-y-1.5"></div>
+                </div>
+            </div>
+
+            <!-- マイリスト（フォルダ）カード一覧 -->
+            <div id="folderContainer" class="space-y-3 pt-1"></div>
+        </div>
+
         <!-- カレンダービューエリア -->
         <div id="calendarViewContainer" class="hidden space-y-4">
             <div class="bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs flex justify-between items-center">
-                <h2 class="font-bold text-slate-900 text-base flex items-center"><i class="fa-solid fa-calendar-days text-app-theme mr-2"></i>直近の購入予定スケジュール</h2>
-                <button onclick="switchView('home')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">ホームに戻る</button>
+                <div class="flex items-center space-x-2">
+                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <h2 id="calendarMonthTitle" class="font-bold text-slate-900 text-base">2026年 11月</h2>
+                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+                <button onclick="currentMonthToday()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">今月</button>
             </div>
-            <div id="calendarScheduleList" class="space-y-3"></div>
+            <!-- カレンダーグリッド（暦） -->
+            <div id="calendarGridCard" class="bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
+                <div class="grid grid-cols-7 text-center text-xs font-bold text-slate-400 pb-2 border-b border-slate-100">
+                    <span class="text-rose-500">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="text-indigo-500">土</span>
+                </div>
+                <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1"></div>
+            </div>
+            <!-- 選択された日の予定リスト -->
+            <div class="bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
+                <h3 id="selectedDateTitle" class="font-bold text-xs text-slate-500 border-b border-slate-100 pb-2">本日の予定</h3>
+                <div id="selectedDateScheduleList" class="space-y-2"></div>
+            </div>
         </div>
-
-        <!-- マイリスト（フォルダ）ビューエリア -->
-        <div id="folderContainer" class="space-y-3"></div>
 
         <!-- カテゴリー詳細時：上下分割表示エリア -->
         <div id="categoryContentArea" class="hidden space-y-6">
-            
             <div class="space-y-2.5">
                 <div class="flex items-center space-x-2">
                     <span id="reminderSectionBadge" class="px-3 py-1 bg-white/95 border rounded-xl text-xs font-bold shadow-2xs flex items-center space-x-1.5">
@@ -249,7 +281,6 @@
                 </div>
                 <div id="memoItemsContainer" class="space-y-2.5"></div>
             </div>
-
         </div>
 
         <!-- 該当なし表示 -->
@@ -259,8 +290,20 @@
         </div>
     </main>
 
-    <!-- 複数選択時：画面下部に浮き出る一括操作アクションバー（共有 ＆ 削除） -->
-    <div id="multiShareBar" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 hidden w-[90%] max-w-md bg-slate-900/90 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between border border-slate-700/50">
+    <!-- 画面下部固定タブ（リスト / カレンダー切り替え） -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/80 py-2.5 px-6 z-30 shadow-lg flex justify-around items-center max-w-lg mx-auto rounded-t-3xl">
+        <button onclick="switchMainTab('list')" id="navTabList" class="flex flex-col items-center space-y-1 text-app-theme transition active:scale-95">
+            <i class="fa-solid fa-list-check text-lg"></i>
+            <span class="text-[10px] font-bold">リスト</span>
+        </button>
+        <button onclick="switchMainTab('calendar')" id="navTabCalendar" class="flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-600 transition active:scale-95">
+            <i class="fa-solid fa-calendar-days text-lg"></i>
+            <span class="text-[10px] font-bold">カレンダー</span>
+        </button>
+    </nav>
+
+    <!-- 複数選択時：画面下部に浮き出る一括操作アクションバー -->
+    <div id="multiShareBar" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 hidden w-[90%] max-w-md bg-slate-900/90 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between border border-slate-700/50">
         <span class="text-xs font-semibold">選択中: <span id="selectedCountDisplay" class="font-bold text-app-theme text-sm">0</span> 件</span>
         <div class="flex items-center space-x-2">
             <button onclick="deleteSelectedItems()" class="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold px-3 py-2 rounded-xl text-xs transition shadow-md flex items-center space-x-1">
@@ -274,8 +317,8 @@
         </div>
     </div>
 
-    <!-- 右下の円形プラス追加ボタン -->
-    <button id="floatingAddBtn" onclick="openModal()" class="fixed right-6 bottom-7 w-14 h-14 bg-app-theme hover:opacity-95 active:scale-90 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center z-40 transition-all duration-200" title="追加">
+    <!-- 右上の円形プラス追加ボタン -->
+    <button id="floatingAddBtn" onclick="openModal()" class="fixed right-6 bottom-20 w-14 h-14 bg-app-theme hover:opacity-95 active:scale-90 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center z-40 transition-all duration-200" title="追加">
         <i class="fa-solid fa-plus text-xl"></i>
     </button>
 
@@ -342,71 +385,71 @@
         </div>
     </div>
 
-    <!-- アイテム追加・編集モーダル（スクロール不要のコンパクト設計） -->
+    <!-- アイテム追加・編集モーダル（改良版：折り返し防止・重なりなしのゆとりあるコンパクト設計） -->
     <div id="itemModal" onclick="handleModalOutsideClick(event, 'itemModal', closeModal)" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div id="itemModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl p-4 sm:p-5 space-y-3 border border-slate-100">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+        <div id="itemModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 space-y-3 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
                 <h2 id="modalTitle" class="text-sm font-bold text-slate-900">追加</h2>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
-            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-2.5">
+            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-3">
                 <input type="hidden" id="itemId">
                 
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-0.5">種別</label>
-                        <div class="grid grid-cols-2 gap-1">
-                            <label class="flex items-center justify-center space-x-1 bg-white py-1.5 px-2 rounded-xl border border-slate-200 cursor-pointer shadow-2xs">
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">種別</label>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <label class="flex items-center justify-center space-x-1 bg-white py-2 px-1 rounded-xl border border-slate-200 cursor-pointer shadow-2xs">
                                 <input type="radio" name="itemType" value="reminder" checked class="text-app-theme focus:ring-0">
-                                <span class="text-[11px] font-bold text-slate-800">🛒 ﾘﾏｲﾝﾀﾞｰ</span>
+                                <span class="text-[11px] font-bold text-slate-800 whitespace-nowrap">リマインダー</span>
                             </label>
-                            <label class="flex items-center justify-center space-x-1 bg-white py-1.5 px-2 rounded-xl border border-slate-200 cursor-pointer shadow-2xs">
+                            <label class="flex items-center justify-center space-x-1 bg-white py-2 px-1 rounded-xl border border-slate-200 cursor-pointer shadow-2xs">
                                 <input type="radio" name="itemType" value="memo" class="text-app-theme focus:ring-0">
-                                <span class="text-[11px] font-bold text-slate-800">📖 ﾒﾓ</span>
+                                <span class="text-[11px] font-bold text-slate-800 whitespace-nowrap">メモ</span>
                             </label>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-0.5">ジャンル</label>
-                        <select id="itemCategory" class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none"></select>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">ジャンル</label>
+                        <select id="itemCategory" class="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none"></select>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">タイトル <span class="text-rose-500">*</span></label>
-                    <input type="text" id="itemTitle" required placeholder="例: 絆創膏" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">タイトル <span class="text-rose-500">*</span></label>
+                    <input type="text" id="itemTitle" required placeholder="例: 絆創膏 ケアリーヴ" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">購入予定日（任意）</label>
-                        <input type="date" id="itemTargetDate" class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">購入予定日（任意）</label>
+                        <input type="date" id="itemTargetDate" class="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">購入先・店舗</label>
-                        <input type="text" id="itemStore" placeholder="例: 薬局" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">購入先・店舗</label>
+                        <input type="text" id="itemStore" placeholder="例: 薬局" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-3 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
+                <div class="flex items-center space-x-4 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
                     <label class="flex items-center space-x-1.5 cursor-pointer">
                         <input type="checkbox" id="itemUrgent" class="w-3.5 h-3.5 text-rose-600 border-slate-300 rounded">
-                        <span class="text-[11px] font-bold text-rose-600"><i class="fa-solid fa-fire mr-0.5"></i>🔥 急ぎ</span>
+                        <span class="text-[11px] font-bold text-rose-600"><i class="fa-solid fa-fire mr-1"></i>急ぎ</span>
                     </label>
                     <label class="flex items-center space-x-1.5 cursor-pointer">
                         <input type="checkbox" id="itemFavorite" class="w-3.5 h-3.5 text-amber-500 border-slate-300 rounded">
-                        <span class="text-[11px] font-semibold text-amber-600"><i class="fa-solid fa-star mr-0.5"></i>⭐ 定番品</span>
+                        <span class="text-[11px] font-semibold text-amber-600"><i class="fa-solid fa-star mr-1"></i>定番品</span>
                     </label>
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">メモ / 参考URL</label>
-                    <input type="text" id="itemMemo" placeholder="メモまたはURL" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">メモ / 参考URL</label>
+                    <input type="text" id="itemMemo" placeholder="型番やURLなど" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                 </div>
 
                 <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
-                    <button type="button" onclick="closeModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium transition">キャンセル</button>
-                    <button type="submit" class="px-4 py-1.5 bg-app-theme text-white rounded-xl text-xs font-medium hover:opacity-90 active:scale-95 transition shadow-xs">保存する</button>
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium transition">キャンセル</button>
+                    <button type="submit" class="px-5 py-2 bg-app-theme text-white rounded-xl text-xs font-medium hover:opacity-90 active:scale-95 transition shadow-xs">保存する</button>
                 </div>
             </form>
         </div>
@@ -460,7 +503,7 @@
         let appThemeColor = localStorage.getItem('reminders_app_theme') || '#4f46e5';
         let appBgImage = localStorage.getItem('reminders_app_bg') || '';
 
-        let currentView = 'home'; // 'home' | 'detail' | 'calendar'
+        let mainTab = 'list'; // 'list' | 'calendar'
         let selectedCategoryDetail = null; 
         let pendingTimeouts = {}; 
         let showCompletedAccordion = false;
@@ -469,6 +512,11 @@
 
         let isSelectShareMode = false;
         let selectedItemIds = new Set();
+
+        // カレンダー用状態
+        let calendarYear = new Date().getFullYear();
+        let calendarMonth = new Date().getMonth(); // 0-11
+        let selectedCalendarDateStr = new Date().toISOString().split('T')[0];
 
         let touchStartX = 0;
         let touchStartY = 0;
@@ -483,20 +531,28 @@
             autoFetchExistingImages();
         }
 
-        function switchView(view) {
-            currentView = view;
-            if (view === 'home') {
-                selectedCategoryDetail = null;
-                if (isSelectShareMode) toggleSelectShareMode();
+        function switchMainTab(tab) {
+            mainTab = tab;
+            selectedCategoryDetail = null;
+            if (isSelectShareMode) toggleSelectShareMode();
+
+            const tabList = document.getElementById('navTabList');
+            const tabCal = document.getElementById('navTabCalendar');
+
+            if (tab === 'list') {
+                tabList.className = "flex flex-col items-center space-y-1 text-app-theme transition active:scale-95";
+                tabCal.className = "flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-600 transition active:scale-95";
+            } else {
+                tabCal.className = "flex flex-col items-center space-y-1 text-app-theme transition active:scale-95";
+                tabList.className = "flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-600 transition active:scale-95";
             }
+
             renderApp();
         }
 
         function handleModalOutsideClick(event, modalId, closeFunction) {
             const modalOverlay = document.getElementById(modalId);
-            if (event.target === modalOverlay) {
-                closeFunction();
-            }
+            if (event.target === modalOverlay) closeFunction();
         }
 
         function toggleSelectShareMode() {
@@ -528,9 +584,7 @@
         function updateSelectedCountUI() {
             const countDisplay = document.getElementById('selectedCountDisplay');
             const shareBar = document.getElementById('multiShareBar');
-            
             if (countDisplay) countDisplay.innerText = selectedItemIds.size;
-
             if (isSelectShareMode && selectedItemIds.size > 0) {
                 shareBar.classList.remove('hidden');
             } else {
@@ -540,18 +594,14 @@
 
         function toggleItemSelection(event, itemId) {
             event.stopPropagation();
-            if (selectedItemIds.has(itemId)) {
-                selectedItemIds.delete(itemId);
-            } else {
-                selectedItemIds.add(itemId);
-            }
+            if (selectedItemIds.has(itemId)) selectedItemIds.delete(itemId);
+            else selectedItemIds.add(itemId);
             updateSelectedCountUI();
             renderApp();
         }
 
         async function shareSelectedItems() {
             if (selectedItemIds.size === 0) return;
-
             const selectedList = items.filter(i => selectedItemIds.has(i.id));
             let text = `【${selectedCategoryDetail} の共有リスト (${selectedList.length}件)】\n\n`;
 
@@ -559,7 +609,6 @@
                 let typePrefix = item.type === 'memo' ? '📖 ' : '🛒 ';
                 let urgentMark = item.urgent ? ' (🔥急ぎ)' : '';
                 let favMark = item.favorite ? ' ⭐' : '';
-
                 text += `${typePrefix}${item.title}${urgentMark}${favMark}\n`;
                 if (item.targetDate) text += `予定日: ${item.targetDate}\n`;
                 if (item.store) text += `店舗: ${item.store}\n`;
@@ -568,19 +617,13 @@
             });
 
             text = text.trim();
-
             if (navigator.share) {
                 try {
-                    await navigator.share({
-                        title: `${selectedCategoryDetail} の選択リスト`,
-                        text: text
-                    });
-                } catch (err) {
-                    console.log('共有がキャンセルされました:', err);
-                }
+                    await navigator.share({ title: `${selectedCategoryDetail} の選択リスト`, text: text });
+                } catch (err) {}
             } else {
                 navigator.clipboard.writeText(text);
-                alert('選択したアイテムのテキストをコピーしました！LINE等に貼り付けてご利用ください。');
+                alert('選択したアイテムのテキストをコピーしました！');
             }
         }
 
@@ -616,19 +659,13 @@
             if (item.memo) text += `メモ: ${item.memo}\n`;
 
             text = text.trim();
-
             if (navigator.share) {
                 try {
-                    await navigator.share({
-                        title: item.title,
-                        text: text
-                    });
-                } catch (err) {
-                    console.log('共有がキャンセルされました:', err);
-                }
+                    await navigator.share({ title: item.title, text: text });
+                } catch (err) {}
             } else {
                 navigator.clipboard.writeText(text);
-                alert('アイテムの情報をコピーしました！LINE等に貼り付けてご利用ください。');
+                alert('アイテムの情報をコピーしました！');
             }
         }
 
@@ -636,7 +673,6 @@
             appThemeColor = color;
             document.documentElement.style.setProperty('--app-theme-color', color);
             localStorage.setItem('reminders_app_theme', color);
-            
             const preview = document.getElementById('themeWheelPreview');
             const picker = document.getElementById('themeWheelInput');
             if (preview) preview.style.backgroundColor = color;
@@ -652,7 +688,6 @@
             appBgImage = base64Image;
             const bgContainer = document.getElementById('bgCustomContainer');
             const bgOverlay = document.getElementById('bgCustomOverlay');
-
             if (base64Image) {
                 bgContainer.style.backgroundImage = `url('${base64Image}')`;
                 bgContainer.classList.remove('hidden');
@@ -680,13 +715,8 @@
             closeBgModal();
         }
 
-        function openBgModal() {
-            showSheetModal('bgModal', 'bgModalCard');
-        }
-
-        function closeBgModal() {
-            hideSheetModal('bgModal', 'bgModalCard');
-        }
+        function openBgModal() { showSheetModal('bgModal', 'bgModalCard'); }
+        function closeBgModal() { hideSheetModal('bgModal', 'bgModalCard'); }
 
         function compressImageFile(file, maxWidth, maxHeight, quality, callback) {
             const reader = new FileReader();
@@ -696,26 +726,15 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-
                     if (width > height) {
-                        if (width > maxWidth) {
-                            height *= maxWidth / width;
-                            width = maxWidth;
-                        }
+                        if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
                     } else {
-                        if (height > maxHeight) {
-                            width *= maxHeight / height;
-                            height = maxHeight;
-                        }
+                        if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
                     }
-
-                    canvas.width = width;
-                    canvas.height = height;
+                    canvas.width = width; canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-                    callback(compressedBase64);
+                    callback(canvas.toDataURL('image/jpeg', quality));
                 };
                 img.src = e.target.result;
             };
@@ -737,43 +756,30 @@
             const card = document.getElementById(cardId);
             card.classList.remove('modal-sheet-visible');
             card.classList.add('modal-sheet-hidden');
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-            }, 250);
+            setTimeout(() => { overlay.classList.add('hidden'); }, 250);
         }
 
-        function openThemeModal() {
-            showSheetModal('themeModal', 'themeModalCard');
-        }
-
-        function closeThemeModal() {
-            hideSheetModal('themeModal', 'themeModalCard');
-        }
+        function openThemeModal() { showSheetModal('themeModal', 'themeModalCard'); }
+        function closeThemeModal() { hideSheetModal('themeModal', 'themeModalCard'); }
 
         function initSwipeGesture() {
             const mainArea = document.getElementById('categoryContentArea');
-            
             mainArea.addEventListener('touchstart', (e) => {
                 touchStartX = e.changedTouches[0].screenX;
                 touchStartY = e.changedTouches[0].screenY;
             }, {passive: true});
-
             mainArea.addEventListener('touchend', (e) => {
                 let touchEndX = e.changedTouches[0].screenX;
                 let touchEndY = e.changedTouches[0].screenY;
-                
                 let diffX = touchEndX - touchStartX;
                 let diffY = Math.abs(touchEndY - touchStartY);
-
-                if (diffX > 80 && diffY < 60 && touchStartX < 80) {
-                    closeCategoryDetail();
-                }
+                if (diffX > 80 && diffY < 60 && touchStartX < 80) closeCategoryDetail();
             }, {passive: true});
         }
 
         function openCategoryDetail(genreName) {
             selectedCategoryDetail = genreName;
-            currentView = 'detail';
+            mainTab = 'detail';
             const genre = customGenres.find(g => g.name === genreName);
             const iconContainer = document.getElementById('activeCategoryIconContainer');
 
@@ -789,23 +795,15 @@
 
             const color = genre ? genre.color : '#4f46e5';
             const rgbaColor = hexToRgba(color, 0.25);
-
             const remBadge = document.getElementById('reminderSectionBadge');
-            remBadge.style.borderColor = color;
-            remBadge.style.backgroundColor = rgbaColor;
-            remBadge.style.color = '#1e293b';
-
+            remBadge.style.borderColor = color; remBadge.style.backgroundColor = rgbaColor; remBadge.style.color = '#1e293b';
             const memoBadge = document.getElementById('memoSectionBadge');
-            memoBadge.style.borderColor = color;
-            memoBadge.style.backgroundColor = rgbaColor;
-            memoBadge.style.color = '#1e293b';
+            memoBadge.style.borderColor = color; memoBadge.style.backgroundColor = rgbaColor; memoBadge.style.color = '#1e293b';
 
             renderApp();
         }
 
-        function closeCategoryDetail() {
-            switchView('home');
-        }
+        function closeCategoryDetail() { switchMainTab('list'); }
 
         function renderCategorySelect() {
             const select = document.getElementById('itemCategory');
@@ -832,7 +830,6 @@
         function handleQuickGenreImageChange(event) {
             const file = event.target.files[0];
             if (!file || !editingGenreIdForQuickImage) return;
-
             compressImageFile(file, 200, 200, 0.8, (compressedBase64) => {
                 const target = customGenres.find(g => g.id === editingGenreIdForQuickImage);
                 if (target) {
@@ -854,9 +851,7 @@
                 const json = await response.json();
                 if (json.status === 'success' && json.data && json.data.image && json.data.image.url) {
                     toDataURL(json.data.image.url, function(base64Img) {
-                        if (base64Img) {
-                            document.getElementById('itemImageBase64').value = base64Img;
-                        }
+                        if (base64Img) document.getElementById('itemImageBase64').value = base64Img;
                     });
                 }
             } catch (err) {}
@@ -872,10 +867,7 @@
                         if (json.status === 'success' && json.data && json.data.image && json.data.image.url) {
                             await new Promise(resolve => {
                                 toDataURL(json.data.image.url, (b64) => {
-                                    if (b64) {
-                                        item.image = b64;
-                                        updated = true;
-                                    }
+                                    if (b64) { item.image = b64; updated = true; }
                                     resolve();
                                 });
                             });
@@ -894,25 +886,14 @@
             img.crossOrigin = 'Anonymous';
             img.onload = function() {
                 const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
+                let width = img.width; let height = img.height;
                 const maxDim = 600;
-                if (width > height && width > maxDim) {
-                    height *= maxDim / width;
-                    width = maxDim;
-                } else if (height > maxDim) {
-                    width *= maxDim / height;
-                    height = maxDim;
-                }
-                canvas.width = width;
-                canvas.height = height;
+                if (width > height && width > maxDim) { height *= maxDim / width; width = maxDim; }
+                else if (height > maxDim) { width *= maxDim / height; height = maxDim; }
+                canvas.width = width; canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                try {
-                    callback(canvas.toDataURL('image/jpeg', 0.75));
-                } catch (e) {
-                    callback(null);
-                }
+                try { callback(canvas.toDataURL('image/jpeg', 0.75)); } catch (e) { callback(null); }
             };
             img.onerror = function() { callback(null); };
             img.src = `https://images.weserv.nl/?url=${encodeURIComponent(url)}`;
@@ -966,7 +947,6 @@
 
         function openViewModal(id) {
             if (isSelectShareMode) return;
-
             viewingItemId = id;
             const item = items.find(i => i.id === id);
             if (!item) return;
@@ -1012,7 +992,27 @@
             }
         }
 
+        // 日付が「今週」に含まれるか判定 (月曜～日曜基準)
+        function isDateInCurrentWeek(dateStr) {
+            if (!dateStr) return false;
+            const target = new Date(dateStr);
+            if (isNaN(target)) return false;
+
+            const now = new Date();
+            const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1; // 月曜始まり
+            const monday = new Date(now);
+            monday.setDate(now.getDate() - dayOfWeek);
+            monday.setHours(0,0,0,0);
+
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            sunday.setHours(23,59,59,999);
+
+            return target >= monday && target <= sunday;
+        }
+
         function renderApp() {
+            const listViewContainer = document.getElementById('listViewContainer');
             const folderContainer = document.getElementById('folderContainer');
             const categoryContentArea = document.getElementById('categoryContentArea');
             const calendarViewContainer = document.getElementById('calendarViewContainer');
@@ -1024,96 +1024,24 @@
             const emptyState = document.getElementById('emptyState');
             const categoryDetailHeader = document.getElementById('categoryDetailHeader');
 
-            // すべて非表示にしてから状態に応じて表示
+            listViewContainer.classList.add('hidden');
             folderContainer.classList.add('hidden');
             categoryContentArea.classList.add('hidden');
             calendarViewContainer.classList.add('hidden');
             categoryDetailHeader.classList.add('hidden');
 
-            if (currentView === 'calendar') {
+            if (mainTab === 'calendar') {
                 calendarViewContainer.classList.remove('hidden');
                 emptyState.classList.add('hidden');
                 renderCalendarView();
                 return;
             }
 
-            if (!selectedCategoryDetail) {
-                folderContainer.classList.remove('hidden');
-
-                if (customGenres.length === 0) {
-                    folderContainer.innerHTML = '';
-                    emptyState.classList.remove('hidden');
-                    return;
-                }
-
-                emptyState.classList.add('hidden');
-
-                const todayStr = new Date().toISOString().split('T')[0];
-
-                folderContainer.innerHTML = customGenres.map(genre => {
-                    const bgGrad = `linear-gradient(135deg, ${hexToRgba(genre.color, 0.22)}, rgba(255, 255, 255, 0.95))`;
-
-                    const iconHtml = genre.image ? `
-                        <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-10 h-10 rounded-2xl overflow-hidden shadow-2xs border border-slate-200/60 shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" title="タップして画像を変更">
-                            <img src="${genre.image}" class="w-full h-full object-cover pointer-events-none">
-                        </div>
-                    ` : `
-                        <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-700 font-bold shadow-2xs shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" style="background-color: ${genre.color};" title="タップして画像を変更">
-                            <i class="fa-solid fa-list-check text-xs pointer-events-none"></i>
-                        </div>
-                    `;
-
-                    // 本日買う予定のアイテムをピックアップ
-                    const todayItems = items.filter(i => i.category === genre.name && !i.completed && i.targetDate === todayStr);
-                    let previewHtml = '';
-                    if (todayItems.length > 0) {
-                        const titles = todayItems.map(i => i.title).join('、');
-                        previewHtml = `<span class="text-[10px] text-rose-600 font-bold block mt-0.5 truncate"><i class="fa-solid fa-calendar-day mr-1"></i>本日: ${titles}</span>`;
-                    }
-
-                    return `
-                        <div data-id="${genre.id}" class="rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden" style="background: ${bgGrad};">
-                            <div class="p-4 flex items-center justify-between">
-                                <div class="flex items-center space-x-3.5 flex-1 cursor-pointer" onclick="openCategoryDetail('${genre.name}')">
-                                    <div onclick="event.stopPropagation(); triggerGenreImageChange(event, ${genre.id})" class="shrink-0">
-                                        ${iconHtml}
-                                    </div>
-                                    <div class="flex-1 overflow-hidden">
-                                        <span class="font-bold text-base text-slate-900 block truncate">${genre.name}</span>
-                                        ${previewHtml}
-                                    </div>
-                                </div>
-                                <div class="text-slate-400 text-xs pl-2 cursor-pointer" onclick="openCategoryDetail('${genre.name}')">
-                                    <i class="fa-solid fa-chevron-right text-xs"></i>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                if (sortableInstance) sortableInstance.destroy();
-                sortableInstance = new Sortable(folderContainer, {
-                    animation: 150,
-                    delay: 200,
-                    delayOnTouchOnly: true,
-                    onEnd: function() {
-                        const newOrderIds = Array.from(folderContainer.children).map(el => Number(el.getAttribute('data-id')));
-                        customGenres.sort((a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
-                        localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
-                    }
-                });
-
-            } else {
-                if (sortableInstance) {
-                    sortableInstance.destroy();
-                    sortableInstance = null;
-                }
-
+            if (mainTab === 'detail' && selectedCategoryDetail) {
                 categoryDetailHeader.classList.remove('hidden');
                 categoryContentArea.classList.remove('hidden');
 
                 let categoryItems = items.filter(i => i.category === selectedCategoryDetail);
-
                 let remindersActive = categoryItems.filter(i => i.type !== 'memo' && !i.completed);
                 let remindersCompleted = categoryItems.filter(i => i.type !== 'memo' && i.completed);
 
@@ -1122,7 +1050,6 @@
                     if (!a.urgent && b.urgent) return 1;
                     return 0;
                 });
-
                 let memos = categoryItems.filter(i => i.type === 'memo');
 
                 if (categoryItems.length === 0) {
@@ -1135,21 +1062,16 @@
 
                 emptyState.classList.add('hidden');
 
-                // リマインダー描画
                 if (remindersActive.length === 0) {
                     reminderItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">リマインダーはありません</p>';
                 } else {
                     reminderItemsContainer.innerHTML = remindersActive.map(item => {
                         let cardClass = "bg-white/90 backdrop-blur-sm border border-slate-200/80 shadow-xs";
-                        if (item.urgent) {
-                            cardClass = "bg-white/95 backdrop-blur-sm border-2 border-rose-500 shadow-xs";
-                        } else if (item.favorite) {
-                            cardClass = "favorite-card-glow";
-                        }
+                        if (item.urgent) cardClass = "bg-white/95 backdrop-blur-sm border-2 border-rose-500 shadow-xs";
+                        else if (item.favorite) cardClass = "favorite-card-glow";
                         
                         const isPending = item.pendingComplete;
                         const isSelected = selectedItemIds.has(item.id);
-
                         const leftActionHtml = isSelectShareMode ? `
                             <button onclick="toggleItemSelection(event, ${item.id})" class="w-6 h-6 rounded-lg ${isSelected ? 'bg-app-theme text-white border-app-theme' : 'bg-white text-slate-300 border-slate-300'} flex items-center justify-center shrink-0 border shadow-2xs transition active:scale-90">
                                 <i class="fa-solid fa-check text-xs"></i>
@@ -1164,7 +1086,6 @@
                             <div onclick="${isSelectShareMode ? `toggleItemSelection(event, ${item.id})` : `openViewModal(${item.id})`}" class="p-3.5 rounded-2xl ${cardClass} hover:shadow-md active:scale-[0.99] transition-all duration-150 cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''} ${isSelected ? 'ring-2 ring-indigo-500/50 bg-indigo-50/40' : ''}">
                                 <div class="flex items-center space-x-3 overflow-hidden mr-2">
                                     ${leftActionHtml}
-
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
                                             <span class="font-bold text-xs text-slate-800 truncate ${isPending ? 'line-through' : ''}">${item.title}</span>
@@ -1178,7 +1099,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                
                                 <div class="flex items-center space-x-1.5 shrink-0">
                                     ${!isSelectShareMode ? `<button onclick="shareSingleItem(event, ${item.id})" class="text-slate-400 hover:text-app-theme p-1.5 transition text-xs active:scale-90" title="共有"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>` : ''}
                                     ${!isSelectShareMode ? `<button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs active:scale-90" title="削除"><i class="fa-solid fa-trash-can"></i></button>` : ''}
@@ -1191,13 +1111,10 @@
                 if (remindersCompleted.length > 0) {
                     completedSection.classList.remove('hidden');
                     completedCount.innerText = remindersCompleted.length;
-
                     completedContainer.innerHTML = remindersCompleted.map(item => `
                         <div onclick="restoreItem(${item.id})" class="p-2.5 rounded-2xl border border-slate-200/60 bg-slate-100/70 flex items-center justify-between cursor-pointer hover:bg-slate-200/60 transition opacity-60 active:scale-[0.98]">
                             <div class="flex items-center space-x-3 overflow-hidden">
-                                <div class="w-5 h-5 rounded-full bg-slate-400 text-white flex items-center justify-center shrink-0 text-xs shadow-2xs">
-                                    <i class="fa-solid fa-check"></i>
-                                </div>
+                                <div class="w-5 h-5 rounded-full bg-slate-400 text-white flex items-center justify-center shrink-0 text-xs shadow-2xs"><i class="fa-solid fa-check"></i></div>
                                 <span class="text-xs font-bold text-slate-600 line-through truncate">${item.title}</span>
                             </div>
                             <div class="flex items-center space-x-2 shrink-0 text-[10px] text-slate-400">
@@ -1210,14 +1127,12 @@
                     completedSection.classList.add('hidden');
                 }
 
-                // メモ描画
                 if (memos.length === 0) {
                     memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモはありません</p>';
                 } else {
                     memoItemsContainer.innerHTML = memos.map(item => {
                         let cardClass = item.favorite ? "favorite-card-glow" : "bg-white/90 backdrop-blur-sm border border-slate-200/80 shadow-xs";
                         const isSelected = selectedItemIds.has(item.id);
-
                         const leftActionHtml = isSelectShareMode ? `
                             <button onclick="toggleItemSelection(event, ${item.id})" class="w-6 h-6 rounded-lg ${isSelected ? 'bg-app-theme text-white border-app-theme' : 'bg-white text-slate-300 border-slate-300'} flex items-center justify-center shrink-0 border shadow-2xs transition active:scale-90">
                                 <i class="fa-solid fa-check text-xs"></i>
@@ -1227,12 +1142,10 @@
                                 <i class="fa-solid fa-book-open"></i>
                             </div>
                         `;
-
                         return `
                             <div onclick="${isSelectShareMode ? `toggleItemSelection(event, ${item.id})` : `openViewModal(${item.id})`}" class="p-3.5 rounded-2xl ${cardClass} hover:shadow-md active:scale-[0.99] transition-all duration-150 cursor-pointer flex items-center justify-between ${isSelected ? 'ring-2 ring-indigo-500/50 bg-indigo-50/40' : ''}">
                                 <div class="flex items-center space-x-3 overflow-hidden mr-2">
                                     ${leftActionHtml}
-
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
                                             <span class="font-bold text-xs text-slate-800 truncate">${item.title}</span>
@@ -1244,7 +1157,6 @@
                                         </div>
                                     </div>
                                 </div>
-
                                 <div class="flex items-center space-x-1.5 shrink-0">
                                     ${!isSelectShareMode ? `<button onclick="shareSingleItem(event, ${item.id})" class="text-slate-400 hover:text-app-theme p-1.5 transition text-xs active:scale-90" title="共有"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>` : ''}
                                     ${!isSelectShareMode ? `<button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs active:scale-90" title="削除"><i class="fa-solid fa-trash-can"></i></button>` : ''}
@@ -1253,49 +1165,188 @@
                         `;
                     }).join('');
                 }
-            }
-        }
-
-        // カレンダービューの描画
-        function renderCalendarView() {
-            const container = document.getElementById('calendarScheduleList');
-            const scheduledItems = items.filter(i => i.targetDate && !i.completed);
-
-            if (scheduledItems.length === 0) {
-                container.innerHTML = '<div class="text-center py-12 bg-white/70 backdrop-blur-md rounded-3xl border border-slate-200/60 shadow-xs"><p class="text-xs text-slate-400">予定日が設定されているアイテムはありません</p></div>';
                 return;
             }
 
-            scheduledItems.sort((a, b) => a.targetDate.localeCompare(b.targetDate));
+            // メインリストビュー（ホーム）
+            listViewContainer.classList.remove('hidden');
+            folderContainer.classList.remove('hidden');
 
-            let grouped = {};
-            scheduledItems.forEach(item => {
-                if (!grouped[item.targetDate]) grouped[item.targetDate] = [];
-                grouped[item.targetDate].push(item);
-            });
+            const todayStr = new Date().toISOString().split('T')[0];
 
-            container.innerHTML = Object.keys(grouped).map(dateStr => {
-                const dateItems = grouped[dateStr];
-                return `
-                    <div class="bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-2">
-                        <div class="flex items-center space-x-2 border-b border-slate-100 pb-2">
-                            <i class="fa-solid fa-calendar-days text-app-theme"></i>
-                            <span class="font-bold text-sm text-slate-900">${dateStr}</span>
+            // 本日買うもの・今週買うものの抽出
+            // ※「🔥急ぎ」は日付に関わらず強制的に本日買うものに最上位表示
+            let activeReminders = items.filter(i => i.type !== 'memo' && !i.completed);
+            
+            let todayItems = activeReminders.filter(i => i.urgent || i.targetDate === todayStr);
+            let weekItems = activeReminders.filter(i => !i.urgent && i.targetDate && i.targetDate !== todayStr && isDateInCurrentWeek(i.targetDate));
+
+            // ダッシュボード更新
+            document.getElementById('todayCountBadge').innerText = `${todayItems.length}件`;
+            document.getElementById('weekCountBadge').innerText = `${weekItems.length}件`;
+
+            const todayListEl = document.getElementById('todayPreviewList');
+            if (todayItems.length === 0) {
+                todayListEl.innerHTML = '<p class="text-[11px] text-slate-400 py-1">本日の予定はありません</p>';
+            } else {
+                todayListEl.innerHTML = todayItems.map(item => `
+                    <div onclick="openViewModal(${item.id})" class="p-2 bg-white/80 hover:bg-white rounded-xl border border-rose-100 flex items-center justify-between cursor-pointer transition shadow-2xs">
+                        <div class="flex items-center space-x-2 truncate mr-2">
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">${item.category}</span>
+                            <span class="text-xs font-bold text-slate-800 truncate">${item.title}</span>
+                            ${item.urgent ? '<span class="text-[9px] text-rose-600 font-bold">🔥急ぎ</span>' : ''}
                         </div>
-                        <div class="space-y-1.5">
-                            ${dateItems.map(item => `
-                                <div onclick="openViewModal(${item.id})" class="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/60 flex items-center justify-between cursor-pointer transition">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700">${item.category}</span>
-                                        <span class="text-xs font-bold text-slate-800">${item.title}</span>
-                                    </div>
-                                    ${item.store ? `<span class="text-[10px] text-slate-400"><i class="fa-solid fa-store mr-0.5"></i>${item.store}</span>` : ''}
+                        ${item.store ? `<span class="text-[10px] text-slate-400 shrink-0">${item.store}</span>` : ''}
+                    </div>
+                `).join('');
+            }
+
+            const weekListEl = document.getElementById('weekPreviewList');
+            if (weekItems.length === 0) {
+                weekListEl.innerHTML = '<p class="text-[11px] text-slate-400 py-1">今週の予定はありません</p>';
+            } else {
+                weekListEl.innerHTML = weekItems.map(item => `
+                    <div onclick="openViewModal(${item.id})" class="p-2 bg-white/80 hover:bg-white rounded-xl border border-indigo-100 flex items-center justify-between cursor-pointer transition shadow-2xs">
+                        <div class="flex items-center space-x-2 truncate mr-2">
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">${item.category}</span>
+                            <span class="text-xs font-bold text-slate-800 truncate">${item.title}</span>
+                        </div>
+                        <span class="text-[10px] text-indigo-500 font-mono shrink-0">${item.targetDate}</span>
+                    </div>
+                `).join('');
+            }
+
+            if (customGenres.length === 0) {
+                folderContainer.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            folderContainer.innerHTML = customGenres.map(genre => {
+                const bgGrad = `linear-gradient(135deg, ${hexToRgba(genre.color, 0.22)}, rgba(255, 255, 255, 0.95))`;
+                const iconHtml = genre.image ? `
+                    <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-10 h-10 rounded-2xl overflow-hidden shadow-2xs border border-slate-200/60 shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" title="タップして画像を変更">
+                        <img src="${genre.image}" class="w-full h-full object-cover pointer-events-none">
+                    </div>
+                ` : `
+                    <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-700 font-bold shadow-2xs shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" style="background-color: ${genre.color};" title="タップして画像を変更">
+                        <i class="fa-solid fa-list-check text-xs pointer-events-none"></i>
+                    </div>
+                `;
+
+                return `
+                    <div data-id="${genre.id}" class="rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden" style="background: ${bgGrad};">
+                        <div class="p-4 flex items-center justify-between">
+                            <div class="flex items-center space-x-3.5 flex-1 cursor-pointer" onclick="openCategoryDetail('${genre.name}')">
+                                <div onclick="event.stopPropagation(); triggerGenreImageChange(event, ${genre.id})" class="shrink-0">
+                                    ${iconHtml}
                                 </div>
-                            `).join('')}
+                                <div class="flex-1 overflow-hidden">
+                                    <span class="font-bold text-base text-slate-900 block truncate">${genre.name}</span>
+                                </div>
+                            </div>
+                            <div class="text-slate-400 text-xs pl-2 cursor-pointer" onclick="openCategoryDetail('${genre.name}')">
+                                <i class="fa-solid fa-chevron-right text-xs"></i>
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
+
+            if (sortableInstance) sortableInstance.destroy();
+            sortableInstance = new Sortable(folderContainer, {
+                animation: 150,
+                delay: 200,
+                delayOnTouchOnly: true,
+                onEnd: function() {
+                    const newOrderIds = Array.from(folderContainer.children).map(el => Number(el.getAttribute('data-id')));
+                    customGenres.sort((a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
+                    localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
+                }
+            });
+        }
+
+        // カレンダービュー（月ごとの暦表示）
+        function renderCalendarView() {
+            document.getElementById('calendarMonthTitle').innerText = `${calendarYear}年 ${calendarMonth + 1}月`;
+            const gridEl = document.getElementById('calendarDaysGrid');
+            
+            const firstDayIndex = new Date(calendarYear, calendarMonth, 1).getDay();
+            const lastDay = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+
+            let daysHtml = '';
+            for (let i = 0; i < firstDayIndex; i++) {
+                daysHtml += `<div></div>`;
+            }
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            for (let day = 1; day <= lastDay; day++) {
+                const mStr = String(calendarMonth + 1).padStart(2, '0');
+                const dStr = String(day).padStart(2, '0');
+                const dateStr = `${calendarYear}-${mStr}-${dStr}`;
+
+                const hasItem = items.some(i => i.targetDate === dateStr && !i.completed);
+                const isSelected = (selectedCalendarDateStr === dateStr);
+                const isToday = (todayStr === dateStr);
+
+                let btnClass = "bg-white/80 hover:bg-slate-100 text-slate-700 border border-slate-200/80";
+                if (isSelected) btnClass = "bg-app-theme text-white border-app-theme shadow-xs";
+                else if (isToday) btnClass = "bg-indigo-50 text-indigo-700 border-indigo-300 font-bold";
+
+                daysHtml += `
+                    <button onclick="selectCalendarDate('${dateStr}')" class="h-10 rounded-xl flex flex-col items-center justify-center text-xs transition relative active:scale-95 ${btnClass}">
+                        <span>${day}</span>
+                        ${hasItem ? `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-rose-500'} absolute bottom-1"></span>` : ''}
+                    </button>
+                `;
+            }
+
+            gridEl.innerHTML = daysHtml;
+            renderSelectedDateSchedule();
+        }
+
+        function changeMonth(direction) {
+            calendarMonth += direction;
+            if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+            else if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+            renderCalendarView();
+        }
+
+        function currentMonthToday() {
+            const now = new Date();
+            calendarYear = now.getFullYear();
+            calendarMonth = now.getMonth();
+            selectedCalendarDateStr = now.toISOString().split('T')[0];
+            renderCalendarView();
+        }
+
+        function selectCalendarDate(dateStr) {
+            selectedCalendarDateStr = dateStr;
+            renderCalendarView();
+        }
+
+        function renderSelectedDateSchedule() {
+            document.getElementById('selectedDateTitle').innerText = `${selectedCalendarDateStr} の購入予定`;
+            const container = document.getElementById('selectedDateScheduleList');
+            const targetItems = items.filter(i => i.targetDate === selectedCalendarDateStr && !i.completed);
+
+            if (targetItems.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400 py-2">この日の予定はありません</p>';
+                return;
+            }
+
+            container.innerHTML = targetItems.map(item => `
+                <div onclick="openViewModal(${item.id})" class="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/60 flex items-center justify-between cursor-pointer transition">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700">${item.category}</span>
+                        <span class="text-xs font-bold text-slate-800">${item.title}</span>
+                    </div>
+                    ${item.store ? `<span class="text-[10px] text-slate-400"><i class="fa-solid fa-store mr-0.5"></i>${item.store}</span>` : ''}
+                </div>
+            `).join('');
         }
 
         function openModal(id = null) {
@@ -1333,9 +1384,7 @@
             showSheetModal('itemModal', 'itemModalCard');
         }
 
-        function closeModal() {
-            hideSheetModal('itemModal', 'itemModalCard');
-        }
+        function closeModal() { hideSheetModal('itemModal', 'itemModalCard'); }
 
         function saveItem(event) {
             event.preventDefault();
@@ -1381,9 +1430,7 @@
             showSheetModal('genreManageModal', 'genreManageModalCard');
         }
 
-        function closeGenreManageModal() {
-            hideSheetModal('genreManageModal', 'genreManageModalCard');
-        }
+        function closeGenreManageModal() { hideSheetModal('genreManageModal', 'genreManageModalCard'); }
 
         function handleGenreImageSelect(event) {
             const file = event.target.files[0];
@@ -1462,7 +1509,6 @@
             if (confirm(`カテゴリー「${name}」を削除してもよろしいですか？\n※この操作は元に戻せません。`)) {
                 customGenres = customGenres.filter(g => g.id !== id);
                 localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
-                
                 renderGenreManageList();
                 renderCategorySelect();
                 renderApp();
@@ -1482,12 +1528,7 @@
                 return;
             }
 
-            const newGenre = {
-                id: Date.now(),
-                name: name,
-                color: colorInput.value
-            };
-
+            const newGenre = { id: Date.now(), name: name, color: colorInput.value };
             if (imageInput.value) newGenre.image = imageInput.value;
 
             customGenres.push(newGenre);
