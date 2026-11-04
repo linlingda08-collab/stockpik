@@ -221,22 +221,26 @@
                 </div>
             </div>
 
-            <!-- マイリスト（フォルダ）カード一覧 -->
-            <div id="folderContainer" class="space-y-3 pt-1"></div>
+            <!-- マイリスト（フォルダ）カード一覧（コンパクト化） -->
+            <div id="folderContainer" class="space-y-2 pt-1"></div>
         </div>
 
-        <!-- カレンダービューエリア -->
+        <!-- カレンダービューエリア（ガラス風デザイン統一 ＆ 年月選択対応） -->
         <div id="calendarViewContainer" class="hidden space-y-4">
-            <div class="bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs flex justify-between items-center">
+            <div class="bg-white/90 backdrop-blur-md p-3.5 rounded-3xl border border-slate-200/80 shadow-xs flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                     <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-                    <h2 id="calendarMonthTitle" class="font-bold text-slate-900 text-base">2026年 11月</h2>
+                    <!-- 年月セレクトボックス -->
+                    <div class="flex items-center space-x-1">
+                        <select id="calendarYearSelect" onchange="onCalendarSelectChange()" class="bg-slate-100/80 border border-slate-200 rounded-xl px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none"></select>
+                        <select id="calendarMonthSelect" onchange="onCalendarSelectChange()" class="bg-slate-100/80 border border-slate-200 rounded-xl px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none"></select>
+                    </div>
                     <button onclick="changeMonth(1)" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
                 </div>
                 <button onclick="currentMonthToday()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">今月</button>
             </div>
             <!-- カレンダーグリッド（暦） -->
-            <div id="calendarGridCard" class="bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
+            <div class="bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
                 <div class="grid grid-cols-7 text-center text-xs font-bold text-slate-400 pb-2 border-b border-slate-100">
                     <span class="text-rose-500">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="text-indigo-500">土</span>
                 </div>
@@ -385,73 +389,72 @@
         </div>
     </div>
 
-    <!-- アイテム追加・編集モーダル（改良版：折り返し防止・重なりなしのゆとりあるコンパクト設計） -->
+    <!-- アイテム追加・編集モーダル（改良版：iPhone画面の約2/3の高さでゆとりを持たせた入力フォーム） -->
     <div id="itemModal" onclick="handleModalOutsideClick(event, 'itemModal', closeModal)" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div id="itemModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 space-y-3 border border-slate-100">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
-                <h2 id="modalTitle" class="text-sm font-bold text-slate-900">追加</h2>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+        <div id="itemModalCard" class="modal-sheet modal-sheet-hidden bg-white/95 backdrop-blur-md w-full max-w-md h-[65vh] sm:h-auto rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 flex flex-col justify-between border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3 shrink-0">
+                <h2 id="modalTitle" class="text-base font-bold text-slate-900">追加</h2>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-3">
+            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-3.5 overflow-y-auto flex-1 pr-1 py-1">
                 <input type="hidden" id="itemId">
                 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">種別</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">種別</label>
                         <div class="grid grid-cols-2 gap-1.5">
-                            <label class="flex items-center justify-center space-x-1 bg-white py-2 px-1 rounded-xl border border-slate-200 cursor-pointer shadow-2xs">
+                            <label class="flex items-center justify-center space-x-1 bg-white py-2.5 px-1 rounded-xl border border-slate-200 cursor-pointer shadow-2xs">
                                 <input type="radio" name="itemType" value="reminder" checked class="text-app-theme focus:ring-0">
-                                <span class="text-[11px] font-bold text-slate-800 whitespace-nowrap">リマインダー</span>
+                                <span class="text-xs font-bold text-slate-800 whitespace-nowrap">リマインダー</span>
                             </label>
-                            <label class="flex items-center justify-center space-x-1 bg-white py-2 px-1 rounded-xl border border-slate-200 cursor-pointer shadow-2xs">
+                            <label class="flex items-center justify-center space-x-1 bg-white py-2.5 px-1 rounded-xl border border-slate-200 cursor-pointer shadow-2xs">
                                 <input type="radio" name="itemType" value="memo" class="text-app-theme focus:ring-0">
-                                <span class="text-[11px] font-bold text-slate-800 whitespace-nowrap">メモ</span>
+                                <span class="text-xs font-bold text-slate-800 whitespace-nowrap">メモ</span>
                             </label>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">ジャンル</label>
-                        <select id="itemCategory" class="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none"></select>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">ジャンル</label>
+                        <select id="itemCategory" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none"></select>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">タイトル <span class="text-rose-500">*</span></label>
-                    <input type="text" id="itemTitle" required placeholder="例: 絆創膏 ケアリーヴ" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">タイトル <span class="text-rose-500">*</span></label>
+                    <input type="text" id="itemTitle" required placeholder="例: 絆創膏 ケアリーヴ" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">購入予定日（任意）</label>
-                        <input type="date" id="itemTargetDate" class="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">購入予定日（任意）</label>
+                        <input type="date" id="itemTargetDate" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">購入先・店舗</label>
-                        <input type="text" id="itemStore" placeholder="例: 薬局" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">購入先・店舗</label>
+                        <input type="text" id="itemStore" placeholder="例: 薬局" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-4 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
-                    <label class="flex items-center space-x-1.5 cursor-pointer">
-                        <input type="checkbox" id="itemUrgent" class="w-3.5 h-3.5 text-rose-600 border-slate-300 rounded">
-                        <span class="text-[11px] font-bold text-rose-600"><i class="fa-solid fa-fire mr-1"></i>急ぎ</span>
+                <div class="flex items-center space-x-5 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="itemUrgent" class="w-4 h-4 text-rose-600 border-slate-300 rounded">
+                        <span class="text-xs font-bold text-rose-600"><i class="fa-solid fa-fire mr-1"></i>急ぎ</span>
                     </label>
-                    <label class="flex items-center space-x-1.5 cursor-pointer">
-                        <input type="checkbox" id="itemFavorite" class="w-3.5 h-3.5 text-amber-500 border-slate-300 rounded">
-                        <span class="text-[11px] font-semibold text-amber-600"><i class="fa-solid fa-star mr-1"></i>定番品</span>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="itemFavorite" class="w-4 h-4 text-amber-500 border-slate-300 rounded">
+                        <span class="text-xs font-semibold text-amber-600"><i class="fa-solid fa-star mr-1"></i>定番品</span>
                     </label>
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">メモ / 参考URL</label>
-                    <input type="text" id="itemMemo" placeholder="型番やURLなど" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
-                </div>
-
-                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium transition">キャンセル</button>
-                    <button type="submit" class="px-5 py-2 bg-app-theme text-white rounded-xl text-xs font-medium hover:opacity-90 active:scale-95 transition shadow-xs">保存する</button>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">メモ / 参考URL</label>
+                    <input type="text" id="itemMemo" placeholder="型番やURLなど" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
                 </div>
             </form>
+            <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 shrink-0">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium transition">キャンセル</button>
+                <button type="button" onclick="document.getElementById('itemForm').requestSubmit()" class="px-5 py-2 bg-app-theme text-white rounded-xl text-xs font-medium hover:opacity-90 active:scale-95 transition shadow-xs">保存する</button>
+            </div>
         </div>
     </div>
 
@@ -503,7 +506,7 @@
         let appThemeColor = localStorage.getItem('reminders_app_theme') || '#4f46e5';
         let appBgImage = localStorage.getItem('reminders_app_bg') || '';
 
-        let mainTab = 'list'; // 'list' | 'calendar'
+        let mainTab = 'list'; // 'list' | 'calendar' | 'detail'
         let selectedCategoryDetail = null; 
         let pendingTimeouts = {}; 
         let showCompletedAccordion = false;
@@ -526,6 +529,7 @@
             applyAppThemeColor(appThemeColor);
             applyAppBgImage(appBgImage);
             renderCategorySelect();
+            initCalendarSelects();
             renderApp();
             initSwipeGesture();
             autoFetchExistingImages();
@@ -814,6 +818,28 @@
             }
         }
 
+        function initCalendarSelects() {
+            const yearSelect = document.getElementById('calendarYearSelect');
+            let yearOptions = '';
+            for (let y = 2024; y <= 2032; y++) {
+                yearOptions += `<option value="${y}" ${y === calendarYear ? 'selected' : ''}>${y}年</option>`;
+            }
+            yearSelect.innerHTML = yearOptions;
+
+            const monthSelect = document.getElementById('calendarMonthSelect');
+            let monthOptions = '';
+            for (let m = 0; m < 12; m++) {
+                monthOptions += `<option value="${m}" ${m === calendarMonth ? 'selected' : ''}>${m + 1}月</option>`;
+            }
+            monthSelect.innerHTML = monthOptions;
+        }
+
+        function onCalendarSelectChange() {
+            calendarYear = parseInt(document.getElementById('calendarYearSelect').value);
+            calendarMonth = parseInt(document.getElementById('calendarMonthSelect').value);
+            renderCalendarView();
+        }
+
         function hexToRgba(hex, alpha) {
             let c = hex.replace('#', '');
             if (c.length === 3) c = c.split('').map(x => x + x).join('');
@@ -992,14 +1018,13 @@
             }
         }
 
-        // 日付が「今週」に含まれるか判定 (月曜～日曜基準)
         function isDateInCurrentWeek(dateStr) {
             if (!dateStr) return false;
             const target = new Date(dateStr);
             if (isNaN(target)) return false;
 
             const now = new Date();
-            const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1; // 月曜始まり
+            const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
             const monday = new Date(now);
             monday.setDate(now.getDate() - dayOfWeek);
             monday.setHours(0,0,0,0);
@@ -1174,14 +1199,10 @@
 
             const todayStr = new Date().toISOString().split('T')[0];
 
-            // 本日買うもの・今週買うものの抽出
-            // ※「🔥急ぎ」は日付に関わらず強制的に本日買うものに最上位表示
             let activeReminders = items.filter(i => i.type !== 'memo' && !i.completed);
-            
             let todayItems = activeReminders.filter(i => i.urgent || i.targetDate === todayStr);
             let weekItems = activeReminders.filter(i => !i.urgent && i.targetDate && i.targetDate !== todayStr && isDateInCurrentWeek(i.targetDate));
 
-            // ダッシュボード更新
             document.getElementById('todayCountBadge').innerText = `${todayItems.length}件`;
             document.getElementById('weekCountBadge').innerText = `${weekItems.length}件`;
 
@@ -1224,27 +1245,28 @@
 
             emptyState.classList.add('hidden');
 
+            // カテゴリーカードをよりコンパクトに調整
             folderContainer.innerHTML = customGenres.map(genre => {
                 const bgGrad = `linear-gradient(135deg, ${hexToRgba(genre.color, 0.22)}, rgba(255, 255, 255, 0.95))`;
                 const iconHtml = genre.image ? `
-                    <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-10 h-10 rounded-2xl overflow-hidden shadow-2xs border border-slate-200/60 shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" title="タップして画像を変更">
+                    <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-8 h-8 rounded-xl overflow-hidden shadow-2xs border border-slate-200/60 shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" title="タップして画像を変更">
                         <img src="${genre.image}" class="w-full h-full object-cover pointer-events-none">
                     </div>
                 ` : `
-                    <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-700 font-bold shadow-2xs shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" style="background-color: ${genre.color};" title="タップして画像を変更">
+                    <div onclick="triggerGenreImageChange(event, ${genre.id})" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-700 font-bold shadow-2xs shrink-0 cursor-pointer hover:opacity-80 transition active:scale-90" style="background-color: ${genre.color};" title="タップして画像を変更">
                         <i class="fa-solid fa-list-check text-xs pointer-events-none"></i>
                     </div>
                 `;
 
                 return `
                     <div data-id="${genre.id}" class="rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden" style="background: ${bgGrad};">
-                        <div class="p-4 flex items-center justify-between">
-                            <div class="flex items-center space-x-3.5 flex-1 cursor-pointer" onclick="openCategoryDetail('${genre.name}')">
+                        <div class="px-3.5 py-2.5 flex items-center justify-between">
+                            <div class="flex items-center space-x-3 flex-1 cursor-pointer" onclick="openCategoryDetail('${genre.name}')">
                                 <div onclick="event.stopPropagation(); triggerGenreImageChange(event, ${genre.id})" class="shrink-0">
                                     ${iconHtml}
                                 </div>
                                 <div class="flex-1 overflow-hidden">
-                                    <span class="font-bold text-base text-slate-900 block truncate">${genre.name}</span>
+                                    <span class="font-bold text-sm text-slate-900 block truncate">${genre.name}</span>
                                 </div>
                             </div>
                             <div class="text-slate-400 text-xs pl-2 cursor-pointer" onclick="openCategoryDetail('${genre.name}')">
@@ -1268,11 +1290,12 @@
             });
         }
 
-        // カレンダービュー（月ごとの暦表示）
+        // カレンダービュー描画
         function renderCalendarView() {
-            document.getElementById('calendarMonthTitle').innerText = `${calendarYear}年 ${calendarMonth + 1}月`;
+            document.getElementById('calendarYearSelect').value = calendarYear;
+            document.getElementById('calendarMonthSelect').value = calendarMonth;
+
             const gridEl = document.getElementById('calendarDaysGrid');
-            
             const firstDayIndex = new Date(calendarYear, calendarMonth, 1).getDay();
             const lastDay = new Date(calendarYear, calendarMonth + 1, 0).getDate();
 
@@ -1312,6 +1335,7 @@
             calendarMonth += direction;
             if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
             else if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+            initCalendarSelects();
             renderCalendarView();
         }
 
@@ -1320,6 +1344,7 @@
             calendarYear = now.getFullYear();
             calendarMonth = now.getMonth();
             selectedCalendarDateStr = now.toISOString().split('T')[0];
+            initCalendarSelects();
             renderCalendarView();
         }
 
