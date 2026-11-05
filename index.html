@@ -758,10 +758,8 @@
             return match ? match[0] : '';
         }
 
-        // メモ表示用（URL部分を非表示、または「リンクあり」等にするなど、UIをすっきりさせるためURLを置換・除外して表示するヘルパー）
         function getDisplayMemo(memoText) {
             if (!memoText) return '';
-            // メモ文からURL部分を除去してすっきり表示する
             return memoText.replace(/(https?:\/\/[^\s]+)/g, '').trim();
         }
 
@@ -1156,10 +1154,7 @@
             const content = document.getElementById('viewModalContent');
             
             let targetUrl = item.url || extractUrl(item.memo);
-            let urlLinkHtml = '';
-            if (targetUrl) {
-                urlLinkHtml = `<div class="pt-1"><a href="${targetUrl}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs font-bold text-app-theme hover:underline bg-indigo-50/80 px-3 py-1.5 rounded-xl border border-indigo-100/60"><i class="fa-solid fa-arrow-up-right-from-square"><span>リンクを開く: ${targetUrl}</span></i></a></div>`;
-            }
+            let displayMemoText = getDisplayMemo(item.memo);
 
             content.innerHTML = `
                 <div>
@@ -1180,7 +1175,7 @@
                 })() : ''}
                 ${item.targetDate ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">購入予定日</p><p class="text-xs text-slate-700 font-bold"><i class="fa-solid fa-calendar-days mr-1 text-app-theme"></i>${item.targetDate}</p></div>` : ''}
                 ${item.store ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">購入先・店舗</p><p class="text-xs text-slate-700"><i class="fa-solid fa-store mr-1"></i>${item.store}</p></div>` : ''}
-                ${item.memo ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">メモ / リンク</p><p class="text-xs text-slate-700 bg-white/60 p-3 rounded-2xl border border-slate-200/50 whitespace-pre-wrap">${item.memo}</p>${urlLinkHtml}</div>` : ''}
+                ${displayMemoText ? `<div><p class="text-xs font-semibold text-slate-400 mb-0.5">メモ</p><p class="text-xs text-slate-700 bg-white/60 p-3 rounded-2xl border border-slate-200/50 whitespace-pre-wrap">${displayMemoText}</p></div>` : ''}
             `;
 
             showSheetModal('viewModal', 'viewModalCard');
@@ -1840,7 +1835,6 @@
             const target = customGenres.find(g => g.id === id);
             if (target) {
                 target.color = newColor;
-                localStorage.setItem('reminders_genres', JSON.stringify(target.color));
                 localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
                 renderApp();
             }
