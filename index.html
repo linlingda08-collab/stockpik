@@ -590,9 +590,11 @@
         let isSelectShareMode = false;
         let selectedItemIds = new Set();
 
-        let calendarYear = new Date().getFullYear();
-        let calendarMonth = new Date().getMonth();
-        let selectedCalendarDateStr = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        let calendarYear = now.getFullYear();
+        let calendarMonth = now.getMonth();
+        let selectedCalendarDateStr = now.toISOString().split('T')[0];
+        let lastCheckedDateStr = selectedCalendarDateStr;
 
         let touchStartX = 0;
         let touchStartY = 0;
@@ -608,6 +610,37 @@
             renderApp();
             initSwipeGesture();
             autoFetchExistingImagesAndUrls();
+            setupAutoDateSync();
+        }
+
+        // アプリ復帰時・日付跨ぎ時の自動日付更新処理
+        function setupAutoDateSync() {
+            const checkAndSyncDate = () => {
+                const currentDate = new Date();
+                const todayStr = currentDate.toISOString().split('T')[0];
+                
+                if (todayStr !== lastCheckedDateStr) {
+                    const wasSelectedToday = (selectedCalendarDateStr === lastCheckedDateStr);
+                    lastCheckedDateStr = todayStr;
+                    calendarYear = currentDate.getFullYear();
+                    calendarMonth = currentDate.getMonth();
+
+                    if (wasSelectedToday) {
+                        selectedCalendarDateStr = todayStr;
+                    }
+                    
+                    initCalendarSelects();
+                    renderApp();
+                }
+            };
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    checkAndSyncDate();
+                }
+            });
+
+            window.addEventListener('focus', checkAndSyncDate);
         }
 
         function switchMainTab(tab) {
