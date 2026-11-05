@@ -590,10 +590,18 @@
         let isSelectShareMode = false;
         let selectedItemIds = new Set();
 
+        // 端末ローカル時刻の年月日を取得するヘルパー関数 (YYYY-MM-DD)
+        function getLocalDateString(d = new Date()) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         const now = new Date();
         let calendarYear = now.getFullYear();
         let calendarMonth = now.getMonth();
-        let selectedCalendarDateStr = now.toISOString().split('T')[0];
+        let selectedCalendarDateStr = getLocalDateString(now);
         let lastCheckedDateStr = selectedCalendarDateStr;
 
         let touchStartX = 0;
@@ -613,11 +621,11 @@
             setupAutoDateSync();
         }
 
-        // アプリ復帰時・日付跨ぎ時の自動日付更新処理
+        // 端末のローカル日付ベースで日付の切り替わりを監視・同期
         function setupAutoDateSync() {
             const checkAndSyncDate = () => {
                 const currentDate = new Date();
-                const todayStr = currentDate.toISOString().split('T')[0];
+                const todayStr = getLocalDateString(currentDate);
                 
                 if (todayStr !== lastCheckedDateStr) {
                     const wasSelectedToday = (selectedCalendarDateStr === lastCheckedDateStr);
@@ -1443,7 +1451,7 @@
             listViewContainer.classList.remove('hidden');
             folderContainer.classList.remove('hidden');
 
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = getLocalDateString(new Date());
 
             let activeReminders = items.filter(i => i.type !== 'memo' && !i.completed);
             
@@ -1570,7 +1578,7 @@
                 daysHtml += `<div></div>`;
             }
 
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = getLocalDateString(new Date());
 
             for (let day = 1; day <= lastDay; day++) {
                 const mStr = String(calendarMonth + 1).padStart(2, '0');
@@ -1611,7 +1619,7 @@
             const now = new Date();
             calendarYear = now.getFullYear();
             calendarMonth = now.getMonth();
-            selectedCalendarDateStr = now.toISOString().split('T')[0];
+            selectedCalendarDateStr = getLocalDateString(now);
             initCalendarSelects();
             renderCalendarView();
         }
