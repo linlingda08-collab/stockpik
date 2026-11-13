@@ -348,7 +348,7 @@
                 <span>削除</span>
             </button>
             <button onclick="shareSelectedItems()" class="bg-app-theme hover:opacity-90 active:scale-95 text-white font-bold px-3 py-2 rounded-xl text-xs transition shadow-md flex items-center space-x-1">
-                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                <i class="fa-solid fa-arrow-up-right-from-bracket"></i>
                 <span>共有</span>
             </button>
         </div>
@@ -1364,7 +1364,7 @@
                                 </div>
                                 <div class="flex items-center space-x-2 shrink-0">
                                     ${thumbnailHtml}
-                                    ${!isSelectShareMode ? `<button onclick="shareSingleItem(event, ${item.id})" class="text-slate-400 hover:text-app-theme p-1.5 transition text-xs active:scale-90" title="共有"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>` : ''}
+                                    ${!isSelectShareMode ? `<button onclick="shareSingleItem(event, ${item.id})" class="text-slate-400 hover:text-app-theme p-1.5 transition text-xs active:scale-90" title="共有"><i class="fa-solid fa-arrow-up-right-from-bracket"></i></button>` : ''}
                                     ${!isSelectShareMode ? `<button onclick="event.stopPropagation(); deleteItem(${item.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition text-xs active:scale-90" title="削除"><i class="fa-solid fa-trash-can"></i></button>` : ''}
                                 </div>
                             </div>
@@ -1693,13 +1693,14 @@
 
             showSheetModal('itemModal', 'itemModalCard');
 
-            // モーダルが開いた後にタイトル入力欄へ自動フォーカス
-            setTimeout(() => {
-                const titleInput = document.getElementById('itemTitle');
-                if (titleInput) {
+            // モーダルが開いた直後とアニメーション完了後の2段階で確実にフォーカスをあてる
+            const titleInput = document.getElementById('itemTitle');
+            if (titleInput) {
+                titleInput.focus();
+                setTimeout(() => {
                     titleInput.focus();
-                }
-            }, 250);
+                }, 350);
+            }
         }
 
         function closeModal() { hideSheetModal('itemModal', 'itemModalCard'); }
