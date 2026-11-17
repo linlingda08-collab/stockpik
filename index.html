@@ -1693,7 +1693,6 @@
 
             showSheetModal('itemModal', 'itemModalCard');
 
-            // モーダルが開いた直後とアニメーション完了後の2段階で確実にフォーカスをあてる
             const titleInput = document.getElementById('itemTitle');
             if (titleInput) {
                 titleInput.focus();
@@ -1707,27 +1706,16 @@
 
         async function saveItem(event) {
             event.preventDefault();
+            
+            // 入力が完了した時点でモーダルをすぐ非表示にする
+            closeModal();
+
             const id = document.getElementById('itemId').value;
             const typeVal = document.querySelector('input[name="itemType"]:checked').value;
             let imageBase64 = document.getElementById('itemImageBase64').value;
             const memoVal = document.getElementById('itemMemo').value;
             const extractedUrl = extractUrl(memoVal);
             const savedUrl = document.getElementById('itemUrl').value || extractedUrl;
-
-            if (!imageBase64 && savedUrl) {
-                try {
-                    const response = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(savedUrl)}`);
-                    const json = await response.json();
-                    if (json.status === 'success' && json.data && json.data.image && json.data.image.url) {
-                        await new Promise((resolve) => {
-                            toDataURL(json.data.image.url, (b64) => {
-                                if (b64) imageBase64 = b64;
-                                resolve();
-                            });
-                        });
-                    }
-                } catch (e) {}
-            }
 
             const newItem = {
                 id: id ? Number(id) : Date.now(),
@@ -1753,8 +1741,28 @@
             }
 
             localStorage.setItem('reminders_items', JSON.stringify(items));
-            closeModal();
+            // 即座に画面を再描画して反映
             renderApp();
+
+            // バックグラウンドでURLからの画像取得（必要に応じて後から取得して保存）
+            if (!imageBase64 && savedUrl) {
+                try {
+                    const response = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(savedUrl)}`);
+                    const json = await response.json();
+                    if (json.status === 'success' && json.data && json.data.image && json.data.image.url) {
+                        toDataURL(json.data.image.url, (b64) => {
+                            if (b64) {
+                                const targetItem = items.find(i => i.id === newItem.id);
+                                if (targetItem) {
+                                    targetItem.image = b64;
+                                    localStorage.setItem('reminders_items', JSON.stringify(items));
+                                    renderApp();
+                                }
+                            }
+                        });
+                    }
+                } catch (e) {}
+            }
         }
 
         function deleteItem(id) {
