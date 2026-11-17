@@ -118,14 +118,6 @@
             cursor: pointer;
         }
 
-        .favorite-card-glow {
-            background-color: rgba(var(--app-card-bg-r), var(--app-card-bg-g), var(--app-card-bg-b), var(--app-card-opacity)) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(245, 158, 11, 0.5) !important;
-            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15) !important;
-        }
-
         input[type="color"].genre-color-picker {
             -webkit-appearance: none;
             border: none;
@@ -434,12 +426,10 @@
                         <div class="grid grid-cols-2 gap-1 bg-slate-200/60 p-1 rounded-xl border border-slate-200/80 backdrop-blur-md">
                             <label class="flex items-center justify-center space-x-1 py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-500 hover:text-slate-700 has-[:checked]:bg-emerald-500 has-[:checked]:text-white has-[:checked]:shadow-sm">
                                 <input type="radio" name="itemType" value="reminder" checked class="hidden">
-                                <i class="fa-solid fa-basket-shopping text-[10px]"></i>
                                 <span class="text-[10.5px] font-bold whitespace-nowrap">リマインダー</span>
                             </label>
                             <label class="flex items-center justify-center space-x-1 py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-500 hover:text-slate-700 has-[:checked]:bg-indigo-500 has-[:checked]:text-white has-[:checked]:shadow-sm">
                                 <input type="radio" name="itemType" value="memo" class="hidden">
-                                <i class="fa-solid fa-book-open text-[10px]"></i>
                                 <span class="text-[10.5px] font-bold whitespace-nowrap">メモ</span>
                             </label>
                         </div>
@@ -466,18 +456,26 @@
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-5 bg-white/60 px-3.5 py-2 rounded-xl border border-slate-200/60 flex-1 mr-3 backdrop-blur-md">
-                        <label class="flex items-center space-x-1.5 cursor-pointer">
-                            <input type="checkbox" id="itemUrgent" class="w-3.5 h-3.5 text-rose-600 border-slate-300 rounded">
-                            <span class="text-[11px] font-bold text-rose-600"><i class="fa-solid fa-fire mr-0.5"></i>急ぎ</span>
+                <!-- 優先度（急ぎ・早め・未定）3ボタン選択 -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">重要度・期間設定</label>
+                    <div class="grid grid-cols-3 gap-1 bg-white/60 p-1 rounded-xl border border-slate-200/60 backdrop-blur-md">
+                        <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 has-[:checked]:bg-rose-600 has-[:checked]:text-white has-[:checked]:shadow-sm">
+                            <input type="radio" name="itemPriority" value="urgent" class="hidden">
+                            <span>急ぎ</span>
                         </label>
-                        <label class="flex items-center space-x-1.5 cursor-pointer">
-                            <input type="checkbox" id="itemFavorite" class="w-3.5 h-3.5 text-amber-500 border-slate-300 rounded">
-                            <span class="text-[11px] font-semibold text-amber-600"><i class="fa-solid fa-star mr-0.5"></i>定番品</span>
+                        <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 has-[:checked]:bg-amber-500 has-[:checked]:text-white has-[:checked]:shadow-sm">
+                            <input type="radio" name="itemPriority" value="early" class="hidden">
+                            <span>早め</span>
+                        </label>
+                        <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 has-[:checked]:bg-slate-700 has-[:checked]:text-white has-[:checked]:shadow-sm">
+                            <input type="radio" name="itemPriority" value="none" checked class="hidden">
+                            <span>未定</span>
                         </label>
                     </div>
+                </div>
 
+                <div class="flex items-center justify-end">
                     <!-- 写真選択 -->
                     <div class="flex items-center space-x-2 shrink-0">
                         <label class="py-1.5 px-3 bg-white/80 hover:bg-white border border-slate-200/60 rounded-xl text-[11px] font-bold text-slate-700 cursor-pointer shadow-2xs transition active:scale-95 flex items-center space-x-1 backdrop-blur-md">
@@ -567,6 +565,60 @@
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
+        }
+
+        // 給料日判定ロジック: 毎月26日、土日祝の場合は直前の平日
+        function isPublicHoliday(d) {
+            const m = d.getMonth() + 1;
+            const date = d.getDate();
+            // 簡単な主要祝日判定 (元日、建国記念、天皇誕生、昭和、憲法、みどりの、こどもの、海の日等は簡易、ここでは主に土日を確実に避ける基本平日判定)
+            // ユーザー指定の「土日祝の場合は直前の平日」に対応するため、土日を判定
+            return false; 
+        }
+
+        function getActualPayday(year, month) {
+            // month: 0-11
+            let d = new Date(year, month, 26);
+            let dayOfWeek = d.getDay();
+            // 土曜(6) -> 25日(金), 日曜(0) -> 24日(金)
+            if (dayOfWeek === 6) {
+                d.setDate(25);
+            } else if (dayOfWeek === 0) {
+                d.setDate(24);
+            }
+            return d;
+        }
+
+        // 指定日が含まれる給料日サイクル（当月給料日〜翌月給料日の前日）を取得
+        function getSalaryCycleForDate(targetDate) {
+            const tYear = targetDate.getFullYear();
+            const tMonth = targetDate.getMonth();
+            const tDay = targetDate.getDate();
+
+            let currentPayday = getActualPayday(tYear, tMonth);
+            // 基準日が当月の給料日より前なら、前月の給料日がサイクルの開始
+            let startPayday;
+            let endPayday;
+
+            if (targetDate < currentPayday) {
+                let prevMonth = tMonth - 1;
+                let prevYear = tYear;
+                if (prevMonth < 0) { prevMonth = 11; prevYear--; }
+                startPayday = getActualPayday(prevYear, prevMonth);
+                endPayday = new Date(currentPayday);
+                endPayday.setDate(endPayday.getDate() - 1);
+            } else {
+                startPayday = new Date(currentPayday);
+                let nextMonth = tMonth + 1;
+                let nextYear = tYear;
+                if (nextMonth > 11) { nextMonth = 0; nextYear++; }
+                endPayday = new Date(getActualPayday(nextYear, nextMonth));
+                endPayday.setDate(endPayday.getDate() - 1);
+            }
+
+            startPayday.setHours(0,0,0,0);
+            endPayday.setHours(23,59,59,999);
+            return { start: startPayday, end: endPayday };
         }
 
         const now = new Date();
@@ -695,9 +747,8 @@
 
             selectedList.forEach(item => {
                 let typePrefix = item.type === 'memo' ? '📖 ' : '🛒 ';
-                let urgentMark = item.urgent ? ' (🔥急ぎ)' : '';
-                let favMark = item.favorite ? ' ⭐' : '';
-                text += `${typePrefix}${item.title}${urgentMark}${favMark}\n`;
+                let priorityMark = item.priority === 'urgent' ? ' (急ぎ)' : (item.priority === 'early' ? ' (早め)' : '');
+                text += `${typePrefix}${item.title}${priorityMark}\n`;
                 if (item.targetDate) text += `予定日: ${item.targetDate}\n`;
                 if (item.store) text += `店舗: ${item.store}\n`;
                 if (item.memo) text += `メモ: ${item.memo}\n`;
@@ -741,8 +792,8 @@
             if (!item) return;
 
             let typeTitle = item.type === 'memo' ? '【📖 メモ】' : '【🛒 リマインダー】';
-            let favMark = item.favorite ? ' ⭐' : '';
-            let text = `${typeTitle} ${item.title}${favMark}\n`;
+            let priorityMark = item.priority === 'urgent' ? ' [急ぎ]' : (item.priority === 'early' ? ' [早め]' : '');
+            let text = `${typeTitle} ${item.title}${priorityMark}\n`;
             text += `ジャンル: ${item.category}\n`;
             if (item.targetDate) text += `予定日: ${item.targetDate}\n`;
             if (item.store) text += `店舗: ${item.store}\n`;
@@ -1108,6 +1159,8 @@
             if (!item) return;
 
             const typeLabel = item.type === 'memo' ? '<span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-lg">📖 メモ</span>' : '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-lg">🛒 リマインダー</span>';
+            const priorityBadge = item.priority === 'urgent' ? '<span class="bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">急ぎ</span>' : (item.priority === 'early' ? '<span class="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">早め</span>' : '');
+
             const content = document.getElementById('viewModalContent');
             
             let targetUrl = item.url || extractUrl(item.memo);
@@ -1118,8 +1171,7 @@
                     <div class="flex items-center space-x-2 mb-1">
                         ${typeLabel}
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-white/80 text-slate-700 border border-slate-200/50">${item.category}</span>
-                        ${item.urgent ? '<span class="bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">🔥 急ぎ</span>' : ''}
-                        ${item.favorite ? '<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-lg border border-amber-200"><i class="fa-solid fa-star text-amber-500 mr-0.5"></i> 定番</span>' : ''}
+                        ${priorityBadge}
                     </div>
                     <h2 class="text-lg font-bold text-slate-900">${item.title}</h2>
                 </div>
@@ -1211,9 +1263,8 @@
                 let remindersCompleted = categoryItems.filter(i => i.type !== 'memo' && i.completed);
 
                 remindersActive.sort((a, b) => {
-                    if (a.urgent && !b.urgent) return -1;
-                    if (!a.urgent && b.urgent) return 1;
-                    return 0;
+                    const rank = (p) => p === 'urgent' ? 1 : (p === 'early' ? 2 : 3);
+                    return rank(a.priority) - rank(b.priority);
                 });
                 let memos = categoryItems.filter(i => i.type === 'memo');
 
@@ -1232,8 +1283,8 @@
                 } else {
                     reminderItemsContainer.innerHTML = remindersActive.map(item => {
                         let cardClass = "glass-card-readable";
-                        if (item.urgent) cardClass = "bg-white/90 border-2 border-rose-500 shadow-xs backdrop-blur-md";
-                        else if (item.favorite) cardClass = "favorite-card-glow";
+                        if (item.priority === 'urgent') cardClass = "bg-white/90 border-2 border-rose-500 shadow-xs backdrop-blur-md";
+                        else if (item.priority === 'early') cardClass = "bg-white/90 border-2 border-amber-400 shadow-xs backdrop-blur-md";
                         
                         const isPending = item.pendingComplete;
                         const isSelected = selectedItemIds.has(item.id);
@@ -1260,6 +1311,7 @@
                         }
 
                         let displayMemoText = getDisplayMemo(item.memo);
+                        let priorityTag = item.priority === 'urgent' ? '<span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">急ぎ</span>' : (item.priority === 'early' ? '<span class="bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">早め</span>' : '');
 
                         return `
                             <div onclick="${isSelectShareMode ? `toggleItemSelection(event, ${item.id})` : `openViewModal(${item.id})`}" class="p-3.5 rounded-2xl ${cardClass} hover:shadow-md active:scale-[0.99] transition-all duration-150 cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''} ${isSelected ? 'ring-2 ring-indigo-500/50 bg-indigo-50/60' : ''}">
@@ -1268,8 +1320,7 @@
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
                                             <span class="font-bold text-xs text-slate-900 truncate ${isPending ? 'line-through' : ''}">${item.title}</span>
-                                            ${item.urgent ? '<span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">🔥 急ぎ</span>' : ''}
-                                            ${item.favorite ? '<i class="fa-solid fa-star text-amber-500 text-[10px]"></i>' : ''}
+                                            ${priorityTag}
                                         </div>
                                         <div class="flex items-center space-x-2 text-[10px] text-slate-600 pt-0.5 font-medium">
                                             ${item.targetDate ? `<span><i class="fa-solid fa-calendar-days mr-0.5 text-app-theme"></i>${item.targetDate}</span>` : ''}
@@ -1311,7 +1362,7 @@
                     memoItemsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">メモはありません</p>';
                 } else {
                     memoItemsContainer.innerHTML = memos.map(item => {
-                        let cardClass = item.favorite ? "favorite-card-glow" : "glass-card-readable";
+                        let cardClass = "glass-card-readable";
                         const isSelected = selectedItemIds.has(item.id);
                         const leftActionHtml = isSelectShareMode ? `
                             <button onclick="toggleItemSelection(event, ${item.id})" class="w-6 h-6 rounded-lg ${isSelected ? 'bg-app-theme text-white border-app-theme' : 'bg-white/80 text-slate-300 border-slate-300'} flex items-center justify-center shrink-0 border shadow-2xs transition active:scale-90">
@@ -1344,7 +1395,6 @@
                                     <div class="truncate">
                                         <div class="flex items-center space-x-1.5">
                                             <span class="font-bold text-xs text-slate-900 truncate">${item.title}</span>
-                                            ${item.favorite ? '<i class="fa-solid fa-star text-amber-500 text-[10px]"></i>' : ''}
                                         </div>
                                         <div class="flex items-center space-x-2 text-[10px] text-slate-600 pt-0.5 font-medium">
                                             ${item.targetDate ? `<span><i class="fa-solid fa-calendar-days mr-0.5 text-app-theme"></i>${item.targetDate}</span>` : ''}
@@ -1368,12 +1418,49 @@
             folderContainer.classList.remove('hidden');
 
             const todayStr = getLocalDateString(new Date());
+            const todayDateObj = new Date();
+            todayDateObj.setHours(0,0,0,0);
+
+            // 給料日サイクルの計算
+            const currentCycle = getSalaryCycleForDate(todayDateObj);
 
             let activeReminders = items.filter(i => i.type !== 'memo' && !i.completed);
             
-            let overdueItems = activeReminders.filter(i => i.targetDate && i.targetDate < todayStr);
-            let todayItems = activeReminders.filter(i => i.urgent || i.targetDate === todayStr);
-            let weekItems = activeReminders.filter(i => !i.urgent && i.targetDate && i.targetDate > todayStr && isDateInCurrentWeek(i.targetDate));
+            // 本日買うものの判定条件：
+            // 1. 「急ぎ」：作成日(id)から1週間以内、または期限切れで未完了のもの
+            // 2. 「早め」：現在の給料日サイクル内、または今月(給料日サイクル内)に完了していないもの
+            // 3. 予定日が今日に一致するもの、または予定日超過の期限切れのもの
+            let overdueItems = activeReminders.filter(i => {
+                if (i.targetDate && i.targetDate < todayStr) return true;
+                if (i.priority === 'urgent') {
+                    const createdDate = new Date(i.id);
+                    const diffTime = todayDateObj - createdDate;
+                    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+                    // 1週間以上経過して未完了なら期限切れ・残り続ける
+                    return diffDays > 7;
+                }
+                return false;
+            });
+
+            let todayItems = activeReminders.filter(i => {
+                if (i.targetDate === todayStr) return true;
+                if (i.priority === 'urgent') {
+                    const createdDate = new Date(i.id);
+                    createdDate.setHours(0,0,0,0);
+                    const diffDays = (todayDateObj - createdDate) / (1000 * 60 * 60 * 24);
+                    // 1週間以内であれば本日買うものに表示
+                    return diffDays >= 0 && diffDays <= 7;
+                }
+                if (i.priority === 'early') {
+                    const createdDate = new Date(i.id);
+                    createdDate.setHours(0,0,0,0);
+                    // 現在の給料日サイクル内に作成された、または現在サイクルを跨いで未完了なら本日買うもの/今月分として残り続ける
+                    return createdDate <= currentCycle.end;
+                }
+                return false;
+            });
+
+            let weekItems = activeReminders.filter(i => i.priority === 'none' && !i.urgent && i.targetDate && i.targetDate > todayStr && isDateInCurrentWeek(i.targetDate));
 
             const overdueSection = document.getElementById('overdueSection');
             const overdueListEl = document.getElementById('overduePreviewList');
@@ -1386,7 +1473,7 @@
                             <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100/80 text-rose-700">${item.category}</span>
                             <span class="text-xs font-bold text-slate-800 truncate">${item.title}</span>
                         </div>
-                        <span class="text-[10px] font-bold text-rose-600 shrink-0 font-mono"><i class="fa-solid fa-clock-rotate-left mr-0.5"></i>${item.targetDate}</span>
+                        <span class="text-[10px] font-bold text-rose-600 shrink-0 font-mono"><i class="fa-solid fa-clock-rotate-left mr-0.5"></i>${item.targetDate || '期限超過'}</span>
                     </div>
                 `).join('');
             } else {
@@ -1400,16 +1487,19 @@
             if (todayItems.length === 0) {
                 todayListEl.innerHTML = '<p class="text-[11px] text-slate-400 py-1">本日の予定はありません</p>';
             } else {
-                todayListEl.innerHTML = todayItems.map(item => `
-                    <div onclick="openViewModal(${item.id})" class="p-2 bg-white/80 hover:bg-white rounded-xl border border-rose-100/60 flex items-center justify-between cursor-pointer transition shadow-2xs backdrop-blur-md">
-                        <div class="flex items-center space-x-2 truncate mr-2">
-                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100/80 text-rose-700">${item.category}</span>
-                            <span class="text-xs font-bold text-slate-800 truncate">${item.title}</span>
-                            ${item.urgent ? '<span class="text-[9px] text-rose-600 font-bold">🔥急ぎ</span>' : ''}
+                todayListEl.innerHTML = todayItems.map(item => {
+                    let badge = item.priority === 'urgent' ? '<span class="text-[9px] text-rose-600 font-bold">急ぎ</span>' : (item.priority === 'early' ? '<span class="text-[9px] text-amber-600 font-bold">早め</span>' : '');
+                    return `
+                        <div onclick="openViewModal(${item.id})" class="p-2 bg-white/80 hover:bg-white rounded-xl border border-rose-100/60 flex items-center justify-between cursor-pointer transition shadow-2xs backdrop-blur-md">
+                            <div class="flex items-center space-x-2 truncate mr-2">
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100/80 text-rose-700">${item.category}</span>
+                                <span class="text-xs font-bold text-slate-800 truncate">${item.title}</span>
+                                ${badge}
+                            </div>
+                            ${item.store ? `<span class="text-[10px] text-slate-500 shrink-0 font-medium">${item.store}</span>` : ''}
                         </div>
-                        ${item.store ? `<span class="text-[10px] text-slate-500 shrink-0 font-medium">${item.store}</span>` : ''}
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
 
             const weekListEl = document.getElementById('weekPreviewList');
@@ -1578,6 +1668,9 @@
             clearItemImage();
             document.getElementById('itemUrl').value = '';
 
+            // デフォルトで「未定 (none)」を選択状態にする
+            document.querySelector('input[name="itemPriority"][value="none"]').checked = true;
+
             if (id) {
                 document.getElementById('modalTitle').innerText = '編集';
                 const item = items.find(i => i.id === id);
@@ -1588,8 +1681,10 @@
                 document.getElementById('itemStore').value = item.store || '';
                 document.getElementById('itemMemo').value = item.memo || '';
                 document.getElementById('itemUrl').value = item.url || extractUrl(item.memo) || '';
-                document.getElementById('itemUrgent').checked = item.urgent || false;
-                document.getElementById('itemFavorite').checked = item.favorite || false;
+                
+                const priorityVal = item.priority || 'none';
+                const pRadio = document.querySelector(`input[name="itemPriority"][value="${priorityVal}"]`);
+                if (pRadio) pRadio.checked = true;
                 
                 if (item.image) {
                     document.getElementById('itemImageBase64').value = item.image;
@@ -1626,6 +1721,7 @@
 
             const id = document.getElementById('itemId').value;
             const typeVal = document.querySelector('input[name="itemType"]:checked').value;
+            const priorityVal = document.querySelector('input[name="itemPriority"]:checked').value;
             let imageBase64 = document.getElementById('itemImageBase64').value;
             const memoVal = document.getElementById('itemMemo').value;
             const extractedUrl = extractUrl(memoVal);
@@ -1634,14 +1730,13 @@
             const newItem = {
                 id: id ? Number(id) : Date.now(),
                 type: typeVal,
+                priority: priorityVal,
                 title: document.getElementById('itemTitle').value,
                 category: document.getElementById('itemCategory').value,
                 targetDate: document.getElementById('itemTargetDate').value,
                 store: document.getElementById('itemStore').value,
                 memo: memoVal,
                 url: savedUrl,
-                urgent: document.getElementById('itemUrgent').checked,
-                favorite: document.getElementById('itemFavorite').checked,
                 image: imageBase64 || '',
                 completed: false,
                 pendingComplete: false
