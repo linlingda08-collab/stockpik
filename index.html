@@ -20,6 +20,7 @@
     <style>
         :root {
             --app-theme-color: #4f46e5;
+            --app-theme-rgb: 79, 70, 229;
             --app-card-bg-r: 255;
             --app-card-bg-g: 255;
             --app-card-bg-b: 255;
@@ -62,6 +63,13 @@
         }
         .border-app-theme {
             border-color: var(--app-theme-color) !important;
+        }
+
+        /* 選択時の動的同系色トーン用クラス */
+        .theme-sub-active {
+            background-color: rgba(var(--app-theme-rgb), 0.12) !important;
+            color: var(--app-theme-color) !important;
+            border-color: rgba(var(--app-theme-rgb), 0.35) !important;
         }
 
         .sortable-ghost {
@@ -424,11 +432,11 @@
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 mb-1">種別</label>
                         <div class="grid grid-cols-2 gap-1 bg-slate-200/60 p-1 rounded-xl border border-slate-200/80 backdrop-blur-md">
-                            <label class="flex items-center justify-center space-x-1 py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-500 hover:text-slate-700 has-[:checked]:bg-app-theme has-[:checked]:text-white has-[:checked]:shadow-sm">
+                            <label class="flex items-center justify-center space-x-1 py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 hover:text-slate-800 has-[:checked]:bg-app-theme has-[:checked]:text-white has-[:checked]:shadow-sm">
                                 <input type="radio" name="itemType" value="reminder" checked class="hidden">
                                 <span class="text-[10.5px] font-bold whitespace-nowrap">リマインダー</span>
                             </label>
-                            <label class="flex items-center justify-center space-x-1 py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-500 hover:text-slate-700 has-[:checked]:bg-app-theme has-[:checked]:text-white has-[:checked]:shadow-sm">
+                            <label class="flex items-center justify-center space-x-1 py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 hover:text-slate-800 has-[:checked]:bg-app-theme has-[:checked]:text-white has-[:checked]:shadow-sm">
                                 <input type="radio" name="itemType" value="memo" class="hidden">
                                 <span class="text-[10.5px] font-bold whitespace-nowrap">メモ</span>
                             </label>
@@ -456,19 +464,22 @@
                     </div>
                 </div>
 
-                <!-- 優先度（急ぎ・早め・未定）3ボタン選択 -->
+                <!-- 優先度（急ぎ・早め・未定）3ボタン選択：テーマカラーの同系色でトーン分け -->
                 <div>
                     <label class="block text-[11px] font-bold text-slate-700 mb-1">重要度・期間設定</label>
                     <div class="grid grid-cols-3 gap-1 bg-white/60 p-1 rounded-xl border border-slate-200/60 backdrop-blur-md">
+                        <!-- 急ぎ：テーマカラーをしっかり際立たせるスタイル -->
                         <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 has-[:checked]:bg-app-theme has-[:checked]:text-white has-[:checked]:shadow-sm">
                             <input type="radio" name="itemPriority" value="urgent" class="hidden">
                             <span>急ぎ</span>
                         </label>
-                        <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 has-[:checked]:bg-app-theme has-[:checked]:text-white has-[:checked]:shadow-sm">
+                        <!-- 早め：テーマカラーの明るめの同系色トーン -->
+                        <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 has-[:checked]:theme-sub-active has-[:checked]:shadow-sm border border-transparent">
                             <input type="radio" name="itemPriority" value="early" class="hidden">
                             <span>早め</span>
                         </label>
-                        <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 has-[:checked]:bg-app-theme has-[:checked]:text-white has-[:checked]:shadow-sm">
+                        <!-- 未定：ニュートラルで落ち着いたダークトーン -->
+                        <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 has-[:checked]:bg-slate-700 has-[:checked]:text-white has-[:checked]:shadow-sm">
                             <input type="radio" name="itemPriority" value="none" checked class="hidden">
                             <span>未定</span>
                         </label>
@@ -565,6 +576,13 @@
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
+        }
+
+        function hexToRgb(hex) {
+            let c = hex.replace('#', '');
+            if (c.length === 3) c = c.split('').map(x => x + x).join('');
+            const num = parseInt(c, 16);
+            return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
         }
 
         function getActualPayday(year, month) {
@@ -812,6 +830,7 @@
         function applyAppThemeColor(color) {
             appThemeColor = color;
             document.documentElement.style.setProperty('--app-theme-color', color);
+            document.documentElement.style.setProperty('--app-theme-rgb', hexToRgb(color));
             localStorage.setItem('reminders_app_theme', color);
             const preview = document.getElementById('themeWheelPreview');
             const picker = document.getElementById('themeWheelInput');
@@ -1145,7 +1164,7 @@
             if (!item) return;
 
             const typeLabel = item.type === 'memo' ? '<span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-lg">📖 メモ</span>' : '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-lg">🛒 リマインダー</span>';
-            const priorityBadge = item.priority === 'urgent' ? '<span class="bg-app-theme text-white text-[10px] font-bold px-2 py-0.5 rounded-full">急ぎ</span>' : (item.priority === 'early' ? '<span class="bg-app-theme text-white text-[10px] font-bold px-2 py-0.5 rounded-full opacity-85">早め</span>' : '');
+            const priorityBadge = item.priority === 'urgent' ? '<span class="bg-app-theme text-white text-[10px] font-bold px-2 py-0.5 rounded-full">急ぎ</span>' : (item.priority === 'early' ? '<span class="theme-sub-active text-[10px] font-bold px-2 py-0.5 rounded-full border">早め</span>' : '');
 
             const content = document.getElementById('viewModalContent');
             
@@ -1270,7 +1289,7 @@
                     reminderItemsContainer.innerHTML = remindersActive.map(item => {
                         let cardClass = "glass-card-readable";
                         if (item.priority === 'urgent') cardClass = "bg-white/90 border-2 border-app-theme shadow-xs backdrop-blur-md";
-                        else if (item.priority === 'early') cardClass = "bg-white/90 border-2 border-app-theme/60 shadow-xs backdrop-blur-md";
+                        else if (item.priority === 'early') cardClass = "bg-white/90 border border-app-theme/40 shadow-xs backdrop-blur-md";
                         
                         const isPending = item.pendingComplete;
                         const isSelected = selectedItemIds.has(item.id);
@@ -1297,7 +1316,7 @@
                         }
 
                         let displayMemoText = getDisplayMemo(item.memo);
-                        let priorityTag = item.priority === 'urgent' ? '<span class="bg-app-theme text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">急ぎ</span>' : (item.priority === 'early' ? '<span class="bg-app-theme/80 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">早め</span>' : '');
+                        let priorityTag = item.priority === 'urgent' ? '<span class="bg-app-theme text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">急ぎ</span>' : (item.priority === 'early' ? '<span class="theme-sub-active text-[9px] font-bold px-1.5 py-0.2 rounded-full border">早め</span>' : '');
 
                         return `
                             <div onclick="${isSelectShareMode ? `toggleItemSelection(event, ${item.id})` : `openViewModal(${item.id})`}" class="p-3.5 rounded-2xl ${cardClass} hover:shadow-md active:scale-[0.99] transition-all duration-150 cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''} ${isSelected ? 'ring-2 ring-indigo-500/50 bg-indigo-50/60' : ''}">
