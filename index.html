@@ -65,11 +65,32 @@
             border-color: var(--app-theme-color) !important;
         }
 
-        /* 選択時の動的同系色トーン用クラス */
-        .theme-sub-active {
-            background-color: rgba(var(--app-theme-rgb), 0.12) !important;
+        /* テーマカラーに連動する選択ボタン用スタイル（標準CSSで確実に適用） */
+        .theme-radio-solid:has(input:checked) {
+            background-color: var(--app-theme-color) !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 6px rgba(var(--app-theme-rgb), 0.35);
+        }
+
+        .theme-radio-medium:has(input:checked) {
+            background-color: rgba(var(--app-theme-rgb), 0.22) !important;
             color: var(--app-theme-color) !important;
-            border-color: rgba(var(--app-theme-rgb), 0.35) !important;
+            border: 1.5px solid var(--app-theme-color) !important;
+            box-shadow: 0 1px 3px rgba(var(--app-theme-rgb), 0.15);
+        }
+
+        .theme-radio-soft:has(input:checked) {
+            background-color: rgba(var(--app-theme-rgb), 0.08) !important;
+            color: #334155 !important;
+            border: 1.5px solid rgba(var(--app-theme-rgb), 0.4) !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* バッジやカード用の同系色トーン */
+        .theme-badge-medium {
+            background-color: rgba(var(--app-theme-rgb), 0.16) !important;
+            color: var(--app-theme-color) !important;
+            border-color: rgba(var(--app-theme-rgb), 0.4) !important;
         }
 
         .sortable-ghost {
@@ -432,11 +453,11 @@
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 mb-1">種別</label>
                         <div class="grid grid-cols-2 gap-1 bg-slate-200/60 p-1 rounded-xl border border-slate-200/80 backdrop-blur-md">
-                            <label class="flex items-center justify-center space-x-1 py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 hover:text-slate-800 has-[:checked]:bg-app-theme has-[:checked]:text-white has-[:checked]:shadow-sm">
+                            <label class="theme-radio-solid flex items-center justify-center space-x-1 py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 hover:text-slate-800">
                                 <input type="radio" name="itemType" value="reminder" checked class="hidden">
                                 <span class="text-[10.5px] font-bold whitespace-nowrap">リマインダー</span>
                             </label>
-                            <label class="flex items-center justify-center space-x-1 py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 hover:text-slate-800 has-[:checked]:bg-app-theme has-[:checked]:text-white has-[:checked]:shadow-sm">
+                            <label class="theme-radio-solid flex items-center justify-center space-x-1 py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 hover:text-slate-800">
                                 <input type="radio" name="itemType" value="memo" class="hidden">
                                 <span class="text-[10.5px] font-bold whitespace-nowrap">メモ</span>
                             </label>
@@ -464,22 +485,22 @@
                     </div>
                 </div>
 
-                <!-- 優先度（急ぎ・早め・未定）3ボタン選択：テーマカラーの同系色でトーン分け -->
+                <!-- 優先度（急ぎ・早め・未定）3ボタン選択：テーマカラーの同系色で濃淡グラデーション -->
                 <div>
                     <label class="block text-[11px] font-bold text-slate-700 mb-1">重要度・期間設定</label>
                     <div class="grid grid-cols-3 gap-1 bg-white/60 p-1 rounded-xl border border-slate-200/60 backdrop-blur-md">
-                        <!-- 急ぎ：テーマカラーをしっかり際立たせるスタイル -->
-                        <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 has-[:checked]:bg-app-theme has-[:checked]:text-white has-[:checked]:shadow-sm">
+                        <!-- 急ぎ：テーマカラー原色（最も濃い強調） -->
+                        <label class="theme-radio-solid flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 border border-transparent">
                             <input type="radio" name="itemPriority" value="urgent" class="hidden">
                             <span>急ぎ</span>
                         </label>
-                        <!-- 早め：テーマカラーの明るめの同系色トーン -->
-                        <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 has-[:checked]:theme-sub-active has-[:checked]:shadow-sm border border-transparent">
+                        <!-- 早め：テーマカラーの中間トーン -->
+                        <label class="theme-radio-medium flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 border border-transparent">
                             <input type="radio" name="itemPriority" value="early" class="hidden">
                             <span>早め</span>
                         </label>
-                        <!-- 未定：ニュートラルで落ち着いたダークトーン -->
-                        <label class="flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 has-[:checked]:bg-slate-700 has-[:checked]:text-white has-[:checked]:shadow-sm">
+                        <!-- 未定：テーマカラーの淡いライトトーン -->
+                        <label class="theme-radio-soft flex items-center justify-center py-1.5 px-1 rounded-lg cursor-pointer transition-all text-slate-600 text-xs font-bold hover:text-slate-800 border border-transparent">
                             <input type="radio" name="itemPriority" value="none" checked class="hidden">
                             <span>未定</span>
                         </label>
@@ -1164,7 +1185,7 @@
             if (!item) return;
 
             const typeLabel = item.type === 'memo' ? '<span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-lg">📖 メモ</span>' : '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-lg">🛒 リマインダー</span>';
-            const priorityBadge = item.priority === 'urgent' ? '<span class="bg-app-theme text-white text-[10px] font-bold px-2 py-0.5 rounded-full">急ぎ</span>' : (item.priority === 'early' ? '<span class="theme-sub-active text-[10px] font-bold px-2 py-0.5 rounded-full border">早め</span>' : '');
+            const priorityBadge = item.priority === 'urgent' ? '<span class="bg-app-theme text-white text-[10px] font-bold px-2 py-0.5 rounded-full">急ぎ</span>' : (item.priority === 'early' ? '<span class="theme-badge-medium text-[10px] font-bold px-2 py-0.5 rounded-full border">早め</span>' : '');
 
             const content = document.getElementById('viewModalContent');
             
@@ -1316,7 +1337,7 @@
                         }
 
                         let displayMemoText = getDisplayMemo(item.memo);
-                        let priorityTag = item.priority === 'urgent' ? '<span class="bg-app-theme text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">急ぎ</span>' : (item.priority === 'early' ? '<span class="theme-sub-active text-[9px] font-bold px-1.5 py-0.2 rounded-full border">早め</span>' : '');
+                        let priorityTag = item.priority === 'urgent' ? '<span class="bg-app-theme text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">急ぎ</span>' : (item.priority === 'early' ? '<span class="theme-badge-medium text-[9px] font-bold px-1.5 py-0.2 rounded-full border">早め</span>' : '');
 
                         return `
                             <div onclick="${isSelectShareMode ? `toggleItemSelection(event, ${item.id})` : `openViewModal(${item.id})`}" class="p-3.5 rounded-2xl ${cardClass} hover:shadow-md active:scale-[0.99] transition-all duration-150 cursor-pointer flex items-center justify-between ${isPending ? 'opacity-50' : ''} ${isSelected ? 'ring-2 ring-indigo-500/50 bg-indigo-50/60' : ''}">
