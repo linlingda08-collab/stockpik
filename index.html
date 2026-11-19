@@ -592,6 +592,35 @@
         let isSelectShareMode = false;
         let selectedItemIds = new Set();
 
+        function persistItemsSafe(itemForFallback = null) {
+            try {
+                localStorage.setItem('reminders_items', JSON.stringify(items));
+                return true;
+            } catch (err) {
+                if (itemForFallback && itemForFallback.image) {
+                    const savedWithoutImg = { ...itemForFallback, image: '' };
+                    items = items.map(i => i.id === itemForFallback.id ? savedWithoutImg : i);
+                    try {
+                        localStorage.setItem('reminders_items', JSON.stringify(items));
+                        alert('保存容量の上限に近づいているため、写真なしでテキストのみ保存しました。');
+                        return true;
+                    } catch (err2) {}
+                }
+                alert('端末の保存容量がいっぱいのため保存できませんでした。不要な写真や完了済み項目を削除してください。');
+                return false;
+            }
+        }
+
+        function persistGenresSafe() {
+            try {
+                localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
+                return true;
+            } catch (err) {
+                alert('端末の保存容量がいっぱいのためジャンルを保存できませんでした。');
+                return false;
+            }
+        }
+
         function getLocalDateString(d = new Date()) {
             const year = d.getFullYear();
             const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -797,7 +826,7 @@
             if (selectedItemIds.size === 0) return;
             if (confirm(`選択した ${selectedItemIds.size} 件のアイテムを削除してもよろしいですか？`)) {
                 items = items.filter(i => !selectedItemIds.has(i.id));
-                localStorage.setItem('reminders_items', JSON.stringify(items));
+                persistItemsSafe();
                 toggleSelectShareMode();
                 renderApp();
             }
@@ -806,7 +835,7 @@
         function clearAllCompletedItems() {
             if (confirm('完了した項目をすべて削除してもよろしいですか？')) {
                 items = items.filter(i => !(i.type !== 'memo' && i.completed));
-                localStorage.setItem('reminders_items', JSON.stringify(items));
+                persistItemsSafe();
                 renderApp();
             }
         }
@@ -852,7 +881,7 @@
             appThemeColor = color;
             document.documentElement.style.setProperty('--app-theme-color', color);
             document.documentElement.style.setProperty('--app-theme-rgb', hexToRgb(color));
-            localStorage.setItem('reminders_app_theme', color);
+            try { localStorage.setItem('reminders_app_theme', color); } catch (e) {}
             const preview = document.getElementById('themeWheelPreview');
             const picker = document.getElementById('themeWheelInput');
             if (preview) preview.style.backgroundColor = color;
@@ -872,12 +901,12 @@
                 bgContainer.style.backgroundImage = `url('${base64Image}')`;
                 bgContainer.classList.remove('hidden');
                 bgOverlay.classList.remove('hidden');
-                localStorage.setItem('reminders_app_bg', base64Image);
+                try { localStorage.setItem('reminders_app_bg', base64Image); } catch (e) {}
             } else {
                 bgContainer.style.backgroundImage = 'none';
                 bgContainer.classList.add('hidden');
                 bgOverlay.classList.add('hidden');
-                localStorage.removeItem('reminders_app_bg');
+                try { localStorage.removeItem('reminders_app_bg'); } catch (e) {}
                 document.documentElement.style.setProperty('--app-bg-color', '#f8fafc');
             }
         }
@@ -1032,7 +1061,7 @@
                 const target = customGenres.find(g => g.id === editingGenreIdForQuickImage);
                 if (target) {
                     target.image = compressedBase64;
-                    localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
+                    persistGenresSafe();
                     renderApp();
                 }
                 editingGenreIdForQuickImage = null;
@@ -1109,7 +1138,7 @@
                 }
             }
             if (updated) {
-                localStorage.setItem('reminders_items', JSON.stringify(items));
+                persistItemsSafe();
                 renderApp();
             }
         }
@@ -1149,7 +1178,7 @@
                     item.pendingComplete = false;
                     item.completed = true; 
                     delete pendingTimeouts[id];
-                    localStorage.setItem('reminders_items', JSON.stringify(items));
+                    persistItemsSafe(item);
                     renderApp();
                 }, 5000);
             }
@@ -1160,7 +1189,7 @@
             if (item) {
                 item.completed = false;
                 item.pendingComplete = false;
-                localStorage.setItem('reminders_items', JSON.stringify(items));
+                persistItemsSafe(item);
                 renderApp();
             }
         }
@@ -1230,7 +1259,7 @@
         function deleteItemFromView() {
             if (confirm('このアイテムを削除してもよろしいですか？')) {
                 items = items.filter(i => i.id !== viewingItemId);
-                localStorage.setItem('reminders_items', JSON.stringify(items));
+                persistItemsSafe();
                 closeViewModal();
                 renderApp();
             }
@@ -1583,7 +1612,7 @@
                 onEnd: function() {
                     const newOrderIds = Array.from(folderContainer.children).map(el => Number(el.getAttribute('data-id')));
                     customGenres.sort((a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
-                    localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
+                    persistGenresSafe();
                 }
             });
         }
@@ -1676,11 +1705,12 @@
 
         function openModal(id = null) {
             if (customGenres.length === 0) {
-                alert('先にジャンルを作成してください（右上「外観・背景」または「ジャンル」ボタンより）');
+                alert('先にジャンルを作成してください（右上「ジャンル」ボタンより）');
                 openGenreManageModal();
                 return;
             }
 
+            renderCategorySelect();
             const form = document.getElementById('itemForm');
             form.reset();
             clearItemImage();
@@ -1743,15 +1773,16 @@
             const memoVal = document.getElementById('itemMemo').value;
             const extractedUrl = extractUrl(memoVal);
             const savedUrl = document.getElementById('itemUrl').value || extractedUrl;
+            const categoryVal = document.getElementById('itemCategory').value || (customGenres[0] ? customGenres[0].name : '');
 
             const newItem = {
                 id: id ? Number(id) : Date.now(),
                 type: typeVal,
                 priority: priorityVal,
-                title: document.getElementById('itemTitle').value,
-                category: document.getElementById('itemCategory').value,
+                title: document.getElementById('itemTitle').value.trim(),
+                category: categoryVal,
                 targetDate: document.getElementById('itemTargetDate').value,
-                store: document.getElementById('itemStore').value,
+                store: document.getElementById('itemStore').value.trim(),
                 memo: memoVal,
                 url: savedUrl,
                 image: imageBase64 || '',
@@ -1761,12 +1792,16 @@
 
             if (id) {
                 const index = items.findIndex(i => i.id === Number(id));
-                items[index] = { ...items[index], ...newItem };
+                if (index !== -1) {
+                    items[index] = { ...items[index], ...newItem };
+                } else {
+                    items.unshift(newItem);
+                }
             } else {
                 items.unshift(newItem);
             }
 
-            localStorage.setItem('reminders_items', JSON.stringify(items));
+            persistItemsSafe(newItem);
             renderApp();
 
             if (!imageBase64 && savedUrl) {
@@ -1779,7 +1814,7 @@
                                 const targetItem = items.find(i => i.id === newItem.id);
                                 if (targetItem) {
                                     targetItem.image = b64;
-                                    localStorage.setItem('reminders_items', JSON.stringify(items));
+                                    persistItemsSafe(targetItem);
                                     renderApp();
                                 }
                             }
@@ -1792,7 +1827,7 @@
         function deleteItem(id) {
             if (confirm('このアイテムを削除してもよろしいですか？')) {
                 items = items.filter(i => i.id !== id);
-                localStorage.setItem('reminders_items', JSON.stringify(items));
+                persistItemsSafe();
                 renderApp();
             }
         }
@@ -1827,7 +1862,7 @@
                 const target = customGenres.find(g => g.id === id);
                 if (target) {
                     target.image = compressedBase64;
-                    localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
+                    persistGenresSafe();
                     renderGenreManageList();
                     renderApp();
                 }
@@ -1838,7 +1873,7 @@
             const target = customGenres.find(g => g.id === id);
             if (target) {
                 delete target.image;
-                localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
+                persistGenresSafe();
                 renderGenreManageList();
                 renderApp();
             }
@@ -1880,7 +1915,7 @@
         function confirmDeleteGenre(id, name) {
             if (confirm(`カテゴリー「${name}」を削除してもよろしいですか？\n※この操作は元に戻せません。`)) {
                 customGenres = customGenres.filter(g => g.id !== id);
-                localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
+                persistGenresSafe();
                 renderGenreManageList();
                 renderCategorySelect();
                 renderApp();
@@ -1904,7 +1939,7 @@
             if (imageInput.value) newGenre.image = imageInput.value;
 
             customGenres.push(newGenre);
-            localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
+            persistGenresSafe();
             nameInput.value = '';
             clearGenreImageInAdd();
             renderGenreManageList();
@@ -1917,7 +1952,7 @@
             const target = customGenres.find(g => g.id === id);
             if (target) {
                 target.color = newColor;
-                localStorage.setItem('reminders_genres', JSON.stringify(customGenres));
+                persistGenresSafe();
                 renderApp();
             }
         }
